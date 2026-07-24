@@ -1,0 +1,268 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
+import { useLoop } from "@/lib/LoopContext";
+import { toast } from "sonner";
+import { Send, Edit2, Check, X } from "lucide-react";
+import type { Message } from "@/lib/types";
+
+export default function ChatView() {
+  const { session, selectedLoop, profile, formatTime, theme } = useLoop();
+  const { border, cardBg, mutedText, text } = theme;
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // Fetch messages on mount
+  useEffect(() => {
+    if (!selectedLoop) return;
+    fetchMessages(selectedLoop.id);
+  }, [selectedLoop]);
+
+  // Real-time chat subscription
+  useEffect(() => {
+    if (!selectedLoop) return;
+    const loopId = selectedLoop.id;
+
+    const msgSub = supabase
+      .channel(`chat-${loopId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        async (payload) => {
+          if (payload.new.user_id === session.user.id) return;
+          const { data } = await supabase
+            .from("messages")
+            .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name)")
+            .eq("id", payload.new.id)
+            .single();
+          if (data) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === data.id)) return prev;
+              return [...prev, data as Message];
+            });
+            requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        (payload) => {
+          setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(msgSub);
+    };
+  }, [selectedLoop, session.user.id]);
+
+  const fetchMessages = async (loopId: string) => {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name)")
+      .eq("loop_id", loopId)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setMessages(data as Message[]);
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedLoop) return;
+    const content = newMessage.trim();
+    setNewMessage("");
+
+    // Optimistic: add immediately
+    const optimisticId = `opt-${Date.now()}`;
+    const optimisticMsg: Message = {
+      id: optimisticId,
+      loop_id: selectedLoop.id,
+      user_id: session.user.id,
+      content,
+      created_at: new Date().toISOString(),
+      profiles: { display_name: profile.display_name },
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+    requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+
+    const { data: inserted, error } = await supabase
+      .from("messages")
+      .insert({ loop_id: selectedLoop.id, user_id: session.user.id, content })
+      .select("id, loop_id, user_id, content, created_at")
+      .single();
+
+    if (error || !inserted) {
+      toast.error("Failed to send message");
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      setNewMessage(content);
+    } else {
+      const realMsg: Message = {
+        ...inserted,
+        profiles: { display_name: profile.display_name },
+      };
+      setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
+    }
+  };
+
+  const startEditMessage = (msg: Message) => {
+    const ageMs = Date.now() - new Date(msg.created_at).getTime();
+    if (ageMs > 5 * 60 * 1000) {
+      toast.error("You can only edit messages within 5 minutes of sending");
+      return;
+    }
+    setEditingMsgId(msg.id);
+    setEditingContent(msg.content);
+  };
+
+  const saveEditMessage = async () => {
+    if (!editingMsgId || !editingContent.trim()) return;
+    const { error } = await supabase
+      .from("messages")
+      .update({ content: editingContent.trim(), edited_at: new Date().toISOString() })
+      .eq("id", editingMsgId);
+
+    if (error) {
+      toast.error("Failed to edit message");
+    } else {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === editingMsgId
+            ? { ...m, content: editingContent.trim(), edited_at: new Date().toISOString() }
+            : m
+        )
+      );
+      setEditingMsgId(null);
+      setEditingContent("");
+    }
+  };
+
+  if (!selectedLoop) return null;
+
+  return (
+    <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+      {/* Messages scroll area */}
+      <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className={`w-14 h-14 rounded-full ${cardBg} border ${border} flex items-center justify-center mb-3`}>
+              <Send size={22} className="opacity-20 -rotate-12" />
+            </div>
+            <p className={`text-xs font-black ${mutedText} uppercase tracking-widest`}>No messages yet</p>
+            <p className={`text-[10px] ${mutedText} opacity-50 mt-1`}>Be the first to say hi!</p>
+          </div>
+        ) : (
+          messages.map((msg, idx) => {
+            const isMe = msg.user_id === session.user.id;
+            const showSender = idx === 0 || messages[idx - 1]?.user_id !== msg.user_id;
+            const isEditing = editingMsgId === msg.id;
+            const isOptimistic = msg.id.startsWith("opt-");
+
+            return (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${isMe ? "items-end" : "items-start"} ${showSender ? "mt-4" : "mt-0.5"}`}
+              >
+                {showSender && (
+                  <p className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? "text-[#FFC554]" : mutedText}`}>
+                    {isMe ? "You" : msg.profiles?.display_name || "Member"}
+                  </p>
+                )}
+
+                {isEditing ? (
+                  <div className={`w-full max-w-[85%] ${cardBg} border ${border} rounded-[18px] p-2 flex gap-2 items-center`}>
+                    <input
+                      autoFocus
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEditMessage();
+                        if (e.key === "Escape") setEditingMsgId(null);
+                      }}
+                      className="flex-1 bg-transparent text-[13px] font-medium outline-none"
+                    />
+                    <button
+                      onClick={saveEditMessage}
+                      className="w-7 h-7 rounded-lg bg-[#FFC554] text-black flex items-center justify-center shrink-0 active:scale-90"
+                    >
+                      <Check size={13} strokeWidth={3} />
+                    </button>
+                    <button
+                      onClick={() => setEditingMsgId(null)}
+                      className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0 active:scale-90"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className="relative max-w-[80%] group"
+                    onDoubleClick={() => isMe && !isOptimistic && startEditMessage(msg)}
+                  >
+                    <div
+                      className={`px-4 py-2.5 text-[13px] font-medium shadow-sm ${
+                        isMe
+                          ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                          : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                    {/* Edit button */}
+                    {isMe && !isOptimistic && (
+                      <button
+                        onClick={() => startEditMessage(msg)}
+                        className="absolute -left-7 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-focus-within:opacity-100 active:opacity-100"
+                        style={{ WebkitTapHighlightColor: "transparent" }}
+                      >
+                        <Edit2 size={10} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <div className={`flex items-center gap-1 mt-0.5 px-1`}>
+                  <p className={`text-[9px] ${mutedText} opacity-40`}>{formatTime(msg.created_at)}</p>
+                  {msg.edited_at && (
+                    <p className={`text-[9px] ${mutedText} opacity-30 italic`}>edited</p>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Message input */}
+      <div className="shrink-0 px-4 pb-5 pt-2">
+        <div className={`${cardBg} border ${border} rounded-[24px] p-1.5 flex gap-2 shadow-xl items-center`}>
+          <input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+            placeholder="Message..."
+            className="flex-1 bg-transparent px-4 text-sm font-medium outline-none"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMessage.trim()}
+            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90 transition-transform shrink-0 disabled:opacity-40"
+          >
+            <Send size={15} strokeWidth={2.5} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

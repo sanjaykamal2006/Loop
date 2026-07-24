@@ -31,9 +31,11 @@ export default function AuthLogin() {
     return null;
   };
 
+  const sanitizeEmail = (raw: string) => raw.trim().toLowerCase();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isVerifying) {
       handleVerifyOtp();
       return;
@@ -46,11 +48,12 @@ export default function AuthLogin() {
     }
 
     setIsLoading(true);
+    const cleanEmail = sanitizeEmail(email);
 
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password,
         });
         if (error) {
@@ -62,7 +65,7 @@ export default function AuthLogin() {
         toast.success("Welcome back!");
       } else {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
         });
         if (error) {
@@ -71,32 +74,34 @@ export default function AuthLogin() {
           }
           throw error;
         }
-        
+
         if (data.session) {
           toast.success("Welcome to Loop!");
         } else {
           setIsVerifying(true);
           setCountdown(60);
-          // Removed "Check your email" toast as requested
         }
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-    const handleVerifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     if (otp.length !== 6) {
       toast.error("Please enter the 6-digit code");
       return;
     }
 
     setIsLoading(true);
+    const cleanEmail = sanitizeEmail(email);
+
     try {
       const { data, error } = await supabase.auth.verifyOtp({
-        email,
+        email: cleanEmail,
         token: otp,
         type: "email",
       });
@@ -107,7 +112,7 @@ export default function AuthLogin() {
         }
         throw error;
       }
-      
+
       if (data.session) {
         toast.success("Account activated! Welcome to Loop.");
       } else {
@@ -115,8 +120,9 @@ export default function AuthLogin() {
         setIsLogin(true);
         setIsVerifying(false);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Invalid or expired code");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid or expired code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -124,19 +130,22 @@ export default function AuthLogin() {
 
   const resendOtp = async () => {
     if (countdown > 0) return;
-    
+
     setIsLoading(true);
+    const cleanEmail = sanitizeEmail(email);
+
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
-        email: email,
+        email: cleanEmail,
       });
       if (error) throw error;
       setCountdown(60);
-      setOtp(""); // Clear expired OTP
+      setOtp("");
       toast.success("New code sent!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to resend code");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to resend code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +156,7 @@ export default function AuthLogin() {
       <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
         <div className="dot-matrix-bg text-white" />
         <div className="flex flex-col h-full px-8 relative z-10 pt-12">
-          <button 
+          <button
             onClick={() => setIsVerifying(false)}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
           >
@@ -162,32 +171,32 @@ export default function AuthLogin() {
               </p>
             </div>
 
-              <div className="space-y-8 w-full flex flex-col items-center">
-                <OTPInput
-                  maxLength={6}
-                  value={otp}
-                  onChange={setOtp}
-                  onComplete={handleVerifyOtp}
-                  containerClassName="flex gap-2"
-                  render={({ slots }) => (
-                    <div className="flex gap-2">
-                      {slots.map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
-                      ))}
-                    </div>
-                  )}
-                />
+            <div className="space-y-8 w-full flex flex-col items-center">
+              <OTPInput
+                maxLength={6}
+                value={otp}
+                onChange={setOtp}
+                onComplete={handleVerifyOtp}
+                containerClassName="flex gap-2"
+                render={({ slots }) => (
+                  <div className="flex gap-2">
+                    {slots.map((slot, idx) => (
+                      <Slot key={idx} {...slot} />
+                    ))}
+                  </div>
+                )}
+              />
 
-                <div className="w-full space-y-4">
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={isLoading || otp.length < 6}
-                    className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                  >
+              <div className="w-full space-y-4">
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={isLoading || otp.length < 6}
+                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+                >
                   {isLoading ? "Verifying..." : "Verify & Continue"}
                 </button>
 
-                <button 
+                <button
                   onClick={resendOtp}
                   disabled={isLoading || countdown > 0}
                   className="w-full py-2 text-xs font-bold opacity-40 disabled:opacity-20 transition-opacity"
@@ -204,72 +213,72 @@ export default function AuthLogin() {
 
   return (
     <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
-        <div className="dot-matrix-bg text-white" />
-        
-        <div className="flex flex-col items-center justify-center h-full px-8 relative z-10">
-          <div className="w-full space-y-12">
-            <div className="text-center space-y-2">
-              <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
-              <p className="text-sm font-medium opacity-40">Rides go better in Loop.</p>
+      <div className="dot-matrix-bg text-white" />
+
+      <div className="flex flex-col items-center justify-center h-full px-8 relative z-10">
+        <div className="w-full space-y-12">
+          <div className="text-center space-y-2">
+            <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
+            <p className="text-sm font-medium opacity-40">Rides go better in Loop.</p>
+          </div>
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Email Address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@email.com"
+                className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+              />
             </div>
 
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Email Address</label>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Password</label>
+              <div className="relative">
                 <input
-                  type="email"
+                  type={showPassword ? "text" : "password"}
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@email.com"
-                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-4 space-y-4">
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                >
-                  {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
-                </button>
-
-                <button 
                   type="button"
-                  className="w-full py-2 text-sm font-bold opacity-40 hover:opacity-100 transition-opacity"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setShowPassword(false);
-                  }}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
                 >
-                  {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div className="pt-4 space-y-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+              >
+                {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
+              </button>
+
+              <button
+                type="button"
+                className="w-full py-2 text-sm font-bold opacity-40 hover:opacity-100 transition-opacity"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setShowPassword(false);
+                }}
+              >
+                {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
   );
 }

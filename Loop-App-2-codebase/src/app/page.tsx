@@ -27,8 +27,16 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-white text-sm uppercase tracking-widest animate-pulse">Loading...</div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black relative overflow-hidden">
+        <div className="dot-matrix-bg text-white" />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <h1 className="text-5xl font-black tracking-tighter text-white">LOOP</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FFC554] animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FFC554] animate-pulse [animation-delay:150ms]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FFC554] animate-pulse [animation-delay:300ms]" />
+          </div>
+        </div>
       </div>
     );
   }
