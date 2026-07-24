@@ -54,6 +54,7 @@ export default function CreateView() {
           participants_limit: limit,
           is_female_only: isFemaleOnly,
           expires_at: expiresAt.toISOString(),
+          status: "active",
         })
         .select()
         .single();
