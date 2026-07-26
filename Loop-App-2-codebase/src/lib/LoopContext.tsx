@@ -241,7 +241,9 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, [session.user.id, fetchLoops]);
 
   const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "global" });
+    // Force reload as fallback — some desktop browsers don't fire the auth state change
+    window.location.reload();
   }, []);
 
   const formatTime = useCallback((iso: string) => {
