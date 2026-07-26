@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { motion } from "framer-motion";
 import { Users, Clock, MapPin } from "lucide-react";
 
 export default function HomeView() {
@@ -21,14 +20,13 @@ export default function HomeView() {
   return (
     <div className="space-y-2.5 pt-1">
       {activeLoops.map((loop) => (
-        <motion.div
+        <div
           key={loop.id}
-          whileTap={{ scale: 0.98 }}
           onClick={() => {
             setSelectedLoop(loop);
             setView("ride-details");
           }}
-          className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer`}
+          className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform`}
         >
           <div className="flex justify-between items-start">
             <h3 className="font-black text-sm uppercase tracking-tight truncate flex-1 mr-4">{loop.destination}</h3>
@@ -47,7 +45,7 @@ export default function HomeView() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

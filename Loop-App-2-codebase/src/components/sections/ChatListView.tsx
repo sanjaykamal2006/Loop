@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { motion } from "framer-motion";
 import { MessageSquare, ChevronLeft } from "lucide-react";
 
 export default function ChatListView() {
@@ -23,14 +22,13 @@ export default function ChatListView() {
   return (
     <div className="space-y-2.5 pt-1">
       {joinedLoops.map((loop) => (
-        <motion.div
+        <div
           key={loop.id}
-          whileTap={{ scale: 0.98 }}
           onClick={() => {
             setSelectedLoop(loop);
             setView("chat");
           }}
-          className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm cursor-pointer`}
+          className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm cursor-pointer active:scale-[0.98] transition-transform`}
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -44,7 +42,7 @@ export default function ChatListView() {
             </div>
             <ChevronLeft size={16} className="rotate-180 opacity-20" />
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

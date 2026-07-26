@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+
 import { Users } from "lucide-react";
 
 export default function CreateView() {
@@ -125,14 +125,13 @@ export default function CreateView() {
         <div className="space-y-1.5">
           <div className="flex gap-1.5">
             {[2, 3, 4, 5, 6].map((n) => (
-              <motion.button
+              <button
                 key={n}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setLimit(n)}
                 className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
               >
                 {n}
-              </motion.button>
+              </button>
             ))}
           </div>
           <div className="flex gap-1.5 px-4">
@@ -162,9 +161,9 @@ export default function CreateView() {
         </div>
         <button
           onClick={() => setIsFemaleOnly(!isFemaleOnly)}
-          className={`w-14 h-7 rounded-full relative transition-all duration-300 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-200"}`}
+          className={`w-12 h-7 rounded-full relative transition-all duration-300 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-200"}`}
         >
-          <motion.div animate={{ x: isFemaleOnly ? 28 : 3 }} className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md" />
+          <div className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-all duration-300 ${isFemaleOnly ? "left-[23px]" : "left-[3px]"}`} />
         </button>
       </div>
 

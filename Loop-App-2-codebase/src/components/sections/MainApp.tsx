@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Session } from "@supabase/supabase-js";
-import { motion, AnimatePresence } from "framer-motion";
 import { LoopProvider, useLoop } from "@/lib/LoopContext";
 
 import AppHeader from "./AppHeader";
@@ -29,22 +28,13 @@ function AppContent() {
       {view === "chat" && selectedLoop ? (
         <ChatView />
       ) : (
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={view}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="flex-1 overflow-y-auto relative z-10 px-5 scrollbar-hide pb-28"
-          >
-            {view === "home" && <HomeView />}
-            {view === "create" && <CreateView />}
-            {view === "chat-list" && <ChatListView />}
-            {view === "profile" && <ProfileView />}
-            {view === "ride-details" && selectedLoop && <RideDetailsView />}
-          </motion.main>
-        </AnimatePresence>
+        <main className="flex-1 overflow-y-auto relative z-10 px-5 scrollbar-hide pb-28">
+          {view === "home" && <HomeView />}
+          {view === "create" && <CreateView />}
+          {view === "chat-list" && <ChatListView />}
+          {view === "profile" && <ProfileView />}
+          {view === "ride-details" && selectedLoop && <RideDetailsView />}
+        </main>
       )}
 
       <BottomNav />

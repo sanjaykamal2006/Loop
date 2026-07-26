@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
-import { motion } from "framer-motion";
+
 import { MapPin, Clock, Trash2, LogOut as LeaveIcon } from "lucide-react";
 import type { LoopMember } from "@/lib/types";
 
@@ -131,14 +131,13 @@ export default function RideDetailsView() {
       </div>
 
       <div className="flex flex-col gap-2 pt-1">
-        <motion.button
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
           disabled={isJoining}
           className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-transform"
         >
           {isJoined ? "Open Chat" : "Join Loop"}
-        </motion.button>
+        </button>
 
         {/* Leave Loop — for joined non-creators */}
         {isJoined && !isCreator && (
