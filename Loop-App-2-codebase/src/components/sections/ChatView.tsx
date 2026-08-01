@@ -22,6 +22,7 @@ export default function ChatView() {
   // Fetch messages on mount
   useEffect(() => {
     if (!selectedLoop) return;
+    setMessages([]);
     fetchMessages(selectedLoop.id);
   }, [selectedLoop]);
 
@@ -34,12 +35,13 @@ export default function ChatView() {
       .channel(`chat-${loopId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        { event: "INSERT", schema: "public", table: "messages" },
         async (payload) => {
+          if (payload.new.loop_id !== loopId) return;
           if (payload.new.user_id === session.user.id) return;
           const { data } = await supabase
             .from("messages")
-            .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name)")
+            .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name, avatar_url)")
             .eq("id", payload.new.id)
             .single();
           if (data) {
@@ -53,8 +55,9 @@ export default function ChatView() {
       )
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        { event: "UPDATE", schema: "public", table: "messages" },
         (payload) => {
+          if (payload.new.loop_id !== loopId) return;
           setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
         }
       )
@@ -68,7 +71,7 @@ export default function ChatView() {
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name, avatar_url)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
