@@ -136,14 +136,13 @@ export default function CreateView() {
           </div>
           <div className="flex gap-1.5 px-4">
             {[7, 8, 9, 10].map((n) => (
-              <motion.button
+              <button
                 key={n}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setLimit(n)}
                 className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
               >
                 {n}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
