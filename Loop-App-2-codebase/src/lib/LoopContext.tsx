@@ -18,6 +18,7 @@ interface LoopContextValue {
 
   // Theme
   theme: ThemeClasses;
+  themeTransition: { active: boolean, nextTheme: 'dark' | 'light' } | null;
   toggleTheme: () => void;
 
   // Profile
@@ -96,15 +97,26 @@ export function LoopProvider({ session, children }: { session: Session; children
   const isDark = profile.theme === "dark";
   const theme: ThemeClasses = {
     isDark,
-    bg: isDark ? "bg-[#000000]" : "bg-[#FFFFFF]",
-    text: isDark ? "text-white" : "text-[#18181B]",
-    border: isDark ? "border-[#27272A]" : "border-[#D4D4D8]",
-    cardBg: isDark ? "bg-[#121212]" : "bg-[#F4F4F5]",
-    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#52525B]",
+    bg: isDark ? "bg-[#000000]" : "bg-[#F7F5F0]",
+    text: isDark ? "text-white" : "text-[#2C2B29]",
+    border: isDark ? "border-[#27272A]" : "border-[#E8E5DF]",
+    cardBg: isDark ? "bg-[#121212]" : "bg-[#FFFFFF]",
+    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#85827C]",
   };
 
+  const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);
+
   const toggleTheme = () => {
-    updateProfile({ theme: profile.theme === "dark" ? "light" : "dark" });
+    const nextTheme = profile.theme === "dark" ? "light" : "dark";
+    setThemeTransition({ active: true, nextTheme });
+    
+    setTimeout(() => {
+      updateProfile({ theme: nextTheme });
+      setTimeout(() => {
+        setThemeTransition({ active: false, nextTheme });
+        setTimeout(() => setThemeTransition(null), 300);
+      }, 50);
+    }, 300);
   };
 
   // --- Fetch profile ---
@@ -277,6 +289,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     selectedLoop,
     setSelectedLoop,
     theme,
+    themeTransition,
     toggleTheme,
     profile,
     updateProfile,

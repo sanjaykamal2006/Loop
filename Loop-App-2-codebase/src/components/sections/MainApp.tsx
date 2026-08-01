@@ -15,7 +15,7 @@ import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 
 function AppContent() {
-  const { view, selectedLoop, theme } = useLoop();
+  const { view, selectedLoop, theme, themeTransition } = useLoop();
   const { isDark, bg, text } = theme;
 
   return (
@@ -39,6 +39,15 @@ function AppContent() {
 
       <BottomNav />
       <GenderModal />
+
+      {/* Theme Transition Overlay */}
+      {themeTransition && (
+        <div 
+          className={`absolute inset-0 z-50 transition-opacity duration-300 pointer-events-none ${
+            themeTransition.active ? "opacity-100" : "opacity-0"
+          } ${themeTransition.nextTheme === "dark" ? "bg-[#000000]" : "bg-[#F7F5F0]"}`}
+        />
+      )}
     </div>
   );
 }
