@@ -49,25 +49,28 @@ export default function ProfileView() {
 
   return (
     <div className="flex flex-col items-center pt-4 pb-2 gap-5">
-      <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
-        <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] flex items-center justify-center text-black text-2xl font-black shadow-xl overflow-hidden shrink-0">
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            profile.display_name.substring(0, 2).toUpperCase()
-          )}
+      <div className="flex flex-col items-center gap-2">
+        <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
+          <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] flex items-center justify-center text-black text-2xl font-black shadow-xl overflow-hidden shrink-0">
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              profile.display_name.substring(0, 2).toUpperCase()
+            )}
+          </div>
+          <div className="absolute inset-0 bg-black/40 rounded-[28px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {isUploading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
+          </div>
+          <input 
+            type="file" 
+            id="avatar-upload" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={uploadAvatar}
+            disabled={isUploading}
+          />
         </div>
-        <div className="absolute inset-0 bg-black/40 rounded-[28px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          {isUploading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
-        </div>
-        <input 
-          type="file" 
-          id="avatar-upload" 
-          accept="image/*" 
-          className="hidden" 
-          onChange={uploadAvatar}
-          disabled={isUploading}
-        />
+        <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-wider`}>Edit Picture</p>
       </div>
 
       <div className="w-full space-y-3">

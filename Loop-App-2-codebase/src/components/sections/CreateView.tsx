@@ -41,6 +41,12 @@ export default function CreateView() {
     if (ampm === "PM" && h < 12) h += 12;
     if (ampm === "AM" && h === 12) h = 0;
     departure.setHours(h, parseInt(minute), 0, 0);
+    
+    // If selected time is in the past for today, it must be for tomorrow
+    if (departure < new Date()) {
+      departure.setDate(departure.getDate() + 1);
+    }
+    
     const expiresAt = new Date(departure);
     expiresAt.setHours(expiresAt.getHours() + 2);
 

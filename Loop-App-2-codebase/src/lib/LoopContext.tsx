@@ -111,7 +111,7 @@ export function LoopProvider({ session, children }: { session: Session; children
   const fetchProfile = useCallback(async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("display_name, theme, gender, reg_no")
+      .select("display_name, theme, gender, reg_no, avatar_url")
       .eq("id", session.user.id)
       .single();
 
@@ -123,7 +123,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         theme: "dark",
         updated_at: new Date().toISOString(),
       });
-      setProfile({ display_name: defaultName, theme: "dark", gender: undefined, reg_no: "" });
+      setProfile({ display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined });
       return;
     }
 
@@ -134,6 +134,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         theme: (data.theme as "dark" | "light") || "dark",
         gender: data.gender,
         reg_no: data.reg_no || "",
+        avatar_url: data.avatar_url,
       });
     }
   }, [session.user.id, session.user.email]);
