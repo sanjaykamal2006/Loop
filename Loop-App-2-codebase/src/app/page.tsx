@@ -11,27 +11,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleAuth = async () => {
-      // Check for OAuth PKCE code
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      
-      if (code) {
-        try {
-          await supabase.auth.exchangeCodeForSession(code);
-          // Clean up the URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (err) {
-          console.error("Error exchanging code:", err);
-        }
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-    };
-
-    handleAuth();
+    });
 
     const {
       data: { subscription },
