@@ -5,10 +5,12 @@ import { useLoop } from "@/lib/LoopContext";
 import { Users, Clock, MapPin } from "lucide-react";
 
 export default function HomeView() {
-  const { activeLoops, setSelectedLoop, setView, formatTime, theme } = useLoop();
+  const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme } = useLoop();
   const { border, cardBg, mutedText } = theme;
 
-  if (activeLoops.length === 0) {
+  const feedLoops = activeLoops.filter(l => l.status === 'active' || l.creator_id === session.user.id || userJoinedLoops.includes(l.id));
+
+  if (feedLoops.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[55vh] text-center opacity-40">
         <MapPin size={36} strokeWidth={1.5} />
@@ -19,7 +21,7 @@ export default function HomeView() {
 
   return (
     <div className="space-y-2.5 pt-1">
-      {activeLoops.map((loop) => (
+      {feedLoops.map((loop) => (
         <div
           key={loop.id}
           onClick={() => {

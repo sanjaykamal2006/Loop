@@ -91,7 +91,7 @@ export default function ChatView() {
       user_id: session.user.id,
       content,
       created_at: new Date().toISOString(),
-      profiles: { display_name: profile.display_name },
+      profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
@@ -109,7 +109,7 @@ export default function ChatView() {
     } else {
       const realMsg: Message = {
         ...inserted,
-        profiles: { display_name: profile.display_name },
+        profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
       };
       setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
     }
@@ -174,9 +174,20 @@ export default function ChatView() {
                 className={`flex flex-col ${isMe ? "items-end" : "items-start"} ${showSender ? "mt-4" : "mt-0.5"}`}
               >
                 {showSender && (
-                  <p className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? "text-[#FFC554]" : mutedText}`}>
-                    {isMe ? "You" : msg.profiles?.display_name || "Member"}
-                  </p>
+                  <div className={`flex items-center gap-1.5 mb-1 px-1 ${isMe ? "flex-row-reverse" : ""}`}>
+                    {msg.profiles?.avatar_url ? (
+                      <img src={msg.profiles.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
+                        <span className="text-[8px] font-bold text-[#FFC554]">
+                          {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <p className={`text-[10px] font-semibold ${isMe ? "text-[#FFC554]" : mutedText}`}>
+                      {isMe ? "You" : msg.profiles?.display_name || "Member"}
+                    </p>
+                  </div>
                 )}
 
                 {isEditing ? (

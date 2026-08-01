@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, Play, XCircle, UserMinus } from "lucide-react";
+import { toast } from "sonner";
 import type { LoopMember } from "@/lib/types";
 
 export default function RideDetailsView() {
@@ -67,6 +68,37 @@ export default function RideDetailsView() {
     setView("chat");
   };
 
+  const removeMember = async (userId: string) => {
+    if (!selectedLoop || !isCreator) return;
+    const { error } = await supabase
+      .from("loop_members")
+      .delete()
+      .match({ loop_id: selectedLoop.id, user_id: userId });
+    
+    if (error) {
+      toast.error("Failed to remove member");
+    } else {
+      toast.success("Member removed");
+      fetchLoopMembers(selectedLoop.id);
+    }
+  };
+
+  const updateLoopStatus = async (status: string) => {
+    if (!selectedLoop || !isCreator) return;
+    const { error } = await supabase
+      .from("loops")
+      .update({ status })
+      .eq("id", selectedLoop.id);
+
+    if (error) {
+      toast.error("Failed to update loop status");
+    } else {
+      toast.success(status === 'cancelled' ? "Loop cancelled" : "Journey started!");
+      fetchLoops();
+      setView("home");
+    }
+  };
+
   if (!selectedLoop) return null;
 
   const isCreator = userLoops.includes(selectedLoop.id);
@@ -110,20 +142,34 @@ export default function RideDetailsView() {
                 className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black ${
-                      member.profiles?.gender === "female"
-                        ? "bg-pink-500/15 text-pink-400"
-                        : "bg-blue-500/15 text-blue-400"
-                    }`}
-                  >
-                    {(member.profiles?.display_name || "M").substring(0, 1).toUpperCase()}
-                  </div>
+                  {member.profiles?.avatar_url ? (
+                    <img src={member.profiles.avatar_url} className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-black ${
+                        member.profiles?.gender === "female"
+                          ? "bg-pink-500/15 text-pink-400"
+                          : "bg-blue-500/15 text-blue-400"
+                      }`}
+                    >
+                      {(member.profiles?.display_name || "M").substring(0, 1).toUpperCase()}
+                    </div>
+                  )}
                   <span className="text-sm font-bold">{member.profiles?.display_name || "Member"}</span>
                 </div>
-                <span className={`text-[10px] font-black ${mutedText} capitalize`}>
-                  {member.profiles?.gender || "—"}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-black ${mutedText} capitalize`}>
+                    {member.profiles?.gender || "—"}
+                  </span>
+                  {isCreator && member.user_id !== session.user.id && (
+                    <button 
+                      onClick={() => removeMember(member.user_id)}
+                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90 transition-transform"
+                    >
+                      <UserMinus size={12} strokeWidth={3} />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -138,6 +184,23 @@ export default function RideDetailsView() {
         >
           {isJoined ? "Open Chat" : "Join Loop"}
         </button>
+
+        {isCreator && (
+          <div className="flex gap-2 w-full mt-2">
+            <button
+              onClick={() => updateLoopStatus('in_progress')}
+              className="flex-1 h-11 bg-green-500 text-black font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] transition-transform"
+            >
+              <Play size={14} fill="currentColor" /> Start Journey
+            </button>
+            <button
+              onClick={() => updateLoopStatus('cancelled')}
+              className={`flex-1 h-11 ${cardBg} border border-red-500/30 text-red-500 font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform`}
+            >
+              <XCircle size={14} /> Cancel Loop
+            </button>
+          </div>
+        )}
 
         {/* Leave Loop — for joined non-creators */}
         {isJoined && !isCreator && (

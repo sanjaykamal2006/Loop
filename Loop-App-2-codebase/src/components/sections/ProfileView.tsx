@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme } = useLoop();
@@ -11,16 +13,61 @@ export default function ProfileView() {
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSave = () => {
     updateProfile({ display_name: tempName, reg_no: tempRegNo });
     setIsEditingProfile(false);
   };
 
+  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setIsUploading(true);
+      if (!event.target.files || event.target.files.length === 0) return;
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${session.user.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      await updateProfile({ avatar_url: publicUrl });
+      toast.success("Avatar updated!");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center pt-4 pb-2 gap-5">
-      <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] flex items-center justify-center text-black text-2xl font-black shadow-xl shrink-0">
-        {profile.display_name.substring(0, 2).toUpperCase()}
+      <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
+        <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] flex items-center justify-center text-black text-2xl font-black shadow-xl overflow-hidden shrink-0">
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            profile.display_name.substring(0, 2).toUpperCase()
+          )}
+        </div>
+        <div className="absolute inset-0 bg-black/40 rounded-[28px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          {isUploading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
+        </div>
+        <input 
+          type="file" 
+          id="avatar-upload" 
+          accept="image/*" 
+          className="hidden" 
+          onChange={uploadAvatar}
+          disabled={isUploading}
+        />
       </div>
 
       <div className="w-full space-y-3">

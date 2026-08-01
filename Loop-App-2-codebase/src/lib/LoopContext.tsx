@@ -173,7 +173,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     const { data, error } = await supabase
       .from("loops")
       .select("*, loop_members(count)")
-      .eq("status", "active")
+      .in("status", ["active", "in_progress"])
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false });
 

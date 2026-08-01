@@ -10,6 +10,7 @@ export interface Loop {
   purpose?: string;
   expires_at: string;
   member_count?: number;
+  status?: string;
 }
 
 export interface Profile {
@@ -17,6 +18,7 @@ export interface Profile {
   theme: "dark" | "light";
   gender?: string;
   reg_no?: string;
+  avatar_url?: string;
 }
 
 export interface Message {
@@ -26,7 +28,7 @@ export interface Message {
   content: string;
   created_at: string;
   edited_at?: string;
-  profiles?: { display_name: string };
+  profiles?: { display_name: string; avatar_url?: string };
 }
 
 export interface LoopMember {
@@ -34,6 +36,7 @@ export interface LoopMember {
   profiles: {
     display_name: string;
     gender: string;
+    avatar_url?: string;
   } | null;
 }
 
