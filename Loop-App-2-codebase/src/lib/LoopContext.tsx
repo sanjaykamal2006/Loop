@@ -97,26 +97,18 @@ export function LoopProvider({ session, children }: { session: Session; children
   const isDark = profile.theme === "dark";
   const theme: ThemeClasses = {
     isDark,
-    bg: isDark ? "bg-[#000000]" : "bg-[#EFE9DF]",
-    text: isDark ? "text-white" : "text-[#3D3B38]",
-    border: isDark ? "border-[#27272A]" : "border-[#DED8CE]",
-    cardBg: isDark ? "bg-[#121212]" : "bg-[#F8F6F0]",
-    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#7C7872]",
+    bg: isDark ? "bg-[#000000] transition-colors duration-1000" : "bg-[#EFE9DF] transition-colors duration-1000",
+    text: isDark ? "text-white transition-colors duration-1000" : "text-[#3D3B38] transition-colors duration-1000",
+    border: isDark ? "border-[#27272A] transition-colors duration-1000" : "border-[#DED8CE] transition-colors duration-1000",
+    cardBg: isDark ? "bg-[#121212] transition-colors duration-1000" : "bg-[#F8F6F0] transition-colors duration-1000",
+    mutedText: isDark ? "text-[#A1A1AA] transition-colors duration-1000" : "text-[#7C7872] transition-colors duration-1000",
   };
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);
 
   const toggleTheme = () => {
     const nextTheme = profile.theme === "dark" ? "light" : "dark";
-    setThemeTransition({ active: true, nextTheme });
-    
-    setTimeout(() => {
-      updateProfile({ theme: nextTheme });
-      setTimeout(() => {
-        setThemeTransition({ active: false, nextTheme });
-        setTimeout(() => setThemeTransition(null), 500); // Wait for exit animation
-      }, 300); // Hold the transition screen for 300ms
-    }, 400); // Wait 400ms for enter animation before swapping theme
+    updateProfile({ theme: nextTheme });
   };
 
   // --- Fetch profile ---
