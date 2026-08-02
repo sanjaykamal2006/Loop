@@ -80,7 +80,7 @@ export default function ProfileView() {
             {isEditingProfile ? (
               <button
                 onClick={handleSave}
-                className="w-9 h-9 bg-[#FFC554] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                className="w-9 h-9 bg-[#FFC554] rounded-full flex items-center justify-center shadow-lg active:scale-90 "
               >
                 <Check size={16} className="text-black" strokeWidth={3} />
               </button>
@@ -91,7 +91,7 @@ export default function ProfileView() {
                   setTempRegNo(profile.reg_no || "");
                   setIsEditingProfile(true);
                 }}
-                className="p-2 rounded-full active:scale-90 transition-transform"
+                className="p-2 rounded-full active:scale-90 "
               >
                 <Edit2 size={15} className="text-[#FFC554]" />
               </button>
@@ -137,7 +137,7 @@ export default function ProfileView() {
               <p className="text-sm font-bold capitalize">{profile.gender || "Not set"}</p>
             </div>
           </div>
-          <div className={`flex gap-1 ${isDark ? "bg-white/5" : "bg-black/5"} p-1 rounded-xl`}>
+          <div className={`flex gap-1 ${isDark ? "bg-white/5" : "bg-black/5"} p-1 rounded-xl transition-colors duration-1000`}>
             {["male", "female"].map((g) => (
               <button
                 key={g}
@@ -162,7 +162,7 @@ export default function ProfileView() {
 
         <button
           onClick={handleSignOut}
-          className={`w-full py-4 ${cardBg} border ${border} rounded-[22px] text-red-500 font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] transition-transform shadow-sm`}
+          className={`w-full py-4 ${cardBg} border ${border} rounded-[22px] text-red-500 font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm`}
         >
           Sign Out
         </button>

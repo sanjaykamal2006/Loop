@@ -174,7 +174,7 @@ export default function AuthLogin() {
         <div className="flex flex-col h-full px-8 relative z-10 pt-12">
           <button
             onClick={() => setIsVerifying(false)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 "
           >
             <ArrowLeft size={20} />
           </button>

@@ -40,7 +40,7 @@ export default function BottomNav() {
         <button
           key={v}
           onClick={() => setView(v)}
-          className={`flex flex-col items-center gap-1.5 active:scale-90 transition-transform flex-1 py-1 ${view === v ? "text-[#FFC554]" : mutedText}`}
+          className={`flex flex-col items-center gap-1.5 active:scale-90  flex-1 py-1 ${view === v ? "text-[#FFC554]" : mutedText}`}
         >
           {icon}
           <span className={`text-[11px] font-bold tracking-tight ${view === v ? "opacity-100" : "opacity-50"}`}>{label}</span>

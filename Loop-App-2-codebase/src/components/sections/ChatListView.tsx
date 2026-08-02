@@ -28,7 +28,7 @@ export default function ChatListView() {
             setSelectedLoop(loop);
             setView("chat");
           }}
-          className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm cursor-pointer active:scale-[0.98] transition-transform`}
+          className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm cursor-pointer active:scale-[0.98] `}
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">

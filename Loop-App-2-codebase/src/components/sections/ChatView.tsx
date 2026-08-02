@@ -271,7 +271,7 @@ export default function ChatView() {
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim()}
-            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90 transition-transform shrink-0 disabled:opacity-40"
+            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90  shrink-0 disabled:opacity-40"
           >
             <Send size={15} strokeWidth={2.5} />
           </button>

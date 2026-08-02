@@ -21,7 +21,7 @@ export default function AppHeader() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setView(view === "chat" ? "chat-list" : "home")}
-              className={`w-10 h-10 rounded-full border ${border} flex items-center justify-center ${cardBg} active:scale-90 transition-transform shadow-sm`}
+              className={`w-10 h-10 rounded-full border ${border} flex items-center justify-center ${cardBg} active:scale-90 shadow-sm`}
             >
               <ChevronLeft size={20} />
             </button>
@@ -30,7 +30,7 @@ export default function AppHeader() {
             </h1>
           </div>
           {view === "create" && (
-            <button onClick={() => setView("home")} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
+            <button onClick={() => setView("home")} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
               <Plus size={20} className="rotate-45" />
             </button>
           )}
@@ -45,7 +45,7 @@ export default function AppHeader() {
       {view === "profile" && (
         <div className="flex items-center justify-between w-full pt-2">
           <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <button onClick={toggleTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
+          <button onClick={toggleTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
             {isDark ? <Sun size={18} className="text-[#FFC554]" /> : <Moon size={18} />}
           </button>
         </div>

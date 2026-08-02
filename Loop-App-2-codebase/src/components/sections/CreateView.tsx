@@ -175,7 +175,7 @@ export default function CreateView() {
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] transition-transform disabled:opacity-50"
+        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98]  disabled:opacity-50"
       >
         {isCreatingLoop ? "Creating..." : "Create Loop"}
       </button>

@@ -164,7 +164,7 @@ export default function RideDetailsView() {
                   {isCreator && member.user_id !== session.user.id && (
                     <button 
                       onClick={() => removeMember(member.user_id)}
-                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90 transition-transform"
+                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90 "
                     >
                       <UserMinus size={12} strokeWidth={3} />
                     </button>
@@ -180,7 +180,7 @@ export default function RideDetailsView() {
         <button
           onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
           disabled={isJoining}
-          className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-transform"
+          className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] "
         >
           {isJoined ? "Open Chat" : "Join Loop"}
         </button>
@@ -189,13 +189,13 @@ export default function RideDetailsView() {
           <div className="flex gap-2 w-full mt-2">
             <button
               onClick={() => updateLoopStatus('in_progress')}
-              className="flex-1 h-11 bg-green-500 text-black font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] transition-transform"
+              className="flex-1 h-11 bg-green-500 text-black font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] "
             >
               <Play size={14} fill="currentColor" /> Start Journey
             </button>
             <button
               onClick={() => updateLoopStatus('cancelled')}
-              className={`flex-1 h-11 ${cardBg} border border-red-500/30 text-red-500 font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform`}
+              className={`flex-1 h-11 ${cardBg} border border-red-500/30 text-red-500 font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
             >
               <XCircle size={14} /> Cancel Loop
             </button>
@@ -206,7 +206,7 @@ export default function RideDetailsView() {
         {isJoined && !isCreator && (
           <button
             onClick={() => leaveLoop(selectedLoop.id)}
-            className={`w-full h-10 ${cardBg} border border-orange-500/20 text-orange-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform`}
+            className={`w-full h-10 ${cardBg} border border-orange-500/20 text-orange-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] `}
           >
             <LeaveIcon size={13} /> Leave Loop
           </button>
@@ -216,7 +216,7 @@ export default function RideDetailsView() {
         {isCreator && (
           <button
             onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full h-10 ${cardBg} border border-red-500/20 text-red-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform`}
+            className={`w-full h-10 ${cardBg} border border-red-500/20 text-red-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] `}
           >
             <Trash2 size={13} /> Delete Loop
           </button>

@@ -28,7 +28,7 @@ export default function HomeView() {
             setSelectedLoop(loop);
             setView("ride-details");
           }}
-          className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform`}
+          className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer active:scale-[0.98] `}
         >
           <div className="flex justify-between items-start">
             <h3 className="font-black text-sm uppercase tracking-tight truncate flex-1 mr-4">{loop.destination}</h3>
