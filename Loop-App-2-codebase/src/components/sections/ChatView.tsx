@@ -275,7 +275,7 @@ export default function ChatView() {
               )}
             </div>
           ))}
-          {!isJoined && selectedLoop?.status === "open" && (
+          {!isJoined && ["open", "active"].includes(selectedLoop?.status || "") && (
             <button onClick={joinLoop} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider shrink-0 active:scale-90">
               Join
             </button>
@@ -286,7 +286,7 @@ export default function ChatView() {
           <a href={`https://wa.me/?text=${shareText}`} target="_blank" className="h-8 px-3 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-black uppercase tracking-wider flex items-center active:scale-90 shrink-0">
             SOS / Share
           </a>
-          {isHost && selectedLoop?.status === "open" && (
+          {isHost && ["open", "active"].includes(selectedLoop?.status || "") && (
             <button onClick={() => updateStatus("started")} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
               Start Loop
             </button>
