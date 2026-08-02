@@ -208,6 +208,10 @@ export function LoopProvider({ session, children }: { session: Session; children
       setShowGenderSelect(true);
       return;
     }
+    if ((loop.member_count || 0) >= loop.participants_limit) {
+      toast.error("Loop is full!");
+      return;
+    }
     setIsJoining(true);
     const { error } = await supabase.from("loop_members").insert({ loop_id: loop.id, user_id: session.user.id });
     if (error) {

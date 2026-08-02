@@ -16,6 +16,7 @@ export default function CreateView() {
   const [minute, setMinute] = useState("45");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const [limit, setLimit] = useState(8);
+  const [category, setCategory] = useState("Other");
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [isCreatingLoop, setIsCreatingLoop] = useState(false);
 
@@ -59,6 +60,7 @@ export default function CreateView() {
           departure_time: departure.toISOString(),
           participants_limit: limit,
           is_female_only: isFemaleOnly,
+          category: category,
           expires_at: expiresAt.toISOString(),
           status: "active",
         })
@@ -151,6 +153,23 @@ export default function CreateView() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Category</label>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+          {["Other", "Food", "Airport", "Study", "Event", "Ride"].map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`px-4 py-2 shrink-0 rounded-[14px] text-xs font-black uppercase tracking-widest active:scale-95 transition-colors duration-1000 ${
+                category === c ? "bg-[#FFC554] text-black shadow-md" : `${cardBg} border ${border} ${mutedText}`
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       </div>
 

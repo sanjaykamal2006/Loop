@@ -9,6 +9,8 @@ export interface Loop {
   is_female_only: boolean;
   purpose?: string;
   expires_at: string;
+  created_at: string;
+  category: string;
   member_count?: number;
   status?: string;
 }
@@ -28,6 +30,7 @@ export interface Message {
   content: string;
   created_at: string;
   edited_at?: string;
+  reactions?: Record<string, string[]>;
   profiles?: { display_name: string; avatar_url?: string };
 }
 

@@ -15,6 +15,10 @@ export default function ChatView() {
   const [newMessage, setNewMessage] = useState("");
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+  const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const channelRef = useRef<any>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -26,13 +30,27 @@ export default function ChatView() {
     fetchMessages(selectedLoop.id);
   }, [selectedLoop]);
 
-  // Real-time chat subscription
+  // Real-time chat & presence subscription
   useEffect(() => {
     if (!selectedLoop) return;
     const loopId = selectedLoop.id;
 
-    const msgSub = supabase
-      .channel(`chat-${loopId}`)
+    const channel = supabase.channel(`chat-${loopId}`);
+    channelRef.current = channel;
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typing: Record<string, string> = {};
+        for (const id in state) {
+          state[id].forEach((presence: any) => {
+            if (presence.typing && presence.user_id !== session.user.id) {
+              typing[presence.user_id] = presence.name;
+            }
+          });
+        }
+        setTypingUsers(typing);
+      })
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
@@ -41,7 +59,7 @@ export default function ChatView() {
           if (payload.new.user_id === session.user.id) return;
           const { data } = await supabase
             .from("messages")
-            .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name, avatar_url)")
+            .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url)")
             .eq("id", payload.new.id)
             .single();
           if (data) {
@@ -61,17 +79,21 @@ export default function ChatView() {
           setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
         }
       )
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+        }
+      });
 
     return () => {
-      supabase.removeChannel(msgSub);
+      supabase.removeChannel(channel);
     };
   }, [selectedLoop, session.user.id]);
 
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, profiles:user_id (display_name, avatar_url)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
@@ -99,10 +121,15 @@ export default function ChatView() {
     setMessages((prev) => [...prev, optimisticMsg]);
     requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
 
+    // Clear typing
+    if (channelRef.current) {
+      channelRef.current.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+    }
+
     const { data: inserted, error } = await supabase
       .from("messages")
       .insert({ loop_id: selectedLoop.id, user_id: session.user.id, content })
-      .select("id, loop_id, user_id, content, created_at")
+      .select("id, loop_id, user_id, content, created_at, reactions")
       .single();
 
     if (error || !inserted) {
@@ -116,6 +143,38 @@ export default function ChatView() {
       };
       setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    if (channelRef.current) {
+      channelRef.current.track({ user_id: session.user.id, name: profile.display_name, typing: true });
+      if (typingTimeout.current) clearTimeout(typingTimeout.current);
+      typingTimeout.current = setTimeout(() => {
+        channelRef.current?.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+      }, 2000);
+    }
+  };
+
+  const toggleReaction = async (msg: Message, emoji: string) => {
+    setReactionMsgId(null);
+    const existing = msg.reactions || {};
+    const usersWithEmoji = existing[emoji] || [];
+    const hasReacted = usersWithEmoji.includes(session.user.id);
+    
+    let newUsers;
+    if (hasReacted) {
+      newUsers = usersWithEmoji.filter((id: string) => id !== session.user.id);
+    } else {
+      newUsers = [...usersWithEmoji, session.user.id];
+    }
+    
+    const newReactions = { ...existing };
+    if (newUsers.length > 0) newReactions[emoji] = newUsers;
+    else delete newReactions[emoji];
+    
+    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, reactions: newReactions } : m));
+    await supabase.from("messages").update({ reactions: newReactions }).eq("id", msg.id);
   };
 
   const startEditMessage = (msg: Message) => {
@@ -222,6 +281,7 @@ export default function ChatView() {
                   <div
                     className="relative max-w-[80%] group"
                     onDoubleClick={() => isMe && !isOptimistic && startEditMessage(msg)}
+                    onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
                     <div
                       className={`px-4 py-2.5 text-[13px] font-medium shadow-sm ${
@@ -232,6 +292,26 @@ export default function ChatView() {
                     >
                       {msg.content}
                     </div>
+                    {/* Reactions Pill */}
+                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                      <div className={`absolute -bottom-2 ${isMe ? "right-2" : "left-2"} flex gap-0.5 bg-black/80 dark:bg-white/80 rounded-full px-1.5 py-0.5 border border-white/10 shadow-md`}>
+                        {Object.entries(msg.reactions).map(([emoji, users]) => (
+                          <div key={emoji} onClick={() => toggleReaction(msg, emoji)} className="text-[10px] flex items-center gap-1 cursor-pointer hover:scale-110">
+                            {emoji} <span className="text-white dark:text-black opacity-80">{users.length > 1 ? users.length : ""}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Reaction Menu */}
+                    {reactionMsgId === msg.id && (
+                      <div className={`absolute z-20 ${isMe ? "right-0" : "left-0"} -top-10 flex gap-2 ${cardBg} border ${border} p-2 rounded-[16px] shadow-xl`}>
+                        {["👍", "❤️", "😂", "👎"].map(emoji => (
+                          <button key={emoji} onClick={() => toggleReaction(msg, emoji)} className="text-lg hover:scale-125 active:scale-90 transition-transform">
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {/* Edit button */}
                     {isMe && !isOptimistic && (
                       <button
@@ -256,14 +336,32 @@ export default function ChatView() {
           })
         )}
         <div ref={messagesEndRef} />
+        {/* Typing Indicator */}
+        {Object.keys(typingUsers).length > 0 && (
+          <div className="flex items-center gap-2 mt-4 px-1">
+            <div className={`px-3 py-2 ${cardBg} border ${border} rounded-[16px] rounded-tl-[4px] flex items-center gap-1`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse [animation-delay:150ms]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse [animation-delay:300ms]" />
+            </div>
+            <span className={`text-[10px] ${mutedText} font-bold`}>
+              {Object.values(typingUsers).join(", ")} {Object.keys(typingUsers).length > 1 ? "are" : "is"} typing...
+            </span>
+          </div>
+        )}
       </div>
+
+      {/* Global click handler to close reaction menu */}
+      {reactionMsgId && (
+        <div className="absolute inset-0 z-10" onClick={() => setReactionMsgId(null)} />
+      )}
 
       {/* Message input */}
       <div className="shrink-0 px-4 pb-5 pt-2">
         <div className={`${cardBg} border ${border} rounded-[24px] p-1.5 flex gap-2 shadow-xl items-center`}>
           <input
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
             placeholder="Message..."
             className="flex-1 bg-transparent px-4 text-sm font-medium outline-none"
