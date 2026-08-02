@@ -38,9 +38,11 @@
   scrollbar-width: none;
 }
 
-/* Smooth transitions for theme switching — only on themed containers */
-.theme-transition {
-  transition: background-color 250ms, border-color 250ms, color 250ms;
+/* Smooth transitions for theme switching applied globally to all elements */
+*, ::before, ::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 
 @keyframes caret-blink {
