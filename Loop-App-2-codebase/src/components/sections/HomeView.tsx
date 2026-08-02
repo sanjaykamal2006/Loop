@@ -46,18 +46,18 @@ export default function HomeView() {
             )}
 
             {/* Icon Block */}
-            <div className="w-[50px] h-[50px] bg-[#FFC53D] rounded-[16px] flex items-center justify-center shrink-0">
-              <SolidCarIcon size={26} className="text-[#000000]" />
+            <div className="w-[48px] h-[48px] bg-[#FFC53D] rounded-[16px] flex items-center justify-center shrink-0">
+              <SolidCarIcon size={24} className="text-[#000000]" />
             </div>
 
             {/* Text Block */}
             <div className="ml-3 flex-1 min-w-0 flex flex-col justify-center">
               <div className="flex items-center mb-0.5">
-                <span className={`font-bold text-[13px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
+                <span className={`font-bold text-[14px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
                   {loop.start_point || "Anywhere"}
                 </span>
-                <span className="text-[#FFC53D] font-bold text-[12px] shrink-0 mx-1">&rarr;</span>
-                <span className={`font-black text-[14px] uppercase ${isDark ? "text-white" : "text-black"} truncate`}>
+                <span className="text-[#FFC53D] font-bold text-[14px] shrink-0 mx-1.5">&rarr;</span>
+                <span className={`font-bold text-[14px] uppercase ${isDark ? "text-white" : "text-black"} truncate`}>
                   {loop.destination}
                 </span>
               </div>
@@ -69,12 +69,12 @@ export default function HomeView() {
             </div>
 
             {/* Divider */}
-            <div className={`w-px h-[36px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
+            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
 
             {/* Time Block */}
             <div className="flex flex-col items-center justify-center shrink-0">
-              <Clock size={20} className="text-[#FFC53D] mb-0.5" strokeWidth={2} />
-              <span className={`font-bold text-[12px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
+              <Clock size={16} className="text-[#FFC53D] mb-0.5" strokeWidth={2} />
+              <span className={`font-bold text-[10px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>
