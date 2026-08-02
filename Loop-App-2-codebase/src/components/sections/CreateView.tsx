@@ -43,6 +43,20 @@ export default function CreateView() {
     if (!minute) setMinute('00');
   };
 
+  useEffect(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 15);
+    let h = now.getHours();
+    const m = Math.ceil(now.getMinutes() / 5) * 5;
+    const period = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+
+    setHour(h.toString().padStart(2, "0"));
+    setMinute((m % 60).toString().padStart(2, "0"));
+    setAmpm(period);
+  }, []);
+
   // Resume creation after profile is set
   useEffect(() => {
     if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
@@ -193,21 +207,21 @@ export default function CreateView() {
         </div>
       </div>
 
-      <div className={`flex items-center justify-between p-4 ${cardBg} border ${border} rounded-[28px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
+      <div className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
         <div className="flex items-center gap-3">
-          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
-            <Users size={22} strokeWidth={2.5} />
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
+            <Users size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <span className="text-sm font-black tracking-tight uppercase">Female Only</span>
+            <span className="text-xs font-black tracking-tight uppercase">Female Only</span>
             <p className={`text-[10px] font-bold ${mutedText}`}>Visible to women only</p>
           </div>
         </div>
         <button
           onClick={() => setIsFemaleOnly(!isFemaleOnly)}
-          className={`w-12 h-7 rounded-full relative transition-all duration-300 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-200"}`}
+          className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
         >
-          <div className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-md transition-all duration-300 ${isFemaleOnly ? "left-[23px]" : "left-[3px]"}`} />
+          <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-6" : "translate-x-0"}`} />
         </button>
       </div>
 
