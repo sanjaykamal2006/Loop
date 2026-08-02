@@ -131,7 +131,7 @@ export default function CreateView() {
       </div>
 
       <div className="space-y-1.5">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Departure Time</label>
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Time</label>
         <div className={`${cardBg} border ${border} rounded-[24px] p-3 flex items-center justify-between`}>
           <div className="flex items-center gap-2">
             <input

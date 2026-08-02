@@ -150,7 +150,7 @@ export default function RideDetailsView() {
           <Clock size={18} strokeWidth={2.5} />
         </div>
         <div>
-          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Departure</p>
+          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Starting Time</p>
           <h3 className="font-black text-xl text-[#FFC554]">{formatTime(selectedLoop.departure_time)}</h3>
         </div>
       </div>
