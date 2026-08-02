@@ -53,11 +53,11 @@ export default function HomeView() {
             {/* Text Block */}
             <div className="ml-3 flex-1 min-w-0 flex flex-col justify-center">
               <div className="flex items-center mb-0.5">
-                <span className={`font-semibold text-[14px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
+                <span className={`font-bold text-[14px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
                   {loop.start_point || "Anywhere"}
                 </span>
                 <span className="text-[#FFC53D] font-bold text-[13px] shrink-0 mx-1.5">&rarr;</span>
-                <span className={`font-semibold text-[14px] uppercase ${isDark ? "text-white" : "text-black"} truncate`}>
+                <span className={`font-bold text-[14px] ${isDark ? "text-white" : "text-black"} truncate`}>
                   {loop.destination}
                 </span>
               </div>
