@@ -37,7 +37,7 @@ export default function HomeView() {
               setSelectedLoop(loop);
               setView("ride-details");
             }}
-            className={`p-4 flex items-center ${isDark ? "bg-[#1C1C1E]" : "bg-[#FFFFFF]"} rounded-[28px] shadow-[0px_2px_8px_rgba(0,0,0,0.08)] cursor-pointer active:scale-[0.98] border ${isDark ? "border-white/5" : "border-black/5"} relative overflow-hidden`}
+            className={`p-3.5 flex items-center ${isDark ? "bg-[#1C1C1E]" : "bg-[#FFFFFF]"} rounded-[32px] shadow-[0px_2px_8px_rgba(0,0,0,0.08)] cursor-pointer active:scale-[0.98] border ${isDark ? "border-white/5" : "border-black/5"} relative overflow-hidden`}
           >
             {loop.is_female_only && (
               <div className="absolute top-0 right-0 bg-pink-500 text-white text-[8px] font-black px-2.5 py-0.5 rounded-bl-xl uppercase tracking-widest z-10">
@@ -46,35 +46,35 @@ export default function HomeView() {
             )}
 
             {/* Icon Block */}
-            <div className="w-[70px] h-[70px] bg-[#FFC53D] rounded-[18px] flex items-center justify-center shrink-0">
-              <SolidCarIcon size={36} className="text-[#000000]" />
+            <div className="w-[58px] h-[58px] bg-[#FFC53D] rounded-[18px] flex items-center justify-center shrink-0">
+              <SolidCarIcon size={30} className="text-[#000000]" />
             </div>
 
             {/* Text Block */}
-            <div className="ml-5 flex-1 min-w-0">
-              <div className="flex items-center gap-2.5 mb-1">
-                <span className={`font-bold text-[18px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
+            <div className="ml-3.5 flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-1.5 mb-1 truncate">
+                <span className={`font-bold text-[14px] sm:text-[15px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
                   {loop.start_point || "Anywhere"}
                 </span>
-                <span className="text-[#FFC53D] text-[18px] shrink-0">&rarr;</span>
-                <span className={`font-extrabold text-[22px] ${isDark ? "text-white" : "text-black"} truncate`}>
+                <span className="text-[#FFC53D] font-bold text-sm shrink-0">&rarr;</span>
+                <span className={`font-black text-[15px] sm:text-[17px] uppercase ${isDark ? "text-white" : "text-black"} truncate`}>
                   {loop.destination}
                 </span>
               </div>
               <div className={`flex items-center gap-1.5 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
-                <Users size={18} strokeWidth={2} className="shrink-0" />
-                <span className="font-semibold text-[16px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
-                {isFull && <span className="text-[10px] text-red-500 font-black ml-1.5 uppercase shrink-0">Full</span>}
+                <Users size={16} strokeWidth={2} className="shrink-0" />
+                <span className="font-semibold text-[14px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
+                {isFull && <span className="text-[9px] text-red-500 font-black ml-1.5 uppercase shrink-0">Full</span>}
               </div>
             </div>
 
             {/* Divider */}
-            <div className={`w-px self-stretch my-3 ${isDark ? "bg-[#333333]" : "bg-[#E5E5EA]"} shrink-0 mx-5`} />
+            <div className={`w-px h-[38px] ${isDark ? "bg-[#333333]" : "bg-[#E5E5EA]"} shrink-0 mx-3`} />
 
             {/* Time Block */}
-            <div className="flex flex-col items-center justify-center shrink-0 pr-1">
-              <Clock size={32} className="text-[#FFC53D] mb-1.5" strokeWidth={1.5} />
-              <span className={`font-bold text-[15px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
+            <div className="flex flex-col items-center justify-center shrink-0">
+              <Clock size={24} className="text-[#FFC53D] mb-1" strokeWidth={2} />
+              <span className={`font-bold text-[12px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>
