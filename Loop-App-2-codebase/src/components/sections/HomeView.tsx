@@ -37,44 +37,44 @@ export default function HomeView() {
               setSelectedLoop(loop);
               setView("ride-details");
             }}
-            className={`py-3 pl-3 pr-4 flex items-center ${isDark ? "bg-[#1C1C1E]" : "bg-[#FFFFFF]"} rounded-[28px] shadow-[0px_2px_8px_rgba(0,0,0,0.08)] cursor-pointer active:scale-[0.98] border ${isDark ? "border-white/5" : "border-black/5"} relative overflow-hidden`}
+            className={`p-4 flex items-center ${isDark ? "bg-[#1C1C1E]" : "bg-[#FFFFFF]"} rounded-[28px] shadow-[0px_2px_8px_rgba(0,0,0,0.08)] cursor-pointer active:scale-[0.98] border ${isDark ? "border-white/5" : "border-black/5"} relative overflow-hidden`}
           >
             {loop.is_female_only && (
-              <div className="absolute top-0 right-0 bg-pink-500 text-white text-[7px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-widest z-10">
+              <div className="absolute top-0 right-0 bg-pink-500 text-white text-[8px] font-black px-2.5 py-0.5 rounded-bl-xl uppercase tracking-widest z-10">
                 Female Only
               </div>
             )}
 
             {/* Icon Block */}
-            <div className="w-[50px] h-[50px] bg-[#FFC53D] rounded-[14px] flex items-center justify-center shrink-0">
-              <SolidCarIcon size={26} className="text-[#000000]" />
+            <div className="w-[70px] h-[70px] bg-[#FFC53D] rounded-[18px] flex items-center justify-center shrink-0">
+              <SolidCarIcon size={36} className="text-[#000000]" />
             </div>
 
             {/* Text Block */}
-            <div className="ml-3 flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className={`font-bold text-[15px] ${isDark ? "text-white" : "text-black"} truncate`}>
+            <div className="ml-5 flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 mb-1">
+                <span className={`font-bold text-[18px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
                   {loop.start_point || "Anywhere"}
                 </span>
-                <span className="text-[#FFC53D] shrink-0">&rarr;</span>
-                <span className={`font-black text-[17px] ${isDark ? "text-white" : "text-black"} truncate`}>
+                <span className="text-[#FFC53D] text-[18px] shrink-0">&rarr;</span>
+                <span className={`font-extrabold text-[22px] ${isDark ? "text-white" : "text-black"} truncate`}>
                   {loop.destination}
                 </span>
               </div>
-              <div className={`flex items-center gap-1 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
-                <Users size={15} strokeWidth={2} className="shrink-0" />
-                <span className="font-semibold text-[14px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
-                {isFull && <span className="text-[9px] text-red-500 font-black ml-1 uppercase shrink-0">Full</span>}
+              <div className={`flex items-center gap-1.5 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
+                <Users size={18} strokeWidth={2} className="shrink-0" />
+                <span className="font-semibold text-[16px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
+                {isFull && <span className="text-[10px] text-red-500 font-black ml-1.5 uppercase shrink-0">Full</span>}
               </div>
             </div>
 
             {/* Divider */}
-            <div className={`w-px self-stretch my-2 ${isDark ? "bg-[#333333]" : "bg-[#E5E5EA]"} shrink-0 ml-2 mr-3`} />
+            <div className={`w-px self-stretch my-3 ${isDark ? "bg-[#333333]" : "bg-[#E5E5EA]"} shrink-0 mx-5`} />
 
             {/* Time Block */}
-            <div className="flex flex-col items-center justify-center shrink-0">
-              <Clock size={26} className="text-[#FFC53D] mb-1" strokeWidth={1.8} />
-              <span className={`font-bold text-[13px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
+            <div className="flex flex-col items-center justify-center shrink-0 pr-1">
+              <Clock size={32} className="text-[#FFC53D] mb-1.5" strokeWidth={1.5} />
+              <span className={`font-bold text-[15px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>
