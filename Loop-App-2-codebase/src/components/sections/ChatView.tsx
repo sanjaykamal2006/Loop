@@ -17,6 +17,7 @@ export default function ChatView() {
   const [editingContent, setEditingContent] = useState("");
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
+  const [members, setMembers] = useState<any[]>([]);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
 
@@ -28,6 +29,7 @@ export default function ChatView() {
     if (!selectedLoop) return;
     setMessages([]);
     fetchMessages(selectedLoop.id);
+    fetchMembers(selectedLoop.id);
   }, [selectedLoop]);
 
   // Real-time chat & presence subscription
@@ -68,6 +70,13 @@ export default function ChatView() {
               return [...prev, data as Message];
             });
             requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+            try {
+              const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
+              audio.volume = 0.5;
+              audio.play();
+            } catch (e) {
+              // Ignore audio errors
+            }
           }
         }
       )
@@ -100,6 +109,34 @@ export default function ChatView() {
     if (!error && data) {
       setMessages(data as Message[]);
       requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
+    }
+  };
+
+  const fetchMembers = async (loopId: string) => {
+    const { data } = await supabase
+      .from("loop_members")
+      .select("user_id, profiles (display_name, avatar_url)")
+      .eq("loop_id", loopId);
+    if (data) setMembers(data);
+  };
+
+  const joinLoop = async () => {
+    if (!selectedLoop) return;
+    const { error } = await supabase.from("loop_members").insert({ loop_id: selectedLoop.id, user_id: session.user.id });
+    if (!error) {
+      toast.success("Joined loop!");
+      fetchMembers(selectedLoop.id);
+    }
+  };
+
+  const updateStatus = async (newStatus: "started" | "ended") => {
+    if (!selectedLoop) return;
+    const { error } = await supabase.from("loops").update({ status: newStatus }).eq("id", selectedLoop.id);
+    if (!error) {
+      toast.success(`Loop ${newStatus}`);
+      if (newStatus === "ended") {
+        setView("home");
+      }
     }
   };
 
@@ -217,8 +254,51 @@ export default function ChatView() {
 
   if (!selectedLoop) return null;
 
+  const isHost = selectedLoop?.creator_id === session.user.id;
+  const isJoined = members.some(m => m.user_id === session.user.id);
+  const shareText = encodeURIComponent(`I'm riding to ${selectedLoop?.destination}. Track my loop!`);
+
   return (
     <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+      
+      {/* Roster & Controls Header */}
+      <div className={`px-4 py-3 flex items-center justify-between border-b ${border} ${cardBg} z-20 shadow-sm shrink-0`}>
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
+          {members.map((m) => (
+            <div key={m.user_id} className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-black overflow-hidden flex items-center justify-center" title={m.profiles?.display_name}>
+              {m.profiles?.avatar_url ? (
+                <img src={m.profiles.avatar_url} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-bold text-[#FFC554]">
+                  {m.profiles?.display_name?.substring(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+          ))}
+          {!isJoined && selectedLoop?.status === "open" && (
+            <button onClick={joinLoop} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider shrink-0 active:scale-90">
+              Join
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 ml-4">
+          <a href={`https://wa.me/?text=${shareText}`} target="_blank" className="h-8 px-3 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-black uppercase tracking-wider flex items-center active:scale-90 shrink-0">
+            SOS / Share
+          </a>
+          {isHost && selectedLoop?.status === "open" && (
+            <button onClick={() => updateStatus("started")} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
+              Start Loop
+            </button>
+          )}
+          {isHost && (
+            <button onClick={() => updateStatus("ended")} className="h-8 px-3 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
+              End Loop
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Messages scroll area */}
       <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4">
         {messages.length === 0 ? (

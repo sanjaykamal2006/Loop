@@ -11,6 +11,7 @@ export default function CreateView() {
   const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
+  const [startPoint, setStartPoint] = useState("");
   const [dest, setDest] = useState("");
   const [hour, setHour] = useState("08");
   const [minute, setMinute] = useState("45");
@@ -33,6 +34,7 @@ export default function CreateView() {
       setShowGenderSelect(true);
       return;
     }
+    if (!startPoint) return toast.error("Starting Point is required");
     if (!dest) return toast.error("Destination is required");
     if (isCreatingLoop) return;
 
@@ -49,20 +51,21 @@ export default function CreateView() {
     }
     
     const expiresAt = new Date(departure);
-    expiresAt.setHours(expiresAt.getHours() + 2);
+    expiresAt.setHours(expiresAt.getHours() + 2); // kept for backward compatibility if needed
 
     try {
       const { data, error } = await supabase
         .from("loops")
         .insert({
           creator_id: session.user.id,
+          start_point: startPoint,
           destination: dest,
           departure_time: departure.toISOString(),
           participants_limit: limit,
           is_female_only: isFemaleOnly,
           category: category,
           expires_at: expiresAt.toISOString(),
-          status: "active",
+          status: "open",
         })
         .select()
         .single();
@@ -86,6 +89,16 @@ export default function CreateView() {
 
   return (
     <div className="space-y-4 pt-1">
+      <div className="space-y-1.5">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
+        <input
+          value={startPoint}
+          onChange={(e) => setStartPoint(e.target.value)}
+          placeholder="Where from?"
+          className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-5 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
+        />
+      </div>
+
       <div className="space-y-1.5">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
         <input

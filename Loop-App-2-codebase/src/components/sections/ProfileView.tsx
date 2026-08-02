@@ -14,6 +14,20 @@ export default function ProfileView() {
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [pastLoops, setPastLoops] = useState<any[]>([]);
+
+  const fetchPastLoops = async () => {
+    const { data } = await supabase
+      .from("loop_members")
+      .select("loop_id, loops(*)")
+      .eq("user_id", session.user.id)
+      .eq("loops.status", "ended");
+    
+    if (data) {
+      setPastLoops(data.map(d => d.loops).filter(Boolean));
+    }
+  };
 
   const handleSave = () => {
     updateProfile({ display_name: tempName, reg_no: tempRegNo });
@@ -48,10 +62,31 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="flex flex-col items-center pt-4 pb-2 gap-5">
+    <div className="flex flex-col items-center pt-1 pb-1 gap-3">
+      {showHistory ? (
+        <div className="w-full space-y-3">
+          <button onClick={() => setShowHistory(false)} className={`text-[10px] font-black uppercase tracking-wider ${mutedText} mb-2`}>
+            ← Back to Profile
+          </button>
+          <h2 className="text-lg font-black uppercase tracking-tight mb-2">Past Loops</h2>
+          {pastLoops.length === 0 && (
+            <p className={`text-xs ${mutedText} text-center mt-10`}>No past loops found.</p>
+          )}
+          {pastLoops.map(loop => (
+            <div key={loop.id} className={`p-3 ${cardBg} border ${border} rounded-[20px] space-y-1 shadow-sm`}>
+              <div className="flex justify-between items-start">
+                <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>{loop.start_point || "Anywhere"} →</p>
+                <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>{new Date(loop.created_at).toLocaleDateString()}</p>
+              </div>
+              <h3 className="font-black text-sm uppercase tracking-tight">{loop.destination}</h3>
+            </div>
+          ))}
+        </div>
+      ) : (
+      <>
       <div className="flex flex-col items-center gap-2">
         <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
-          <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] flex items-center justify-center text-black text-2xl font-black shadow-xl overflow-hidden shrink-0">
+          <div className="w-14 h-14 rounded-[20px] bg-[#FFC554] flex items-center justify-center text-black text-xl font-black shadow-xl overflow-hidden shrink-0">
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -70,13 +105,13 @@ export default function ProfileView() {
             disabled={isUploading}
           />
         </div>
-        <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-wider`}>Edit Picture</p>
+        <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Edit Picture</p>
       </div>
 
-      <div className="w-full space-y-3">
-        <div className={`p-5 ${cardBg} border ${border} rounded-[28px]`}>
-          <div className="flex items-center justify-between mb-4">
-            <p className={`text-xs font-bold ${mutedText} uppercase tracking-widest`}>Identity</p>
+      <div className="w-full space-y-2">
+        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px]`}>
+          <div className="flex items-center justify-between mb-3">
+            <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-widest`}>Identity</p>
             {isEditingProfile ? (
               <button
                 onClick={handleSave}
@@ -104,11 +139,11 @@ export default function ProfileView() {
                 <input
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-[#FFC554]`}
+                  className={`w-full bg-black/10 border ${border} rounded-xl px-2 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
                   placeholder="Name"
                 />
               ) : (
-                <h2 className="text-xl font-black tracking-tight">{profile.display_name}</h2>
+                <h2 className="text-lg font-black tracking-tight">{profile.display_name}</h2>
               )}
             </div>
             <div className="w-32 space-y-1.5">
@@ -117,20 +152,20 @@ export default function ProfileView() {
                 <input
                   value={tempRegNo}
                   onChange={(e) => setTempRegNo(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-[#FFC554]`}
+                  className={`w-full bg-black/10 border ${border} rounded-xl px-2 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
                   placeholder="Reg #"
                 />
               ) : (
-                <h2 className="text-xl font-black tracking-tight">{profile.reg_no || "—"}</h2>
+                <h2 className="text-lg font-black tracking-tight">{profile.reg_no || "—"}</h2>
               )}
             </div>
           </div>
         </div>
 
-        <div className={`p-5 ${cardBg} border ${border} rounded-[28px] flex items-center justify-between`}>
+        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-              <Users size={20} strokeWidth={2.5} />
+            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+              <Users size={16} strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Gender</p>
@@ -150,9 +185,9 @@ export default function ProfileView() {
           </div>
         </div>
 
-        <div className={`p-5 ${cardBg} border ${border} rounded-[28px] flex items-center gap-3`}>
-          <div className="w-10 h-10 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-            <LogOut size={18} strokeWidth={2.5} className="rotate-180" />
+        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center gap-3`}>
+          <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+            <LogOut size={16} strokeWidth={2.5} className="rotate-180" />
           </div>
           <div className="space-y-1 overflow-hidden">
             <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Account</p>
@@ -162,26 +197,46 @@ export default function ProfileView() {
 
         <button
           onClick={() => setView("trusted-vehicles")}
-          className={`p-5 ${cardBg} border ${border} rounded-[28px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-              <ShieldCheck size={20} strokeWidth={2.5} />
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <ShieldCheck size={16} strokeWidth={2.5} />
             </div>
-            <div className="space-y-1 text-left">
+            <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
-              <p className={`text-sm font-bold ${text}`}>Trusted Vehicles</p>
+              <p className={`text-xs font-bold ${text}`}>Trusted Vehicles</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => {
+            fetchPastLoops();
+            setShowHistory(true);
+          }}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+              <Check size={16} strokeWidth={3} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>History</p>
+              <p className={`text-xs font-bold ${text}`}>Past Loops</p>
             </div>
           </div>
         </button>
 
         <button
           onClick={handleSignOut}
-          className={`w-full py-4 ${cardBg} border ${border} rounded-[22px] text-red-500 font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm mt-4`}
+          className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm mt-2`}
         >
           Sign Out
         </button>
       </div>
+      </>
+      )}
     </div>
   );
 }

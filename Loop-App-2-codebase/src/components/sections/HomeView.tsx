@@ -8,14 +8,7 @@ export default function HomeView() {
   const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme } = useLoop();
   const { border, cardBg, mutedText } = theme;
 
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000); // update every minute
-    return () => clearInterval(interval);
-  }, []);
-
-  const feedLoops = activeLoops.filter(l => l.status === 'active');
+  const feedLoops = activeLoops.filter(l => l.status === 'open');
 
   if (feedLoops.length === 0) {
     return (
@@ -29,15 +22,6 @@ export default function HomeView() {
   return (
     <div className="space-y-2.5 pt-1">
       {feedLoops.map((loop) => {
-        const created = new Date(loop.created_at).getTime();
-        const expires = new Date(loop.expires_at).getTime();
-        const current = now.getTime();
-        
-        let progress = 0;
-        if (expires > created) {
-          progress = Math.max(0, Math.min(100, ((current - created) / (expires - created)) * 100));
-        }
-        
         const isFull = (loop.member_count || 0) >= loop.participants_limit;
 
         return (
@@ -49,14 +33,15 @@ export default function HomeView() {
             }}
             className={`relative overflow-hidden p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer active:scale-[0.98] `}
           >
-            {/* Progress Background Fill */}
-            <div 
-              className="absolute inset-y-0 left-0 bg-[#FFC554]/10 transition-all duration-1000 ease-linear pointer-events-none z-0" 
-              style={{ width: `${progress}%` }} 
-            />
-
             <div className="flex justify-between items-start relative z-10">
-              <h3 className="font-black text-sm uppercase tracking-tight flex-1 mr-4 break-words leading-tight">{loop.destination}</h3>
+              <div className="flex-1 mr-4">
+                <p className={`text-[10px] font-black uppercase tracking-wider ${mutedText} mb-1`}>
+                  {loop.start_point || "Anywhere"} <span className="text-[#FFC554]">→</span>
+                </p>
+                <h3 className="font-black text-sm uppercase tracking-tight break-words leading-tight">
+                  {loop.destination}
+                </h3>
+              </div>
               <div className="shrink-0 px-3 py-1.5 bg-[#FFC554]/10 rounded-xl text-sm font-black text-[#FFC554] flex items-center gap-1.5">
                 <Clock size={14} strokeWidth={3} /> {formatTime(loop.departure_time)}
               </div>

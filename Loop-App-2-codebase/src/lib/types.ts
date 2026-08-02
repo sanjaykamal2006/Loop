@@ -12,7 +12,8 @@ export interface Loop {
   created_at: string;
   category: string;
   member_count?: number;
-  status?: string;
+  status?: "open" | "started" | "ended";
+  start_point?: string;
 }
 
 export interface Profile {
@@ -41,6 +42,17 @@ export interface LoopMember {
     gender: string;
     avatar_url?: string;
   } | null;
+}
+
+export interface LoopParticipant {
+  id: string;
+  loop_id: string;
+  user_id: string;
+  joined_at: string;
+  profiles?: {
+    display_name: string;
+    avatar_url?: string;
+  };
 }
 
 export interface ThemeClasses {
