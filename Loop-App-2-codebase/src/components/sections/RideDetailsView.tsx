@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, Play, XCircle, UserMinus } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, Play, XCircle, UserMinus, Receipt, Edit2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import type { LoopMember } from "@/lib/types";
 
@@ -27,6 +27,14 @@ export default function RideDetailsView() {
   const { bg, border, cardBg, mutedText } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
+  const [fareInput, setFareInput] = useState<string>("");
+  const [isEditingFare, setIsEditingFare] = useState(false);
+
+  useEffect(() => {
+    if (selectedLoop) {
+      setFareInput(selectedLoop.total_fare?.toString() || "");
+    }
+  }, [selectedLoop?.total_fare]);
 
   useEffect(() => {
     if (!selectedLoop) return;
@@ -99,6 +107,26 @@ export default function RideDetailsView() {
     }
   };
 
+  const saveTotalFare = async () => {
+    if (!selectedLoop || !isCreator) return;
+    const val = parseInt(fareInput);
+    if (isNaN(val) || val < 0) return toast.error("Invalid fare amount");
+    
+    const { error } = await supabase
+      .from("loops")
+      .update({ total_fare: val })
+      .eq("id", selectedLoop.id);
+      
+    if (error) {
+      toast.error("Failed to update fare");
+    } else {
+      toast.success("Fare updated");
+      setIsEditingFare(false);
+      fetchLoops();
+      setSelectedLoop({ ...selectedLoop, total_fare: val });
+    }
+  };
+
   if (!selectedLoop) return null;
 
   const isCreator = userLoops.includes(selectedLoop.id);
@@ -124,6 +152,60 @@ export default function RideDetailsView() {
           <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Departure</p>
           <h3 className="font-black text-xl text-[#FFC554]">{formatTime(selectedLoop.departure_time)}</h3>
         </div>
+      </div>
+
+      {/* Fare Splitter */}
+      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Receipt size={14} className={mutedText} strokeWidth={2.5} />
+            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
+          </div>
+          {isCreator && !isEditingFare && (
+            <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95`}>
+              {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
+            </button>
+          )}
+        </div>
+
+        {isEditingFare ? (
+          <div className="flex items-center gap-2">
+            <div className={`flex-1 flex items-center h-10 ${bg} border ${border} rounded-[16px] px-3`}>
+              <span className={`font-black ${mutedText} mr-2`}>₹</span>
+              <input 
+                type="number" 
+                value={fareInput} 
+                onChange={e => setFareInput(e.target.value)} 
+                placeholder="Total Fare"
+                className="flex-1 bg-transparent text-sm font-bold outline-none"
+                autoFocus
+              />
+            </div>
+            <button onClick={saveTotalFare} className="w-10 h-10 bg-green-500/10 text-green-500 flex items-center justify-center rounded-[16px] active:scale-95">
+              <Check size={16} strokeWidth={3} />
+            </button>
+            <button onClick={() => setIsEditingFare(false)} className={`w-10 h-10 ${cardBg} border border-red-500/20 text-red-500 flex items-center justify-center rounded-[16px] active:scale-95`}>
+              <X size={16} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Total Fare</p>
+              <h3 className="font-black text-lg">
+                {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "—"}
+              </h3>
+            </div>
+            {selectedLoop.total_fare && loopMembers.length > 0 && (
+              <div className="text-right">
+                <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Per Person ({loopMembers.length})</p>
+                <h3 className="font-black text-lg text-[#FFC554]">
+                  ₹{Math.ceil(selectedLoop.total_fare / loopMembers.length)}
+                </h3>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Passengers */}

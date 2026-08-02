@@ -13,6 +13,7 @@ export interface Loop {
   member_count?: number;
   status?: "open" | "started" | "ended";
   start_point?: string;
+  total_fare?: number;
 }
 
 export interface Profile {

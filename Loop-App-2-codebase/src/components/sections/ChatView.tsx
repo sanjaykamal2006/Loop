@@ -370,7 +370,7 @@ export default function ChatView() {
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
                     <div
-                      className={`px-4 py-2.5 text-[13px] font-medium shadow-sm ${
+                      className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
                         isMe
                           ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
                           : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
