@@ -197,12 +197,12 @@ export default function RideDetailsView() {
               </h3>
             </div>
             {selectedLoop.total_fare && loopMembers.length > 0 && (
-              <div className="text-right">
-                <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Per Person ({loopMembers.length})</p>
-                <h3 className="font-black text-lg text-[#FFC554]">
-                  ₹{Math.ceil(selectedLoop.total_fare / loopMembers.length)}
-                </h3>
-              </div>
+                <div className="text-right">
+                  <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Your Share</p>
+                  <h3 className="font-black text-lg text-[#FFC554]">
+                    ₹{Math.ceil(selectedLoop.total_fare / loopMembers.length)}
+                  </h3>
+                </div>
             )}
           </div>
         )}

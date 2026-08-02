@@ -20,6 +20,29 @@ export default function CreateView() {
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [isCreatingLoop, setIsCreatingLoop] = useState(false);
 
+  const handleHourChange = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 2);
+    if (!digits) { setHour(''); return; }
+    let num = parseInt(digits);
+    if (num > 12) setHour('12');
+    else setHour(digits);
+  };
+
+  const handleMinuteChange = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 2);
+    if (!digits) { setMinute(''); return; }
+    let num = parseInt(digits);
+    if (num > 59) setMinute('59');
+    else setMinute(digits);
+  };
+
+  const padTime = () => {
+    if (hour) setHour(hour.padStart(2, '0'));
+    if (minute) setMinute(minute.padStart(2, '0'));
+    if (!hour) setHour('12');
+    if (!minute) setMinute('00');
+  };
+
   // Resume creation after gender is set
   useEffect(() => {
     if (pendingAction?.type === "create" && profile.gender && !showGenderSelect) {
@@ -114,14 +137,16 @@ export default function CreateView() {
             <input
               type="text"
               value={hour}
-              onChange={(e) => setHour(e.target.value.slice(0, 2))}
+              onChange={(e) => handleHourChange(e.target.value)}
+              onBlur={padTime}
               className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554]`}
             />
             <span className="font-black text-[#FFC554] text-lg">:</span>
             <input
               type="text"
               value={minute}
-              onChange={(e) => setMinute(e.target.value.slice(0, 2))}
+              onChange={(e) => handleMinuteChange(e.target.value)}
+              onBlur={padTime}
               className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554]`}
             />
           </div>
