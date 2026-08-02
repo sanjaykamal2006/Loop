@@ -91,7 +91,7 @@ export default function RideDetailsView() {
     }
   };
 
-  const updateLoopStatus = async (status: string) => {
+  const updateLoopStatus = async (status: "in_progress" | "cancelled" | "ended") => {
     if (!selectedLoop || !isCreator) return;
     const { error } = await supabase
       .from("loops")
@@ -101,9 +101,12 @@ export default function RideDetailsView() {
     if (error) {
       toast.error("Failed to update loop status");
     } else {
-      toast.success(status === 'cancelled' ? "Loop cancelled" : "Journey started!");
+      toast.success(status === 'cancelled' ? "Loop cancelled" : status === 'ended' ? "Loop ended" : "Journey started!");
+      setSelectedLoop({ ...selectedLoop, status });
       fetchLoops();
-      setView("home");
+      if (status === 'cancelled' || status === 'ended') {
+        setView("home");
+      }
     }
   };
 
@@ -196,14 +199,14 @@ export default function RideDetailsView() {
                 {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "—"}
               </h3>
             </div>
-            {selectedLoop.total_fare && loopMembers.length > 0 && (
+              {((selectedLoop.total_fare || 0) > 0) && loopMembers.length > 0 && (
                 <div className="text-right">
                   <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Your Share</p>
                   <h3 className="font-black text-lg text-[#FFC554]">
-                    ₹{Math.ceil(selectedLoop.total_fare / loopMembers.length)}
+                    ₹{Math.ceil((selectedLoop.total_fare || 0) / loopMembers.length)}
                   </h3>
                 </div>
-            )}
+              )}
           </div>
         )}
       </div>
@@ -267,7 +270,7 @@ export default function RideDetailsView() {
           {isJoined ? "Open Chat" : "Join Loop"}
         </button>
 
-        {isCreator && (
+        {isCreator && selectedLoop.status === 'open' && (
           <div className="flex gap-2 w-full mt-2">
             <button
               onClick={() => updateLoopStatus('in_progress')}
@@ -280,6 +283,16 @@ export default function RideDetailsView() {
               className={`flex-1 h-11 ${cardBg} border border-red-500/30 text-red-500 font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
             >
               <XCircle size={14} /> Cancel Loop
+            </button>
+          </div>
+        )}
+        {isCreator && selectedLoop.status === 'in_progress' && (
+          <div className="flex gap-2 w-full mt-2">
+            <button
+              onClick={() => updateLoopStatus('ended')}
+              className={`w-full h-11 bg-red-500 text-white font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
+            >
+              End Journey
             </button>
           </div>
         )}

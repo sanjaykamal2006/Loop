@@ -11,7 +11,7 @@ export interface Loop {
   expires_at: string;
   created_at: string;
   member_count?: number;
-  status?: "open" | "started" | "ended";
+  status?: "open" | "started" | "in_progress" | "cancelled" | "ended" | "active";
   start_point?: string;
   total_fare?: number;
 }

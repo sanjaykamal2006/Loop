@@ -8,7 +8,7 @@ import { Send, Edit2, Check, X } from "lucide-react";
 import type { Message } from "@/lib/types";
 
 export default function ChatView() {
-  const { session, selectedLoop, profile, formatTime, theme, setView } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView } = useLoop();
   const { border, cardBg, mutedText, text } = theme;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -129,11 +129,12 @@ export default function ChatView() {
     }
   };
 
-  const updateStatus = async (newStatus: "started" | "ended") => {
+  const updateStatus = async (newStatus: "in_progress" | "ended") => {
     if (!selectedLoop) return;
     const { error } = await supabase.from("loops").update({ status: newStatus }).eq("id", selectedLoop.id);
     if (!error) {
-      toast.success(`Loop ${newStatus}`);
+      toast.success(newStatus === "in_progress" ? "Journey started!" : "Loop ended");
+      setSelectedLoop({ ...selectedLoop, status: newStatus });
       if (newStatus === "ended") {
         setView("home");
       }
@@ -280,6 +281,10 @@ export default function ChatView() {
               Join
             </button>
           )}
+          {/* Info Button to go back to Ride Details */}
+          <button onClick={() => setView("ride-details")} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full active:scale-90 ml-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button>
         </div>
         
         <div className="flex items-center gap-2 ml-4">
@@ -287,7 +292,7 @@ export default function ChatView() {
             SOS / Share
           </a>
           {isHost && ["open", "active"].includes(selectedLoop?.status || "") && (
-            <button onClick={() => updateStatus("started")} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
+            <button onClick={() => updateStatus("in_progress")} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
               Start Loop
             </button>
           )}
