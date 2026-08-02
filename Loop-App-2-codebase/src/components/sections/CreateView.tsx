@@ -13,8 +13,8 @@ export default function CreateView() {
 
   const [startPoint, setStartPoint] = useState("");
   const [dest, setDest] = useState("");
-  const [hour, setHour] = useState("08");
-  const [minute, setMinute] = useState("45");
+  const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const [limit, setLimit] = useState(8);
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
@@ -39,23 +39,7 @@ export default function CreateView() {
   const padTime = () => {
     if (hour) setHour(hour.padStart(2, '0'));
     if (minute) setMinute(minute.padStart(2, '0'));
-    if (!hour) setHour('12');
-    if (!minute) setMinute('00');
   };
-
-  useEffect(() => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() + 15);
-    let h = now.getHours();
-    const m = Math.ceil(now.getMinutes() / 5) * 5;
-    const period = h >= 12 ? "PM" : "AM";
-    if (h > 12) h -= 12;
-    if (h === 0) h = 12;
-
-    setHour(h.toString().padStart(2, "0"));
-    setMinute((m % 60).toString().padStart(2, "0"));
-    setAmpm(period);
-  }, []);
 
   // Resume creation after profile is set
   useEffect(() => {
@@ -73,6 +57,7 @@ export default function CreateView() {
     }
     if (!startPoint) return toast.error("Starting Point is required");
     if (!dest) return toast.error("Destination is required");
+    if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
     if (isCreatingLoop) return;
 
     setIsCreatingLoop(true);
@@ -111,7 +96,10 @@ export default function CreateView() {
       } else {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
         toast.success("Loop created!");
+        setStartPoint("");
         setDest("");
+        setHour("");
+        setMinute("");
         setView("home");
         fetchLoops();
         fetchUserMemberships();
@@ -154,7 +142,8 @@ export default function CreateView() {
               value={hour}
               onChange={(e) => handleHourChange(e.target.value)}
               onBlur={padTime}
-              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554]`}
+              placeholder="HH"
+              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
             />
             <span className="font-black text-[#FFC554] text-lg">:</span>
             <input
@@ -162,7 +151,8 @@ export default function CreateView() {
               value={minute}
               onChange={(e) => handleMinuteChange(e.target.value)}
               onBlur={padTime}
-              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554]`}
+              placeholder="MM"
+              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
             />
           </div>
           <div className={`flex ${bg} p-1 rounded-xl border ${border}`}>
