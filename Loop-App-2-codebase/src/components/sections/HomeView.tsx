@@ -69,12 +69,12 @@ export default function HomeView() {
             </div>
 
             {/* Divider */}
-            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
+            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-3`} />
 
             {/* Time Block */}
-            <div className="flex flex-col items-center justify-center shrink-0">
-              <Clock size={16} className="text-[#FFC53D] mb-0.5" strokeWidth={2} />
-              <span className={`font-bold text-[10px] leading-none whitespace-nowrap ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
+            <div className="flex flex-col items-center justify-center shrink-0 min-w-[52px]">
+              <Clock size={16} className="text-[#FFC53D] mb-1.5" strokeWidth={2} />
+              <span className={`font-bold text-[10px] leading-none whitespace-nowrap tracking-wide ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>
