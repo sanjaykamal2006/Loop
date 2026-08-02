@@ -159,19 +159,25 @@ export default function ChatView() {
   const toggleReaction = async (msg: Message, emoji: string) => {
     setReactionMsgId(null);
     const existing = msg.reactions || {};
-    const usersWithEmoji = existing[emoji] || [];
-    const hasReacted = usersWithEmoji.includes(session.user.id);
     
-    let newUsers;
-    if (hasReacted) {
-      newUsers = usersWithEmoji.filter((id: string) => id !== session.user.id);
-    } else {
-      newUsers = [...usersWithEmoji, session.user.id];
+    const newReactions: Record<string, string[]> = {};
+    let hasReactedToCurrent = false;
+
+    // First, copy existing reactions but REMOVE the user from ALL emojis
+    for (const [key, users] of Object.entries(existing)) {
+      if (key === emoji && users.includes(session.user.id)) {
+        hasReactedToCurrent = true;
+      }
+      const filtered = users.filter((id: string) => id !== session.user.id);
+      if (filtered.length > 0) {
+        newReactions[key] = filtered;
+      }
     }
-    
-    const newReactions = { ...existing };
-    if (newUsers.length > 0) newReactions[emoji] = newUsers;
-    else delete newReactions[emoji];
+
+    // If they didn't already react to the CURRENT emoji, add them to it
+    if (!hasReactedToCurrent) {
+      newReactions[emoji] = [...(newReactions[emoji] || []), session.user.id];
+    }
     
     setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, reactions: newReactions } : m));
     await supabase.from("messages").update({ reactions: newReactions }).eq("id", msg.id);

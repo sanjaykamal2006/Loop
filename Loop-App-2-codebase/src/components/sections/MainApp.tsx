@@ -11,6 +11,7 @@ import ChatListView from "./ChatListView";
 import ChatView from "./ChatView";
 import ProfileView from "./ProfileView";
 import RideDetailsView from "./RideDetailsView";
+import TrustedVehiclesView from "./TrustedVehiclesView";
 import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 
@@ -34,6 +35,7 @@ function AppContent() {
           {view === "chat-list" && <ChatListView />}
           {view === "profile" && <ProfileView />}
           {view === "ride-details" && selectedLoop && <RideDetailsView />}
+          {view === "trusted-vehicles" && <TrustedVehiclesView />}
         </main>
       )}
 

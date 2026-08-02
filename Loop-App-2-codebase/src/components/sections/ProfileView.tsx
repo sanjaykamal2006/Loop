@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export default function ProfileView() {
-  const { session, profile, updateProfile, handleSignOut, theme } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
+  const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
@@ -161,8 +161,23 @@ export default function ProfileView() {
         </div>
 
         <button
+          onClick={() => setView("trusted-vehicles")}
+          className={`p-5 ${cardBg} border ${border} rounded-[28px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <ShieldCheck size={20} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-1 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
+              <p className={`text-sm font-bold ${text}`}>Trusted Vehicles</p>
+            </div>
+          </div>
+        </button>
+
+        <button
           onClick={handleSignOut}
-          className={`w-full py-4 ${cardBg} border ${border} rounded-[22px] text-red-500 font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm`}
+          className={`w-full py-4 ${cardBg} border ${border} rounded-[22px] text-red-500 font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm mt-4`}
         >
           Sign Out
         </button>

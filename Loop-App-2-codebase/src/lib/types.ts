@@ -1,4 +1,4 @@
-export type View = "home" | "create" | "chat-list" | "profile" | "ride-details" | "chat";
+export type View = "home" | "create" | "chat-list" | "profile" | "ride-details" | "chat" | "trusted-vehicles";
 
 export interface Loop {
   id: string;
@@ -50,4 +50,14 @@ export interface ThemeClasses {
   border: string;
   cardBg: string;
   mutedText: string;
+}
+
+export interface TrustedVehicle {
+  id: string;
+  user_id: string;
+  driver_name: string;
+  phone_number: string;
+  vehicle_type: "bike" | "auto" | "share_auto";
+  created_at: string;
+  profiles?: { display_name: string; avatar_url?: string };
 }
