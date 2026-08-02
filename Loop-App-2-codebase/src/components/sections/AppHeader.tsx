@@ -1,19 +1,62 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon } from "lucide-react";
+import { ChevronLeft, Plus, Sun, Moon, Download } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AppHeader() {
   const { view, setView, selectedLoop, theme, toggleTheme } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if app is already running in standalone mode (installed)
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        setIsInstalled(true);
+        setDeferredPrompt(null);
+      }
+    } else {
+      toast.info("To install: Tap browser menu (⋮ on Android or Share ⎋ on iPhone) -> 'Add to Home Screen'");
+    }
+  };
+
   return (
     <header className="px-5 py-4 shrink-0 relative z-10 flex items-center justify-between">
       {view === "home" && (
-        <div className="pt-2">
-          <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
-          <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
+        <div className="flex items-center justify-between w-full pt-2">
+          <div>
+            <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
+            <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
+          </div>
+          {!isInstalled && (
+            <button
+              onClick={handleInstallClick}
+              className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0"
+            >
+              <Download size={13} strokeWidth={2.5} />
+              Install App
+            </button>
+          )}
         </div>
       )}
       {(view === "create" || view === "ride-details" || view === "chat") && (
