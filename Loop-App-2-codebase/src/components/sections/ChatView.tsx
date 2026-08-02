@@ -274,11 +274,6 @@ export default function ChatView() {
               )}
             </div>
           ))}
-          {!isJoined && ["open", "active"].includes(selectedLoop?.status || "") && (
-            <button onClick={joinLoop} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider shrink-0 active:scale-90">
-              Join
-            </button>
-          )}
           {/* Info Button to go back to Ride Details */}
           <button onClick={() => setView("ride-details")} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full active:scale-90 ml-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>

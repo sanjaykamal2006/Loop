@@ -190,21 +190,20 @@ export default function RideDetailsView() {
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <div>
-              <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Total Fare</p>
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
               <h3 className="font-black text-lg">
-                {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "—"}
+                {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
               </h3>
             </div>
-              {((selectedLoop.total_fare || 0) > 0) && loopMembers.length > 0 && (
-                <div className="text-right">
-                  <p className={`text-[9px] font-bold ${mutedText} uppercase`}>Your Share</p>
-                  <h3 className="font-black text-lg text-[#FFC554]">
-                    ₹{Math.ceil((selectedLoop.total_fare || 0) / loopMembers.length)}
-                  </h3>
-                </div>
-              )}
+            
+            <div className="text-right">
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
+              <h3 className="font-black text-lg text-[#FFC554]">
+                {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
+              </h3>
+            </div>
           </div>
         )}
       </div>
