@@ -6,7 +6,7 @@ import { Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function GenderModal() {
-  const { showGenderSelect, profile, updateProfile, theme } = useLoop();
+  const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme } = useLoop();
   const { bg, border, cardBg, mutedText } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
@@ -34,6 +34,7 @@ export default function GenderModal() {
       gender: gender
     });
     setIsSubmitting(false);
+    setShowGenderSelect(false);
   };
 
   return (

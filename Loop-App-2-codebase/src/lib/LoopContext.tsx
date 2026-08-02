@@ -158,20 +158,10 @@ export function LoopProvider({ session, children }: { session: Session; children
         if (updates.display_name !== undefined || updates.reg_no !== undefined) {
           toast.success("Profile updated!");
         }
-
-        if (updatedProfile.gender && updatedProfile.display_name && updatedProfile.reg_no && pendingAction) {
-          if (pendingAction.type === "create") {
-            // The CreateView will handle creation after profile is set
-          } else if (pendingAction.type === "join" && pendingAction.data) {
-            joinLoop(pendingAction.data);
-          }
-          setPendingAction(null);
-          setShowGenderSelect(false);
-        }
         return updatedProfile;
       });
     }
-  }, [session.user.id, pendingAction]);
+  }, [session.user.id]);
 
   // --- Fetch loops ---
   const fetchLoops = useCallback(async () => {
@@ -227,7 +217,17 @@ export function LoopProvider({ session, children }: { session: Session; children
       setView("chat");
     }
     setIsJoining(false);
-  }, [profile.gender, session.user.id, fetchLoops]);
+  }, [profile.gender, profile.display_name, profile.reg_no, session.user.id, fetchLoops]);
+
+  // Resume joining after profile is set
+  useEffect(() => {
+    if (pendingAction?.type === "join" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
+      if (pendingAction.data) {
+        joinLoop(pendingAction.data);
+      }
+      setPendingAction(null);
+    }
+  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, joinLoop]);
 
   // --- Delete loop ---
   const deleteLoop = useCallback(async (loopId: string) => {

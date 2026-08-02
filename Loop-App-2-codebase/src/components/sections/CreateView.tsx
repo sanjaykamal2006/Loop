@@ -46,9 +46,10 @@ export default function CreateView() {
   // Resume creation after profile is set
   useEffect(() => {
     if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
+      setPendingAction(null);
       createLoop();
     }
-  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction]);
+  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, setPendingAction]);
 
   const createLoop = async () => {
     if (!profile.gender || !profile.display_name || !profile.reg_no) {
