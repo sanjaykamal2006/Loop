@@ -91,7 +91,7 @@ export default function RideDetailsView() {
     }
   };
 
-  const updateLoopStatus = async (status: "in_progress" | "cancelled" | "ended") => {
+  const updateLoopStatus = async (status: "ended") => {
     if (!selectedLoop || !isCreator) return;
     const { error } = await supabase
       .from("loops")
@@ -101,12 +101,10 @@ export default function RideDetailsView() {
     if (error) {
       toast.error("Failed to update loop status");
     } else {
-      toast.success(status === 'cancelled' ? "Loop cancelled" : status === 'ended' ? "Loop ended" : "Journey started!");
+      toast.success("Loop ended");
       setSelectedLoop({ ...selectedLoop, status });
       fetchLoops();
-      if (status === 'cancelled' || status === 'ended') {
-        setView("home");
-      }
+      setView("home");
     }
   };
 
@@ -270,29 +268,13 @@ export default function RideDetailsView() {
           {isJoined ? "Open Chat" : "Join Loop"}
         </button>
 
-        {isCreator && selectedLoop.status === 'open' && (
-          <div className="flex gap-2 w-full mt-2">
-            <button
-              onClick={() => updateLoopStatus('in_progress')}
-              className="flex-1 h-11 bg-green-500 text-black font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] "
-            >
-              <Play size={14} fill="currentColor" /> Start Journey
-            </button>
-            <button
-              onClick={() => updateLoopStatus('cancelled')}
-              className={`flex-1 h-11 ${cardBg} border border-red-500/30 text-red-500 font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
-            >
-              <XCircle size={14} /> Cancel Loop
-            </button>
-          </div>
-        )}
-        {isCreator && selectedLoop.status === 'in_progress' && (
+        {isCreator && (
           <div className="flex gap-2 w-full mt-2">
             <button
               onClick={() => updateLoopStatus('ended')}
               className={`w-full h-11 bg-red-500 text-white font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
             >
-              End Journey
+              <XCircle size={14} /> End Loop
             </button>
           </div>
         )}

@@ -129,15 +129,13 @@ export default function ChatView() {
     }
   };
 
-  const updateStatus = async (newStatus: "in_progress" | "ended") => {
+  const updateStatus = async (newStatus: "ended") => {
     if (!selectedLoop) return;
     const { error } = await supabase.from("loops").update({ status: newStatus }).eq("id", selectedLoop.id);
     if (!error) {
-      toast.success(newStatus === "in_progress" ? "Journey started!" : "Loop ended");
+      toast.success("Loop ended");
       setSelectedLoop({ ...selectedLoop, status: newStatus });
-      if (newStatus === "ended") {
-        setView("home");
-      }
+      setView("home");
     }
   };
 
@@ -292,11 +290,6 @@ export default function ChatView() {
             SOS / Share
           </a>
           {isHost && ["open", "active"].includes(selectedLoop?.status || "") && (
-            <button onClick={() => updateStatus("in_progress")} className="h-8 px-3 rounded-full bg-[#FFC554] text-black text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
-              Start Loop
-            </button>
-          )}
-          {isHost && (
             <button onClick={() => updateStatus("ended")} className="h-8 px-3 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
               End Loop
             </button>
