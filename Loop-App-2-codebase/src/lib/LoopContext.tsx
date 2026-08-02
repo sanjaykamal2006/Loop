@@ -97,11 +97,11 @@ export function LoopProvider({ session, children }: { session: Session; children
   const isDark = profile.theme === "dark";
   const theme: ThemeClasses = {
     isDark,
-    bg: isDark ? "bg-[#000000]" : "bg-[#F7F5F0]",
-    text: isDark ? "text-white" : "text-[#2C2B29]",
-    border: isDark ? "border-[#27272A]" : "border-[#E8E5DF]",
-    cardBg: isDark ? "bg-[#121212]" : "bg-[#FFFFFF]",
-    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#85827C]",
+    bg: isDark ? "bg-[#000000]" : "bg-[#EFE9DF]",
+    text: isDark ? "text-white" : "text-[#3D3B38]",
+    border: isDark ? "border-[#27272A]" : "border-[#DED8CE]",
+    cardBg: isDark ? "bg-[#121212]" : "bg-[#F8F6F0]",
+    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#7C7872]",
   };
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);
@@ -114,9 +114,9 @@ export function LoopProvider({ session, children }: { session: Session; children
       updateProfile({ theme: nextTheme });
       setTimeout(() => {
         setThemeTransition({ active: false, nextTheme });
-        setTimeout(() => setThemeTransition(null), 300);
-      }, 50);
-    }, 300);
+        setTimeout(() => setThemeTransition(null), 500); // Wait for exit animation
+      }, 300); // Hold the transition screen for 300ms
+    }, 400); // Wait 400ms for enter animation before swapping theme
   };
 
   // --- Fetch profile ---
