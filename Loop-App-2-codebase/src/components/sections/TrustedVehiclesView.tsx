@@ -170,9 +170,9 @@ export default function TrustedVehiclesView() {
       </div>
 
       {isAdding && (
-        <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className={`w-full max-w-md ${cardBg} border ${border} rounded-[32px] p-6 space-y-6 shadow-2xl animate-in slide-in-from-bottom-10`}>
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className={`w-full max-w-md max-h-[85dvh] flex flex-col overflow-y-auto scrollbar-hide ${cardBg} border ${border} rounded-[32px] p-6 space-y-6 shadow-2xl animate-in fade-in zoom-in-95`}>
+            <div className="flex items-center justify-between shrink-0">
               <h2 className="text-lg font-black uppercase tracking-tight">Add Driver</h2>
               <button onClick={() => setIsAdding(false)} className={`w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center active:scale-90`}>
                 <X size={16} strokeWidth={3} />
@@ -198,7 +198,7 @@ export default function TrustedVehiclesView() {
                     <button
                       key={t.id}
                       onClick={() => setType(t.id as any)}
-                      className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border transition-all active:scale-95 ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black' : `bg-black/5 dark:bg-white/5 border-transparent ${mutedText}`}`}
+                      className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black' : `bg-black/5 dark:bg-white/5 border-transparent ${mutedText}`}`}
                     >
                       <t.icon className="w-6 h-6" />
                       <span className="text-[10px] font-black uppercase tracking-tight text-center leading-tight mt-1">{t.label}</span>
@@ -214,7 +214,7 @@ export default function TrustedVehiclesView() {
                   <input 
                     value={name} 
                     onChange={e => setName(e.target.value)} 
-                    placeholder="E.g. Raju Bhai" 
+                    placeholder="Driver's Name" 
                     className="flex-1 bg-transparent text-sm font-bold outline-none"
                   />
                 </div>
@@ -228,7 +228,7 @@ export default function TrustedVehiclesView() {
                     type="tel"
                     value={phone} 
                     onChange={e => setPhone(e.target.value)} 
-                    placeholder="+91 9876543210" 
+                    placeholder="Driver's Number" 
                     className="flex-1 bg-transparent text-sm font-bold outline-none"
                   />
                 </div>
