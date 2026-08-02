@@ -6,7 +6,7 @@ import { Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function GenderModal() {
-  const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme } = useLoop();
+  const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop } = useLoop();
   const { bg, border, cardBg, mutedText } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
@@ -28,13 +28,22 @@ export default function GenderModal() {
     if (!gender) return toast.error("Gender is required");
 
     setIsSubmitting(true);
-    await updateProfile({
+    const updates = {
       display_name: name.trim(),
       reg_no: regNo.trim().toUpperCase(),
       gender: gender
-    });
+    };
+    const success = await updateProfile(updates);
     setIsSubmitting(false);
-    setShowGenderSelect(false);
+
+    if (success) {
+      setShowGenderSelect(false);
+      if (pendingAction?.type === "join" && pendingAction.data) {
+        const targetLoop = pendingAction.data;
+        setPendingAction(null);
+        joinLoop(targetLoop, updates);
+      }
+    }
   };
 
   return (

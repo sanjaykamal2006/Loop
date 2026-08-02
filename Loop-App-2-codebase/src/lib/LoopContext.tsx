@@ -23,7 +23,7 @@ interface LoopContextValue {
 
   // Profile
   profile: Profile;
-  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
   handleSignOut: () => Promise<void>;
 
   // Loops
@@ -34,7 +34,7 @@ interface LoopContextValue {
   fetchUserMemberships: () => Promise<void>;
 
   // Actions
-  joinLoop: (loop: Loop) => Promise<void>;
+  joinLoop: (loop: Loop, profileOverride?: Partial<Profile>) => Promise<void>;
   deleteLoop: (loopId: string) => Promise<void>;
   leaveLoop: (loopId: string) => Promise<void>;
   isJoining: boolean;
@@ -144,22 +144,20 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, [session.user.id, session.user.email]);
 
   // --- Update profile ---
-  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
+  const updateProfile = useCallback(async (updates: Partial<Profile>): Promise<boolean> => {
     const { error } = await supabase
       .from("profiles")
       .upsert({ id: session.user.id, ...updates, updated_at: new Date().toISOString() }, { onConflict: "id" });
 
     if (error) {
       toast.error("Failed to update profile: " + error.message);
+      return false;
     } else {
-      setProfile((prev) => {
-        const updatedProfile = { ...prev, ...updates };
-        
-        if (updates.display_name !== undefined || updates.reg_no !== undefined) {
-          toast.success("Profile updated!");
-        }
-        return updatedProfile;
-      });
+      setProfile((prev) => ({ ...prev, ...updates }));
+      if (updates.display_name !== undefined || updates.reg_no !== undefined) {
+        toast.success("Profile updated!");
+      }
+      return true;
     }
   }, [session.user.id]);
 
@@ -195,8 +193,12 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, [session.user.id]);
 
   // --- Join loop ---
-  const joinLoop = useCallback(async (loop: Loop) => {
-    if (!profile.gender || !profile.display_name || !profile.reg_no) {
+  const joinLoop = useCallback(async (loop: Loop, profileOverride?: Partial<Profile>) => {
+    const currentGender = profileOverride?.gender || profile.gender;
+    const currentName = profileOverride?.display_name || profile.display_name;
+    const currentReg = profileOverride?.reg_no || profile.reg_no;
+
+    if (!currentGender || !currentName || !currentReg) {
       setPendingAction({ type: "join", data: loop });
       setShowGenderSelect(true);
       return;
@@ -208,16 +210,25 @@ export function LoopProvider({ session, children }: { session: Session; children
     setIsJoining(true);
     const { error } = await supabase.from("loop_members").insert({ loop_id: loop.id, user_id: session.user.id });
     if (error) {
-      toast.error("Failed to join loop");
+      if (error.code === "23505") { // Unique constraint violation = already in loop
+        setUserJoinedLoops((prev) => Array.from(new Set([...prev, loop.id])));
+        setSelectedLoop(loop);
+        setView("chat");
+      } else {
+        toast.error("Failed to join loop");
+      }
     } else {
       toast.success("Joined loop!");
-      setUserJoinedLoops((prev) => [...prev, loop.id]);
+      setUserJoinedLoops((prev) => Array.from(new Set([...prev, loop.id])));
+      const newCount = (loop.member_count || 0) + 1;
+      const updatedLoop = { ...loop, member_count: newCount };
+      setSelectedLoop(updatedLoop);
+      setActiveLoops(prev => prev.map(l => l.id === loop.id ? updatedLoop : l));
       fetchLoops();
-      setSelectedLoop(loop);
       setView("chat");
     }
     setIsJoining(false);
-  }, [profile.gender, profile.display_name, profile.reg_no, session.user.id, fetchLoops]);
+  }, [profile, session.user.id, fetchLoops]);
 
   // Resume joining after profile is set
   useEffect(() => {
@@ -247,10 +258,15 @@ export function LoopProvider({ session, children }: { session: Session; children
     else {
       toast.success("Left loop");
       setUserJoinedLoops((prev) => prev.filter((id) => id !== loopId));
+      if (selectedLoop && selectedLoop.id === loopId) {
+        const newCount = Math.max(0, (selectedLoop.member_count || 1) - 1);
+        setSelectedLoop({ ...selectedLoop, member_count: newCount });
+        setActiveLoops(prev => prev.map(l => l.id === loopId ? { ...l, member_count: newCount } : l));
+      }
       setView("home");
       fetchLoops();
     }
-  }, [session.user.id, fetchLoops]);
+  }, [session.user.id, selectedLoop, fetchLoops]);
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut({ scope: "global" });

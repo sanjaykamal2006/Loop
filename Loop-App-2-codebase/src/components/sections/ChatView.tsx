@@ -120,15 +120,6 @@ export default function ChatView() {
     if (data) setMembers(data);
   };
 
-  const joinLoop = async () => {
-    if (!selectedLoop) return;
-    const { error } = await supabase.from("loop_members").insert({ loop_id: selectedLoop.id, user_id: session.user.id });
-    if (!error) {
-      toast.success("Joined loop!");
-      fetchMembers(selectedLoop.id);
-    }
-  };
-
   const updateStatus = async (newStatus: "ended") => {
     if (!selectedLoop) return;
     const { error } = await supabase.from("loops").update({ status: newStatus }).eq("id", selectedLoop.id);
