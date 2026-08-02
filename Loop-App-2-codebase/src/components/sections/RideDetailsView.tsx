@@ -65,7 +65,7 @@ export default function RideDetailsView() {
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
       .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, gender)")
+      .select("user_id, profiles:user_id (display_name, gender, avatar_url)")
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
@@ -224,19 +224,14 @@ export default function RideDetailsView() {
                 className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
               >
                 <div className="flex items-center gap-3">
-                  {member.profiles?.avatar_url ? (
-                    <img src={member.profiles.avatar_url} className="w-7 h-7 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-black ${
-                        member.profiles?.gender === "female"
-                          ? "bg-pink-500/15 text-pink-400"
-                          : "bg-blue-500/15 text-blue-400"
-                      }`}
-                    >
-                      {(member.profiles?.display_name || "M").substring(0, 1).toUpperCase()}
-                    </div>
-                  )}
+                  <img
+                    src={
+                      member.profiles?.avatar_url ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(member.profiles?.display_name || member.user_id || 'User')}`
+                    }
+                    alt={member.profiles?.display_name || "Member"}
+                    className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10 bg-black/40"
+                  />
                   <span className="text-sm font-bold">{member.profiles?.display_name || "Member"}</span>
                 </div>
                 <div className="flex items-center gap-3">
