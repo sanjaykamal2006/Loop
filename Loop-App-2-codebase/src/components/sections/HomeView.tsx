@@ -49,30 +49,29 @@ export default function HomeView() {
             }}
             className={`relative overflow-hidden p-4 ${cardBg} border ${border} rounded-[28px] space-y-3 shadow-sm cursor-pointer active:scale-[0.98] `}
           >
-            {/* Progress Bar Background */}
+            {/* Progress Background Fill */}
             <div 
-              className="absolute bottom-0 left-0 h-1 bg-[#FFC554]/30 transition-all duration-1000 ease-linear" 
+              className="absolute inset-y-0 left-0 bg-[#FFC554]/10 transition-all duration-1000 ease-linear pointer-events-none z-0" 
               style={{ width: `${progress}%` }} 
             />
 
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start relative z-10">
               <h3 className="font-black text-sm uppercase tracking-tight flex-1 mr-4 break-words leading-tight">{loop.destination}</h3>
               <div className="shrink-0 px-3 py-1.5 bg-[#FFC554]/10 rounded-xl text-sm font-black text-[#FFC554] flex items-center gap-1.5">
                 <Clock size={14} strokeWidth={3} /> {formatTime(loop.departure_time)}
               </div>
             </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className={`flex items-center gap-1 px-2.5 py-1 bg-black/10 dark:bg-white/10 rounded-full text-[10px] font-bold ${mutedText} border ${border}`}>
-                <Tag size={10} strokeWidth={2.5} /> {loop.category || "Other"}
+            <div className="flex items-center gap-2 flex-wrap relative z-10 pt-1">
+              <div className={`flex items-center gap-1 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-full text-[10px] font-black uppercase tracking-wider ${mutedText} border ${border}`}>
+                <Tag size={12} strokeWidth={2.5} /> {loop.category || "Other"}
               </div>
 
-              <div className={`flex items-center gap-1 px-2.5 py-1 ${isFull ? "bg-red-500/10 text-red-500 border border-red-500/20" : `bg-black/10 dark:bg-white/10 ${mutedText} border ${border}`} rounded-full text-[10px] font-bold`}>
-                <Users size={12} strokeWidth={2.5} /> {loop.member_count}/{loop.participants_limit} {isFull && "FULL"}
+              <div className={`flex items-center gap-1 px-3 py-1.5 ${isFull ? "bg-red-500/10 text-red-500 border border-red-500/20" : `bg-black/5 dark:bg-white/5 ${mutedText} border ${border}`} rounded-full text-[10px] font-black uppercase tracking-wider`}>
+                <Users size={13} strokeWidth={2.5} /> {loop.member_count}/{loop.participants_limit} {isFull && "FULL"}
               </div>
 
               {loop.is_female_only && (
-                <div className="px-2.5 py-1 bg-pink-500/10 rounded-full text-[9px] font-black text-pink-500 uppercase tracking-[0.15em] border border-pink-500/20 flex items-center gap-1">
+                <div className="px-3 py-1.5 bg-pink-500/10 rounded-full text-[10px] font-black text-pink-500 uppercase tracking-wider border border-pink-500/20 flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
                   Female Only
                 </div>

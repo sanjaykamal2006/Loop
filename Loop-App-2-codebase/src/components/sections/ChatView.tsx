@@ -279,7 +279,7 @@ export default function ChatView() {
                   </div>
                 ) : (
                   <div
-                    className="relative max-w-[80%] group"
+                    className={`relative max-w-[80%] group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''}`}
                     onDoubleClick={() => isMe && !isOptimistic && startEditMessage(msg)}
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
