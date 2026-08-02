@@ -43,15 +43,15 @@ export default function CreateView() {
     if (!minute) setMinute('00');
   };
 
-  // Resume creation after gender is set
+  // Resume creation after profile is set
   useEffect(() => {
-    if (pendingAction?.type === "create" && profile.gender && !showGenderSelect) {
+    if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
       createLoop();
     }
-  }, [profile.gender, showGenderSelect]);
+  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction]);
 
   const createLoop = async () => {
-    if (!profile.gender) {
+    if (!profile.gender || !profile.display_name || !profile.reg_no) {
       setPendingAction({ type: "create" });
       setShowGenderSelect(true);
       return;

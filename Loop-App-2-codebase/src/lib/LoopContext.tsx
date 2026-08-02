@@ -152,20 +152,24 @@ export function LoopProvider({ session, children }: { session: Session; children
     if (error) {
       toast.error("Failed to update profile: " + error.message);
     } else {
-      setProfile((prev) => ({ ...prev, ...updates }));
-      if (updates.display_name !== undefined || updates.reg_no !== undefined) {
-        toast.success("Profile updated!");
-      }
-
-      if (updates.gender && pendingAction) {
-        if (pendingAction.type === "create") {
-          // The CreateView will handle creation after gender is set
-        } else if (pendingAction.type === "join" && pendingAction.data) {
-          joinLoop(pendingAction.data);
+      setProfile((prev) => {
+        const updatedProfile = { ...prev, ...updates };
+        
+        if (updates.display_name !== undefined || updates.reg_no !== undefined) {
+          toast.success("Profile updated!");
         }
-        setPendingAction(null);
-        setShowGenderSelect(false);
-      }
+
+        if (updatedProfile.gender && updatedProfile.display_name && updatedProfile.reg_no && pendingAction) {
+          if (pendingAction.type === "create") {
+            // The CreateView will handle creation after profile is set
+          } else if (pendingAction.type === "join" && pendingAction.data) {
+            joinLoop(pendingAction.data);
+          }
+          setPendingAction(null);
+          setShowGenderSelect(false);
+        }
+        return updatedProfile;
+      });
     }
   }, [session.user.id, pendingAction]);
 
@@ -202,7 +206,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Join loop ---
   const joinLoop = useCallback(async (loop: Loop) => {
-    if (!profile.gender) {
+    if (!profile.gender || !profile.display_name || !profile.reg_no) {
       setPendingAction({ type: "join", data: loop });
       setShowGenderSelect(true);
       return;
