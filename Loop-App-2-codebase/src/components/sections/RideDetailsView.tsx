@@ -60,7 +60,7 @@ export default function RideDetailsView() {
       .select("user_id, profiles:user_id (display_name, gender)")
       .eq("loop_id", loopId);
 
-    if (!error && data) setLoopMembers(data as LoopMember[]);
+    if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
   };
 
   const enterChat = () => {

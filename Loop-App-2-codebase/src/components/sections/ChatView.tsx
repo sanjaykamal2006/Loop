@@ -8,7 +8,7 @@ import { Send, Edit2, Check, X } from "lucide-react";
 import type { Message } from "@/lib/types";
 
 export default function ChatView() {
-  const { session, selectedLoop, profile, formatTime, theme } = useLoop();
+  const { session, selectedLoop, profile, formatTime, theme, setView } = useLoop();
   const { border, cardBg, mutedText, text } = theme;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -67,7 +67,7 @@ export default function ChatView() {
           if (data) {
             setMessages((prev) => {
               if (prev.some((m) => m.id === data.id)) return prev;
-              return [...prev, data as Message];
+              return [...prev, data as unknown as Message];
             });
             requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
             try {
@@ -107,7 +107,7 @@ export default function ChatView() {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      setMessages(data as Message[]);
+      setMessages(data as unknown as Message[]);
       requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
     }
   };

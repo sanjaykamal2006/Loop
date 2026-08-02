@@ -8,7 +8,7 @@ export default function HomeView() {
   const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme } = useLoop();
   const { border, cardBg, mutedText } = theme;
 
-  const feedLoops = activeLoops.filter(l => l.status === 'open' || l.status === 'active');
+  const feedLoops = activeLoops.filter(l => l.status === 'open');
 
   if (feedLoops.length === 0) {
     return (

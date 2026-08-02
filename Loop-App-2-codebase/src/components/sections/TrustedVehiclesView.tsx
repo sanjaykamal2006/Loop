@@ -53,7 +53,7 @@ export default function TrustedVehiclesView() {
       .order("created_at", { ascending: false });
 
     if (error) toast.error("Failed to fetch drivers");
-    else setVehicles(data as TrustedVehicle[]);
+    else setVehicles(data as unknown as TrustedVehicle[]);
     setLoading(false);
   };
 
@@ -82,7 +82,7 @@ export default function TrustedVehiclesView() {
       toast.error(error.message);
     } else {
       toast.success("Driver added!");
-      setVehicles([data as TrustedVehicle, ...vehicles]);
+      setVehicles([data as unknown as TrustedVehicle, ...vehicles]);
       setIsAdding(false);
       setName("");
       setPhone("");
