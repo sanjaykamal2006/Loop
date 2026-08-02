@@ -47,10 +47,6 @@ export default function HomeView() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap relative z-10 pt-1">
-              <div className={`flex items-center gap-1 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-full text-[10px] font-black uppercase tracking-wider ${mutedText} border ${border}`}>
-                <Tag size={12} strokeWidth={2.5} /> {loop.category || "Other"}
-              </div>
-
               <div className={`flex items-center gap-1 px-3 py-1.5 ${isFull ? "bg-red-500/10 text-red-500 border border-red-500/20" : `bg-black/5 dark:bg-white/5 ${mutedText} border ${border}`} rounded-full text-[10px] font-black uppercase tracking-wider`}>
                 <Users size={13} strokeWidth={2.5} /> {loop.member_count}/{loop.participants_limit} {isFull && "FULL"}
               </div>

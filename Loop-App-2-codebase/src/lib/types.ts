@@ -10,7 +10,6 @@ export interface Loop {
   purpose?: string;
   expires_at: string;
   created_at: string;
-  category: string;
   member_count?: number;
   status?: "open" | "started" | "ended";
   start_point?: string;
