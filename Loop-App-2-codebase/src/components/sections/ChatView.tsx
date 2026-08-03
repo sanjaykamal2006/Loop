@@ -25,18 +25,22 @@ export default function ChatView() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const currentLoopIdRef = useRef<string | null>(null);
 
-  // Fetch messages on mount
+  // Fetch messages on mount or loop change (ONLY reset messages if loop ID changes)
   useEffect(() => {
-    if (!selectedLoop) return;
-    setMessages([]);
+    if (!selectedLoop?.id) return;
+    if (currentLoopIdRef.current !== selectedLoop.id) {
+      currentLoopIdRef.current = selectedLoop.id;
+      setMessages([]);
+    }
     fetchMessages(selectedLoop.id);
     fetchMembers(selectedLoop.id);
-  }, [selectedLoop]);
+  }, [selectedLoop?.id]);
 
   // Real-time chat & presence subscription
   useEffect(() => {
-    if (!selectedLoop) return;
+    if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
 
     const channel = supabase.channel(`chat-${loopId}`);
@@ -63,7 +67,7 @@ export default function ChatView() {
           if (payload.new.user_id === session.user.id) return;
           const { data } = await supabase
             .from("messages")
-            .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url)")
+            .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name)")
             .eq("id", payload.new.id)
             .single();
           if (data) {
@@ -99,12 +103,12 @@ export default function ChatView() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedLoop, session.user.id]);
+  }, [selectedLoop?.id, session.user.id, profile.display_name]);
 
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url, reg_no, gender, bio)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, reg_no, gender, bio)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 

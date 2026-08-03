@@ -43,9 +43,9 @@ export default function UserProfileModal({
           <X size={16} />
         </button>
 
-        {/* Profile Avatar */}
-        <div className="w-24 h-24 rounded-[28px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center shadow-xl overflow-hidden shrink-0 mt-2">
-          <img src={avatarSrc} alt={user.display_name} className="w-full h-full object-cover rounded-[24px]" />
+        {/* Profile Initials Badge */}
+        <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] text-black text-2xl font-black flex items-center justify-center shadow-xl shrink-0 mt-2">
+          {user.display_name.substring(0, 2).toUpperCase()}
         </div>
 
         {/* Identity Info */}
