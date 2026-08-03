@@ -14,21 +14,54 @@ export default function HomeView() {
   const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
-  const feedLoops = activeLoops.filter(l => l.status === 'open');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  if (feedLoops.length === 0) {
+  const feedLoops = activeLoops
+    .filter(l => l.status === 'open')
+    .filter(l => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (l.destination?.toLowerCase().includes(q) || l.start_point?.toLowerCase().includes(q));
+    });
+
+  if (activeLoops.filter(l => l.status === 'open').length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[55vh] text-center opacity-40">
-        <MapPin size={36} strokeWidth={1.5} />
-        <p className="text-xs font-black uppercase tracking-[0.2em] mt-3">No Active Loops</p>
+      <div className="flex flex-col items-center justify-center h-[55vh] text-center space-y-4">
+        <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#FFC554]/60">
+          <MapPin size={32} strokeWidth={1.5} />
+        </div>
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
+          <p className={`text-xs ${mutedText} mt-1 max-w-[200px]`}>Be the first to start a ride loop on campus!</p>
+        </div>
+        <button
+          onClick={() => setView("create")}
+          className="h-10 px-5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform"
+        >
+          + Create Loop
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2.5 pt-1">
+    <div className="space-y-3 pt-1">
+      {activeLoops.filter(l => l.status === 'open').length > 2 && (
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search destination or origin..."
+          className={`w-full h-10 ${cardBg} border ${border} rounded-2xl px-4 text-xs font-bold outline-none focus:border-[#FFC554] placeholder:opacity-40 transition-colors mb-1`}
+        />
+      )}
+
+      {feedLoops.length === 0 && searchQuery && (
+        <p className={`text-xs ${mutedText} text-center py-8`}>No rides matching "{searchQuery}"</p>
+      )}
+
       {feedLoops.map((loop) => {
         const isFull = (loop.member_count || 0) >= loop.participants_limit;
+        const isJoined = userJoinedLoops.includes(loop.id);
 
         return (
           <div
@@ -61,10 +94,15 @@ export default function HomeView() {
                   {loop.destination}
                 </span>
               </div>
-              <div className={`flex items-center gap-1 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
+              <div className={`flex items-center gap-1.5 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
                 <Users size={14} strokeWidth={2} className="shrink-0" />
                 <span className="font-semibold text-[13px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
-                {isFull && <span className="text-[9px] text-red-500 font-black ml-1 uppercase shrink-0">Full</span>}
+                {isFull && <span className="text-[9px] text-red-500 font-black uppercase shrink-0">Full</span>}
+                {isJoined && (
+                  <span className="text-[8px] bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/30 px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ml-1">
+                    Joined
+                  </span>
+                )}
               </div>
             </div>
 
