@@ -7,6 +7,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { MapPin, Clock, Trash2, LogOut as LeaveIcon, Play, XCircle, UserMinus, Receipt, Edit2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import type { LoopMember } from "@/lib/types";
+import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
 export default function RideDetailsView() {
   const {
@@ -29,6 +30,7 @@ export default function RideDetailsView() {
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
 
   useEffect(() => {
     if (selectedLoop) {
@@ -65,7 +67,7 @@ export default function RideDetailsView() {
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
       .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, gender, avatar_url)")
+      .select("user_id, profiles:user_id (display_name, gender, avatar_url, reg_no, bio)")
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
@@ -223,7 +225,17 @@ export default function RideDetailsView() {
                 key={member.user_id || i}
                 className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
               >
-                <div className="flex items-center gap-3">
+                <div
+                  className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                  onClick={() => setSelectedUser({
+                    user_id: member.user_id,
+                    display_name: member.profiles?.display_name || "Member",
+                    avatar_url: member.profiles?.avatar_url,
+                    reg_no: member.profiles?.reg_no,
+                    gender: member.profiles?.gender,
+                    bio: member.profiles?.bio,
+                  })}
+                >
                   <img
                     src={
                       member.profiles?.avatar_url ||
@@ -232,15 +244,19 @@ export default function RideDetailsView() {
                     alt={member.profiles?.display_name || "Member"}
                     className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10 bg-black/40"
                   />
-                  <span className="text-sm font-bold">{member.profiles?.display_name || "Member"}</span>
+                  <span className="text-sm font-bold truncate">{member.profiles?.display_name || "Member"}</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                   <span className={`text-[10px] font-black ${mutedText} capitalize`}>
                     {member.profiles?.gender || "—"}
                   </span>
                   {isCreator && member.user_id !== session.user.id && (
                     <button 
-                      onClick={() => removeMember(member.user_id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeMember(member.user_id);
+                      }}
+                      aria-label="Remove member"
                       className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90 "
                     >
                       <UserMinus size={12} strokeWidth={3} />
@@ -263,36 +279,37 @@ export default function RideDetailsView() {
         </button>
 
         {isCreator && (
-          <div className="flex gap-2 w-full mt-2">
-            <button
-              onClick={() => updateLoopStatus('ended')}
-              className={`w-full h-11 bg-red-500 text-white font-black rounded-[20px] text-[10px] uppercase tracking-[0.1em] flex items-center justify-center gap-1.5 active:scale-[0.98] `}
-            >
-              <XCircle size={14} /> End Loop
-            </button>
-          </div>
-        )}
-
-        {/* Leave Loop — for joined non-creators */}
-        {isJoined && !isCreator && (
           <button
-            onClick={() => leaveLoop(selectedLoop.id)}
-            className={`w-full h-10 ${cardBg} border border-orange-500/20 text-orange-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] `}
+            onClick={() => updateLoopStatus("ended")}
+            className="w-full h-12 bg-red-500 text-white font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 "
           >
-            <LeaveIcon size={13} /> Leave Loop
+            <XCircle size={16} strokeWidth={2.5} />
+            End Loop
           </button>
         )}
 
-        {/* Delete Loop — for creators only */}
         {isCreator && (
           <button
             onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full h-10 ${cardBg} border border-red-500/20 text-red-500 rounded-[20px] text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] `}
+            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 `}
           >
-            <Trash2 size={13} /> Delete Loop
+            <Trash2 size={13} strokeWidth={2.5} />
+            Delete Loop
+          </button>
+        )}
+
+        {isJoined && !isCreator && (
+          <button
+            onClick={() => leaveLoop(selectedLoop.id)}
+            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 `}
+          >
+            <LeaveIcon size={13} strokeWidth={2.5} />
+            Leave Loop
           </button>
         )}
       </div>
+
+      <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
     </div>
   );
 }

@@ -14,6 +14,7 @@ export default function ProfileView() {
 
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
+  const [tempBio, setTempBio] = useState(profile.bio || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -56,7 +57,7 @@ export default function ProfileView() {
   };
 
   const handleSave = () => {
-    updateProfile({ display_name: tempName, reg_no: tempRegNo });
+    updateProfile({ display_name: tempName, reg_no: tempRegNo, bio: tempBio });
     setIsEditingProfile(false);
   };
 
@@ -153,6 +154,7 @@ export default function ProfileView() {
                 onClick={() => {
                   setTempName(profile.display_name);
                   setTempRegNo(profile.reg_no || "");
+                  setTempBio(profile.bio || "");
                   setIsEditingProfile(true);
                 }}
                 className="p-2 rounded-full active:scale-90 "
@@ -168,26 +170,44 @@ export default function ProfileView() {
                 <input
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-2 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
+                  className={`w-full bg-black/10 border ${border} rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
                   placeholder="Name"
                 />
               ) : (
-                <h2 className="text-lg font-black tracking-tight">{profile.display_name}</h2>
+                <h2 className="text-base font-black tracking-tight">{profile.display_name}</h2>
               )}
             </div>
-            <div className="w-32 space-y-1.5">
+            <div className="w-28 space-y-1.5">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Reg. No</p>
               {isEditingProfile ? (
                 <input
                   value={tempRegNo}
                   onChange={(e) => setTempRegNo(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-2 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
+                  className={`w-full bg-black/10 border ${border} rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
                   placeholder="Reg #"
                 />
               ) : (
-                <h2 className="text-lg font-black tracking-tight">{profile.reg_no || "—"}</h2>
+                <h2 className="text-base font-black tracking-tight">{profile.reg_no || "—"}</h2>
               )}
             </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-white/5 space-y-1.5">
+            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Bio</p>
+            {isEditingProfile ? (
+              <textarea
+                value={tempBio}
+                onChange={(e) => setTempBio(e.target.value)}
+                rows={2}
+                maxLength={120}
+                className={`w-full bg-black/10 border ${border} rounded-xl p-2 text-xs font-bold outline-none focus:border-[#FFC554] resize-none`}
+                placeholder="Add a short bio (e.g. CS '26 | Daily commuter)..."
+              />
+            ) : (
+              <p className="text-xs font-bold leading-relaxed opacity-80">
+                {profile.bio?.trim() ? profile.bio : <span className={mutedText}>No bio added yet.</span>}
+              </p>
+            )}
           </div>
         </div>
 

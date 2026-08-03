@@ -6,6 +6,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "sonner";
 import { Send, Edit2, Check, X } from "lucide-react";
 import type { Message } from "@/lib/types";
+import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView } = useLoop();
@@ -18,6 +19,7 @@ export default function ChatView() {
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
   const [members, setMembers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
 
@@ -102,7 +104,7 @@ export default function ChatView() {
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
@@ -115,7 +117,7 @@ export default function ChatView() {
   const fetchMembers = async (loopId: string) => {
     const { data } = await supabase
       .from("loop_members")
-      .select("user_id, profiles (display_name, avatar_url)")
+      .select("user_id, profiles (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId);
     if (data) setMembers(data);
   };
@@ -255,7 +257,19 @@ export default function ChatView() {
       <div className={`px-4 py-3 flex items-center justify-between border-b ${border} ${cardBg} z-20 shadow-sm shrink-0`}>
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
           {members.map((m) => (
-            <div key={m.user_id} className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-black overflow-hidden flex items-center justify-center" title={m.profiles?.display_name}>
+            <div
+              key={m.user_id}
+              onClick={() => setSelectedUser({
+                user_id: m.user_id,
+                display_name: m.profiles?.display_name || "Member",
+                avatar_url: m.profiles?.avatar_url,
+                reg_no: m.profiles?.reg_no,
+                gender: m.profiles?.gender,
+                bio: m.profiles?.bio,
+              })}
+              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-black overflow-hidden flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+              title={m.profiles?.display_name}
+            >
               {m.profiles?.avatar_url ? (
                 <img src={m.profiles.avatar_url} className="w-full h-full object-cover" />
               ) : (
@@ -306,7 +320,17 @@ export default function ChatView() {
                 className={`flex flex-col ${isMe ? "items-end" : "items-start"} ${showSender ? "mt-4" : "mt-0.5"}`}
               >
                 {showSender && (
-                  <div className={`flex items-center gap-1.5 mb-1 px-1 ${isMe ? "flex-row-reverse" : ""}`}>
+                  <div
+                    onClick={() => setSelectedUser({
+                      user_id: msg.user_id,
+                      display_name: isMe ? profile.display_name : msg.profiles?.display_name || "Member",
+                      avatar_url: isMe ? profile.avatar_url : msg.profiles?.avatar_url,
+                      reg_no: isMe ? profile.reg_no : msg.profiles?.reg_no,
+                      gender: isMe ? profile.gender : msg.profiles?.gender,
+                      bio: isMe ? profile.bio : msg.profiles?.bio,
+                    })}
+                    className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
+                  >
                     {msg.profiles?.avatar_url ? (
                       <img src={msg.profiles.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" />
                     ) : (
@@ -445,6 +469,8 @@ export default function ChatView() {
           </button>
         </div>
       </div>
+
+      <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
     </div>
   );
 }

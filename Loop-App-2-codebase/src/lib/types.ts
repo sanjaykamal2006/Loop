@@ -22,6 +22,7 @@ export interface Profile {
   gender?: string;
   reg_no?: string;
   avatar_url?: string;
+  bio?: string;
 }
 
 export interface Message {
@@ -32,7 +33,7 @@ export interface Message {
   created_at: string;
   edited_at?: string;
   reactions?: Record<string, string[]>;
-  profiles?: { display_name: string; avatar_url?: string };
+  profiles?: { display_name: string; avatar_url?: string; reg_no?: string; gender?: string; bio?: string };
 }
 
 export interface LoopMember {
@@ -41,6 +42,8 @@ export interface LoopMember {
     display_name: string;
     gender: string;
     avatar_url?: string;
+    reg_no?: string;
+    bio?: string;
   } | null;
 }
 
@@ -52,6 +55,9 @@ export interface LoopParticipant {
   profiles?: {
     display_name: string;
     avatar_url?: string;
+    reg_no?: string;
+    gender?: string;
+    bio?: string;
   };
 }
 
