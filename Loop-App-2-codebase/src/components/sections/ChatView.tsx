@@ -38,6 +38,12 @@ export default function ChatView() {
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id]);
 
+  const loopMembersRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    loopMembersRef.current = members;
+  }, [members]);
+
   // Real-time chat & presence subscription
   useEffect(() => {
     if (!selectedLoop?.id) return;
@@ -59,31 +65,46 @@ export default function ChatView() {
         }
         setTypingUsers(typing);
       })
+      .on("broadcast", { event: "new_message" }, (payload) => {
+        if (!payload.payload) return;
+        const msg = payload.payload as Message;
+        if (msg.loop_id !== loopId) return;
+        if (msg.user_id === session.user.id) return;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+        requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+        try {
+          const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
+          audio.volume = 0.5;
+          audio.play();
+        } catch (e) {}
+      })
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
-        async (payload) => {
+        (payload) => {
           if (payload.new.loop_id !== loopId) return;
           if (payload.new.user_id === session.user.id) return;
-          const { data } = await supabase
-            .from("messages")
-            .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name)")
-            .eq("id", payload.new.id)
-            .single();
-          if (data) {
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === data.id)) return prev;
-              return [...prev, data as unknown as Message];
-            });
-            requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
-            try {
-              const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
-              audio.volume = 0.5;
-              audio.play();
-            } catch (e) {
-              // Ignore audio errors
-            }
-          }
+
+          const sender = loopMembersRef.current.find((m) => m.user_id === payload.new.user_id);
+          const newMsg: Message = {
+            id: payload.new.id,
+            loop_id: payload.new.loop_id,
+            user_id: payload.new.user_id,
+            content: payload.new.content,
+            created_at: payload.new.created_at,
+            edited_at: payload.new.edited_at,
+            reactions: payload.new.reactions,
+            profiles: sender?.profiles || { display_name: "Member" },
+          };
+
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+          requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
         }
       )
       .on(
@@ -112,7 +133,22 @@ export default function ChatView() {
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
-    if (!error && data) {
+    if (error) {
+      console.error("fetchMessages error:", error);
+      // Fallback query if profiles join fails
+      const { data: fallbackData } = await supabase
+        .from("messages")
+        .select("id, loop_id, user_id, content, created_at, edited_at, reactions")
+        .eq("loop_id", loopId)
+        .order("created_at", { ascending: true });
+      if (fallbackData) {
+        setMessages(fallbackData.map((m: any) => {
+          const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
+          return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
+        }));
+        requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
+      }
+    } else if (data) {
       setMessages(data as unknown as Message[]);
       requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
     }
@@ -121,7 +157,7 @@ export default function ChatView() {
   const fetchMembers = async (loopId: string) => {
     const { data } = await supabase
       .from("loop_members")
-      .select("user_id, profiles (display_name, avatar_url, reg_no, gender, bio)")
+      .select("user_id, profiles (display_name, reg_no, gender, bio)")
       .eq("loop_id", loopId);
     if (data) setMembers(data);
   };
@@ -149,7 +185,7 @@ export default function ChatView() {
       user_id: session.user.id,
       content,
       created_at: new Date().toISOString(),
-      profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
+      profiles: { display_name: profile.display_name },
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
@@ -172,9 +208,18 @@ export default function ChatView() {
     } else {
       const realMsg: Message = {
         ...inserted,
-        profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
+        profiles: { display_name: profile.display_name },
       };
       setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
+
+      // Broadcast over WebSocket for instant delivery to all connected receivers
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: "broadcast",
+          event: "new_message",
+          payload: realMsg,
+        });
+      }
     }
   };
 
