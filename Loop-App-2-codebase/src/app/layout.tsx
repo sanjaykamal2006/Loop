@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "LOOP - Purpose-Based Ride Coordination",
   description: "Rides go better in Loop. Mobile-first real-time ride sharing and coordination.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

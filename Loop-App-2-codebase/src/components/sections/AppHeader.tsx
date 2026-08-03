@@ -44,9 +44,12 @@ export default function AppHeader() {
     <header className="px-5 py-4 shrink-0 relative z-10 flex items-center justify-between">
       {view === "home" && (
         <div className="flex items-center justify-between w-full pt-2">
-          <div>
-            <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
-            <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="LOOP Logo" className="w-10 h-10 object-contain rounded-xl" />
+            <div>
+              <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
+              <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
+            </div>
           </div>
           {!isInstalled && (
             <button
