@@ -45,7 +45,7 @@ export default function AppHeader() {
       {view === "home" && (
         <div className="flex items-center justify-between w-full pt-2">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="LOOP Logo" className="w-10 h-10 object-contain rounded-xl" />
+            <img src="/logo.png" alt="LOOP App Logo" width="40" height="40" className="w-10 h-10 object-contain rounded-xl" loading="eager" />
             <div>
               <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
               <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
@@ -54,6 +54,7 @@ export default function AppHeader() {
           {!isInstalled && (
             <button
               onClick={handleInstallClick}
+              aria-label="Install LOOP App"
               className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0"
             >
               <Download size={13} strokeWidth={2.5} />
@@ -67,6 +68,7 @@ export default function AppHeader() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setView(view === "chat" ? "chat-list" : "home")}
+              aria-label="Go back"
               className={`w-10 h-10 rounded-full border ${border} flex items-center justify-center ${cardBg} active:scale-90 shadow-sm`}
             >
               <ChevronLeft size={20} />
@@ -76,7 +78,7 @@ export default function AppHeader() {
             </h1>
           </div>
           {view === "create" && (
-            <button onClick={() => setView("home")} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
+            <button onClick={() => setView("home")} aria-label="Cancel creation" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
               <Plus size={20} className="rotate-45" />
             </button>
           )}
@@ -91,7 +93,7 @@ export default function AppHeader() {
       {view === "profile" && (
         <div className="flex items-center justify-between w-full pt-2">
           <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <button onClick={toggleTheme} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
+          <button onClick={toggleTheme} aria-label="Toggle theme mode" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
             {isDark ? <Sun size={18} className="text-[#FFC554]" /> : <Moon size={18} />}
           </button>
         </div>
