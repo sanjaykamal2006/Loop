@@ -143,26 +143,6 @@ export default function ProfileView() {
           <Camera size={14} className="text-[#FFC554]" />
           <span>Change Photo</span>
         </button>
-
-        {/* Pill-Shaped Segmented Theme Switcher */}
-        <div className={`p-1 ${cardBg} border ${border} rounded-full flex items-center w-full max-w-[260px] shadow-sm mt-1`}>
-          <button
-            onClick={() => !isDark && toggleTheme()}
-            className={`flex-1 py-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
-              isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
-            }`}
-          >
-            <Moon size={12} /> Dark
-          </button>
-          <button
-            onClick={() => isDark && toggleTheme()}
-            className={`flex-1 py-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
-              !isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
-            }`}
-          >
-            <Sun size={12} /> Light
-          </button>
-        </div>
       </div>
 
       <div className="w-full space-y-2">
