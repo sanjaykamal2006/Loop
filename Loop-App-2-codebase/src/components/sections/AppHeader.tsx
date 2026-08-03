@@ -42,7 +42,7 @@ export default function AppHeader() {
   };
 
   return (
-    <header className="px-5 py-4 shrink-0 relative z-10 flex items-center justify-between">
+    <header className="px-5 py-4 shrink-0 relative z-50 flex items-center justify-between">
       {view === "home" && (
         <div className="flex items-center justify-between w-full pt-2">
           <div className="flex items-center gap-3">
