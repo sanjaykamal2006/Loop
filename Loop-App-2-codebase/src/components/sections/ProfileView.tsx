@@ -19,6 +19,23 @@ export default function ProfileView() {
   const [showTerms, setShowTerms] = useState(false);
   const [pastLoops, setPastLoops] = useState<any[]>([]);
 
+  React.useEffect(() => {
+    const handlePastLoops = () => {
+      fetchPastLoops();
+      setShowHistory(true);
+    };
+    const handleTerms = () => {
+      setShowTerms(true);
+    };
+
+    window.addEventListener("open-past-loops", handlePastLoops);
+    window.addEventListener("open-terms-modal", handleTerms);
+    return () => {
+      window.removeEventListener("open-past-loops", handlePastLoops);
+      window.removeEventListener("open-terms-modal", handleTerms);
+    };
+  }, [session.user.id]);
+
   const fetchPastLoops = async () => {
     const { data } = await supabase
       .from("loop_members")
@@ -208,39 +225,6 @@ export default function ProfileView() {
             <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
               <p className={`text-xs font-bold ${text}`}>Trusted Vehicles</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => {
-            fetchPastLoops();
-            setShowHistory(true);
-          }}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-              <Check size={16} strokeWidth={3} />
-            </div>
-            <div className="space-y-0.5 text-left">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>History</p>
-              <p className={`text-xs font-bold ${text}`}>Past Loops</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => setShowTerms(true)}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-              <ShieldCheck size={16} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-0.5 text-left">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Legal</p>
-              <p className={`text-xs font-bold ${text}`}>Terms & Privacy Policy</p>
             </div>
           </div>
         </button>

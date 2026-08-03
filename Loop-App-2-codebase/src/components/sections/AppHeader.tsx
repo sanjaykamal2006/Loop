@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon, Download } from "lucide-react";
+import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AppHeader() {
@@ -11,6 +11,7 @@ export default function AppHeader() {
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
   useEffect(() => {
     // Check if app is already running in standalone mode (installed)
@@ -91,11 +92,51 @@ export default function AppHeader() {
         </div>
       )}
       {view === "profile" && (
-        <div className="flex items-center justify-between w-full pt-2">
+        <div className="flex items-center justify-between w-full pt-2 relative">
           <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <button onClick={toggleTheme} aria-label="Toggle theme mode" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
-            {isDark ? <Sun size={18} className="text-[#FFC554]" /> : <Moon size={18} />}
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+              aria-label="Open settings menu"
+              className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm`}
+            >
+              <Settings size={18} className={`transition-transform duration-300 ${showSettingsMenu ? "text-[#FFC554] rotate-90" : ""}`} />
+            </button>
+
+            {showSettingsMenu && (
+              <div className={`absolute right-0 top-12 w-52 p-2 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in`}>
+                <button
+                  onClick={() => { toggleTheme(); setShowSettingsMenu(false); }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                >
+                  {isDark ? <Sun size={15} className="text-[#FFC554]" /> : <Moon size={15} />}
+                  <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
+                    window.dispatchEvent(new CustomEvent("open-past-loops"));
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                >
+                  <History size={15} className="text-purple-400" />
+                  <span>Past Loops (History)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
+                    window.dispatchEvent(new CustomEvent("open-terms-modal"));
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                >
+                  <ShieldCheck size={15} className="text-[#FFC554]" />
+                  <span>Terms & Privacy Policy</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>
