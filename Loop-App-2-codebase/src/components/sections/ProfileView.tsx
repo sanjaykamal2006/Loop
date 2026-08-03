@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, Sun, Moon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 
 export default function ProfileView() {
-  const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
+  const { session, profile, updateProfile, handleSignOut, theme, toggleTheme, setView } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [tempName, setTempName] = useState(profile.display_name);
@@ -111,20 +111,18 @@ export default function ProfileView() {
         </div>
       ) : (
       <>
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2.5 my-1">
+        {/* Profile Avatar (No Yellow Border, Bigger Size) */}
         <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
-          <div className="w-24 h-24 rounded-[28px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center text-black text-3xl font-black shadow-2xl overflow-hidden shrink-0">
+          <div className={`w-28 h-28 rounded-[32px] ${isDark ? "bg-zinc-900 border-white/10" : "bg-zinc-100 border-black/10"} border-2 flex items-center justify-center text-3xl font-black shadow-xl overflow-hidden shrink-0`}>
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-[24px]" />
+              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-[28px]" />
             ) : (
-              profile.display_name.substring(0, 2).toUpperCase()
+              <span className="opacity-80">{profile.display_name.substring(0, 2).toUpperCase()}</span>
             )}
           </div>
-          <div className="absolute inset-0 bg-black/40 rounded-[28px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 bg-black/40 rounded-[32px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             {isUploading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={28} className="text-white" />}
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black border border-[#FFC554] text-[#FFC554] flex items-center justify-center shadow-md">
-            <Camera size={13} strokeWidth={2.5} />
           </div>
           <input 
             type="file" 
@@ -135,7 +133,36 @@ export default function ProfileView() {
             disabled={isUploading}
           />
         </div>
-        <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Edit Picture</p>
+
+        {/* Bigger, prominent Edit Picture pill button */}
+        <button
+          onClick={() => document.getElementById("avatar-upload")?.click()}
+          disabled={isUploading}
+          className={`px-4 py-1.5 rounded-full ${cardBg} border ${border} text-xs font-black uppercase tracking-wider flex items-center gap-2 active:scale-95 transition-all shadow-sm`}
+        >
+          <Camera size={14} className="text-[#FFC554]" />
+          <span>Change Photo</span>
+        </button>
+
+        {/* Pill-Shaped Segmented Theme Switcher */}
+        <div className={`p-1 ${cardBg} border ${border} rounded-full flex items-center w-full max-w-[260px] shadow-sm mt-1`}>
+          <button
+            onClick={() => !isDark && toggleTheme()}
+            className={`flex-1 py-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+              isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
+            }`}
+          >
+            <Moon size={12} /> Dark
+          </button>
+          <button
+            onClick={() => isDark && toggleTheme()}
+            className={`flex-1 py-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+              !isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
+            }`}
+          >
+            <Sun size={12} /> Light
+          </button>
+        </div>
       </div>
 
       <div className="w-full space-y-2">
@@ -255,6 +282,21 @@ export default function ProfileView() {
             <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
               <p className={`text-xs font-bold ${text}`}>Trusted Vehicles</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setShowCreator(true)}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+              <Sparkles size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Developer</p>
+              <p className={`text-xs font-bold ${text}`}>About Creator</p>
             </div>
           </div>
         </button>
