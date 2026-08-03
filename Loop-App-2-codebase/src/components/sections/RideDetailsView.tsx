@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, Play, XCircle, UserMinus, Receipt, Edit2, Check, X } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, UserMinus, Receipt, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -67,7 +67,7 @@ export default function RideDetailsView() {
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
       .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, gender, avatar_url, reg_no, bio)")
+      .select("user_id, profiles:user_id (display_name, gender, reg_no, bio)")
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
@@ -137,6 +137,7 @@ export default function RideDetailsView() {
 
   return (
     <div className="space-y-2.5 pt-1">
+      {/* Destination */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
           <MapPin size={18} strokeWidth={2.5} />
@@ -147,6 +148,7 @@ export default function RideDetailsView() {
         </div>
       </div>
 
+      {/* Starting Time */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
           <Clock size={18} strokeWidth={2.5} />
@@ -230,20 +232,16 @@ export default function RideDetailsView() {
                   onClick={() => setSelectedUser({
                     user_id: member.user_id,
                     display_name: member.profiles?.display_name || "Member",
-                    avatar_url: member.profiles?.avatar_url,
                     reg_no: member.profiles?.reg_no,
                     gender: member.profiles?.gender,
                     bio: member.profiles?.bio,
                   })}
                 >
-                  <img
-                    src={
-                      member.profiles?.avatar_url ||
-                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(member.profiles?.display_name || member.user_id || 'User')}`
-                    }
-                    alt={member.profiles?.display_name || "Member"}
-                    className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10 bg-black/40"
-                  />
+                  <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-black text-[#FFC554]">
+                      {(member.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
+                    </span>
+                  </div>
                   <span className="text-sm font-bold truncate">{member.profiles?.display_name || "Member"}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -257,7 +255,7 @@ export default function RideDetailsView() {
                         removeMember(member.user_id);
                       }}
                       aria-label="Remove member"
-                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90 "
+                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90"
                     >
                       <UserMinus size={12} strokeWidth={3} />
                     </button>
@@ -269,11 +267,12 @@ export default function RideDetailsView() {
         )}
       </div>
 
+      {/* Action Buttons */}
       <div className="flex flex-col gap-2 pt-1">
         <button
           onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
           disabled={isJoining}
-          className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] "
+          className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
         >
           {isJoined ? "Open Chat" : "Join Loop"}
         </button>
@@ -281,7 +280,7 @@ export default function RideDetailsView() {
         {isCreator && (
           <button
             onClick={() => updateLoopStatus("ended")}
-            className="w-full h-12 bg-red-500 text-white font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 "
+            className="w-full h-12 bg-red-500 text-white font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <XCircle size={16} strokeWidth={2.5} />
             End Loop
@@ -291,7 +290,7 @@ export default function RideDetailsView() {
         {isCreator && (
           <button
             onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 `}
+            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
           >
             <Trash2 size={13} strokeWidth={2.5} />
             Delete Loop
@@ -301,7 +300,7 @@ export default function RideDetailsView() {
         {isJoined && !isCreator && (
           <button
             onClick={() => leaveLoop(selectedLoop.id)}
-            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 `}
+            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
           >
             <LeaveIcon size={13} strokeWidth={2.5} />
             Leave Loop

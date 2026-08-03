@@ -271,16 +271,12 @@ export default function ChatView() {
                 gender: m.profiles?.gender,
                 bio: m.profiles?.bio,
               })}
-              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-black overflow-hidden flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
               title={m.profiles?.display_name}
             >
-              {m.profiles?.avatar_url ? (
-                <img src={m.profiles.avatar_url} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[10px] font-bold text-[#FFC554]">
-                  {m.profiles?.display_name?.substring(0, 2).toUpperCase()}
-                </span>
-              )}
+              <span className="text-[10px] font-black text-[#FFC554]">
+                {(m.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
+              </span>
             </div>
           ))}
           {/* Info Button to go back to Ride Details */}
@@ -335,15 +331,11 @@ export default function ChatView() {
                     })}
                     className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
                   >
-                    {msg.profiles?.avatar_url ? (
-                      <img src={msg.profiles.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
-                        <span className="text-[8px] font-bold text-[#FFC554]">
-                          {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[8px] font-bold text-[#FFC554]">
+                        {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
+                      </span>
+                    </div>
                     <p className={`text-[10px] font-semibold ${isMe ? "text-[#FFC554]" : mutedText}`}>
                       {isMe ? "You" : msg.profiles?.display_name || "Member"}
                     </p>
