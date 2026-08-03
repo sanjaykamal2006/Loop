@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles } from "lucide-react";
+import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, toggleTheme } = useLoop();
+  const { view, setView, selectedLoop, theme, toggleTheme, fetchLoops, fetchUserMemberships } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     // Check if app is already running in standalone mode (installed)
@@ -41,6 +42,13 @@ export default function AppHeader() {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchLoops(), fetchUserMemberships()]);
+    toast.success("Rides refreshed!");
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
   return (
     <header className="px-5 py-4 shrink-0 relative z-50 flex items-center justify-between">
       {view === "home" && (
@@ -52,16 +60,25 @@ export default function AppHeader() {
               <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
             </div>
           </div>
-          {!isInstalled && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleInstallClick}
-              aria-label="Install LOOP App"
-              className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0"
+              onClick={handleRefresh}
+              aria-label="Refresh rides"
+              className={`w-9 h-9 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm shrink-0`}
             >
-              <Download size={13} strokeWidth={2.5} />
-              Install App
+              <RotateCw size={15} className={isRefreshing ? "animate-spin text-[#FFC554]" : "opacity-80"} />
             </button>
-          )}
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                aria-label="Install LOOP App"
+                className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0"
+              >
+                <Download size={13} strokeWidth={2.5} />
+                Install App
+              </button>
+            )}
+          </div>
         </div>
       )}
       {(view === "create" || view === "ride-details" || view === "chat") && (

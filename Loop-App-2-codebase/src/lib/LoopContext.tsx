@@ -286,15 +286,20 @@ export function LoopProvider({ session, children }: { session: Session; children
     fetchLoops();
     fetchUserMemberships();
 
-    const loopsSubscription = supabase
-      .channel("loops-channel")
+    const globalRealtimeChannel = supabase
+      .channel("global-app-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "loops" }, () => {
         fetchLoops();
+        fetchUserMemberships();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "loop_members" }, () => {
+        fetchLoops();
+        fetchUserMemberships();
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(loopsSubscription);
+      supabase.removeChannel(globalRealtimeChannel);
     };
   }, [fetchProfile, fetchLoops, fetchUserMemberships]);
 
