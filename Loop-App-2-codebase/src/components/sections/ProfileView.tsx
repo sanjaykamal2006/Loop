@@ -23,6 +23,12 @@ export default function ProfileView() {
   const [pastLoops, setPastLoops] = useState<any[]>([]);
 
   React.useEffect(() => {
+    setTempName(profile.display_name);
+    setTempRegNo(profile.reg_no || "");
+    setTempBio(profile.bio || "");
+  }, [profile.display_name, profile.reg_no, profile.bio]);
+
+  React.useEffect(() => {
     const handlePastLoops = () => {
       fetchPastLoops();
       setShowHistory(true);

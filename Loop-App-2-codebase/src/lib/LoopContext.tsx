@@ -115,7 +115,7 @@ export function LoopProvider({ session, children }: { session: Session; children
   const fetchProfile = useCallback(async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("display_name, theme, gender, reg_no, avatar_url")
+      .select("display_name, theme, gender, reg_no, avatar_url, bio")
       .eq("id", session.user.id)
       .single();
 
@@ -127,7 +127,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         theme: "dark",
         updated_at: new Date().toISOString(),
       });
-      setProfile({ display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined });
+      setProfile({ display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined, bio: "" });
       return;
     }
 
@@ -139,6 +139,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         gender: data.gender,
         reg_no: data.reg_no || "",
         avatar_url: data.avatar_url,
+        bio: data.bio || "",
       });
     }
   }, [session.user.id, session.user.email]);
@@ -154,7 +155,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       return false;
     } else {
       setProfile((prev) => ({ ...prev, ...updates }));
-      if (updates.display_name !== undefined || updates.reg_no !== undefined) {
+      if (updates.display_name !== undefined || updates.reg_no !== undefined || updates.bio !== undefined) {
         toast.success("Profile updated!");
       }
       return true;
