@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import TermsModal from "./TermsModal";
+import CreatorModal from "./CreatorModal";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -17,6 +18,7 @@ export default function ProfileView() {
   const [isUploading, setIsUploading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showCreator, setShowCreator] = useState(false);
   const [pastLoops, setPastLoops] = useState<any[]>([]);
 
   React.useEffect(() => {
@@ -27,12 +29,17 @@ export default function ProfileView() {
     const handleTerms = () => {
       setShowTerms(true);
     };
+    const handleCreator = () => {
+      setShowCreator(true);
+    };
 
     window.addEventListener("open-past-loops", handlePastLoops);
     window.addEventListener("open-terms-modal", handleTerms);
+    window.addEventListener("open-creator-modal", handleCreator);
     return () => {
       window.removeEventListener("open-past-loops", handlePastLoops);
       window.removeEventListener("open-terms-modal", handleTerms);
+      window.removeEventListener("open-creator-modal", handleCreator);
     };
   }, [session.user.id]);
 
@@ -105,15 +112,18 @@ export default function ProfileView() {
       <>
       <div className="flex flex-col items-center gap-2">
         <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
-          <div className="w-14 h-14 rounded-[20px] bg-[#FFC554] flex items-center justify-center text-black text-xl font-black shadow-xl overflow-hidden shrink-0">
+          <div className="w-24 h-24 rounded-[28px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center text-black text-3xl font-black shadow-2xl overflow-hidden shrink-0">
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-[24px]" />
             ) : (
               profile.display_name.substring(0, 2).toUpperCase()
             )}
           </div>
           <div className="absolute inset-0 bg-black/40 rounded-[28px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isUploading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={24} className="text-white" />}
+            {isUploading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={28} className="text-white" />}
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black border border-[#FFC554] text-[#FFC554] flex items-center justify-center shadow-md">
+            <Camera size={13} strokeWidth={2.5} />
           </div>
           <input 
             type="file" 
@@ -240,6 +250,7 @@ export default function ProfileView() {
       )}
 
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
+      <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
     </div>
   );
 }
