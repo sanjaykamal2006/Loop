@@ -5,6 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { LogOut, Users, Edit2, Check, Camera, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import TermsModal from "./TermsModal";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -15,6 +16,7 @@ export default function ProfileView() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [pastLoops, setPastLoops] = useState<any[]>([]);
 
   const fetchPastLoops = async () => {
@@ -229,6 +231,21 @@ export default function ProfileView() {
         </button>
 
         <button
+          onClick={() => setShowTerms(true)}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+              <ShieldCheck size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Legal</p>
+              <p className={`text-xs font-bold ${text}`}>Terms & Privacy Policy</p>
+            </div>
+          </div>
+        </button>
+
+        <button
           onClick={handleSignOut}
           className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm mt-2`}
         >
@@ -237,6 +254,8 @@ export default function ProfileView() {
       </div>
       </>
       )}
+
+      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
     </div>
   );
 }

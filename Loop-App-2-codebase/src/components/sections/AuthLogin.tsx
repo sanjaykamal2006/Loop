@@ -317,6 +317,7 @@ export default function AuthLogin() {
                 Continue with Google
               </button>
             </div>
+            <p className="text-[10px] text-center opacity-40 mt-4">By continuing, you agree to LOOP's Terms & Privacy Policy.</p>
           </form>
         </div>
       </div>
