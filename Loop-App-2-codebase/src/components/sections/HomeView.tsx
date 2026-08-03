@@ -32,7 +32,7 @@ export default function HomeView() {
         </div>
         <div>
           <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
-          <p className={`text-xs ${mutedText} mt-1 max-w-[200px]`}>Be the first to start a ride loop on campus!</p>
+          <p className={`text-xs ${mutedText} mt-1 max-w-[220px]`}>Start a new loop or check back soon for active rides.</p>
         </div>
         <button
           onClick={() => setView("create")}
