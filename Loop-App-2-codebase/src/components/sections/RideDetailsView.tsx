@@ -283,18 +283,8 @@ export default function RideDetailsView() {
 
         {isCreator && (
           <button
-            onClick={() => updateLoopStatus("ended")}
-            className="w-full h-12 bg-red-500 text-white font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            <XCircle size={16} strokeWidth={2.5} />
-            End Loop
-          </button>
-        )}
-
-        {isCreator && (
-          <button
             onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
+            className={`w-full py-3 bg-red-500/10 border border-red-500/20 rounded-[20px] text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
           >
             <Trash2 size={13} strokeWidth={2.5} />
             Delete Loop

@@ -119,7 +119,7 @@ export default function ChatView() {
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, reg_no, gender, bio)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
@@ -147,19 +147,9 @@ export default function ChatView() {
   const fetchMembers = async (loopId: string) => {
     const { data } = await supabase
       .from("loop_members")
-      .select("user_id, profiles (display_name, reg_no, gender, bio)")
+      .select("user_id, profiles (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId);
     if (data) setMembers(data);
-  };
-
-  const updateStatus = async (newStatus: "ended") => {
-    if (!selectedLoop) return;
-    const { error } = await supabase.from("loops").update({ status: newStatus }).eq("id", selectedLoop.id);
-    if (!error) {
-      toast.success("Loop ended");
-      setSelectedLoop({ ...selectedLoop, status: newStatus });
-      setView("home");
-    }
   };
 
   const sendMessage = async () => {
@@ -175,7 +165,7 @@ export default function ChatView() {
       user_id: session.user.id,
       content,
       created_at: new Date().toISOString(),
-      profiles: { display_name: profile.display_name },
+      profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
@@ -198,7 +188,7 @@ export default function ChatView() {
     } else {
       const realMsg: Message = {
         ...inserted,
-        profiles: { display_name: profile.display_name },
+        profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
       };
       setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
 
@@ -328,11 +318,6 @@ export default function ChatView() {
           <a href={`https://wa.me/?text=${shareText}`} target="_blank" className="h-8 px-3 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-black uppercase tracking-wider flex items-center active:scale-90 shrink-0">
             SOS / Share
           </a>
-          {isHost && ["open", "active"].includes(selectedLoop?.status || "") && (
-            <button onClick={() => updateStatus("ended")} className="h-8 px-3 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black uppercase tracking-wider active:scale-90 shrink-0">
-              End Loop
-            </button>
-          )}
         </div>
       </div>
 
@@ -493,6 +478,15 @@ export default function ChatView() {
       <div className="shrink-0 px-4 pb-5 pt-2">
         <div className={`${cardBg} border ${border} rounded-[24px] p-1.5 flex gap-2 shadow-xl items-center`}>
           <input
+            type="text"
+            name="chat_message_content"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="sentences"
+            spellCheck="false"
+            data-lpignore="true"
+            data-form-type="other"
+            inputMode="text"
             value={newMessage}
             onChange={handleInputChange}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
@@ -502,7 +496,7 @@ export default function ChatView() {
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim()}
-            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90  shrink-0 disabled:opacity-40"
+            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90 shrink-0 disabled:opacity-40"
           >
             <Send size={15} strokeWidth={2.5} />
           </button>
