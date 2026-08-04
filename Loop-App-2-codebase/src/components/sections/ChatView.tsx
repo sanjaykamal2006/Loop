@@ -53,6 +53,12 @@ export default function ChatView() {
     loopMembersRef.current = members;
   }, [members]);
 
+  const scrollToBottom = () => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  };
+
   // Real-time chat & presence subscription
   useEffect(() => {
     if (!selectedLoop?.id) return;
@@ -83,7 +89,7 @@ export default function ChatView() {
           if (prev.some((m) => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
-        requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+        requestAnimationFrame(scrollToBottom);
         try {
           const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
           audio.volume = 0.5;
@@ -136,11 +142,11 @@ export default function ChatView() {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
           return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
         }));
-        requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
+        requestAnimationFrame(scrollToBottom);
       }
     } else if (data) {
       setMessages(data as unknown as Message[]);
-      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView());
+      requestAnimationFrame(scrollToBottom);
     }
   };
 
@@ -168,7 +174,7 @@ export default function ChatView() {
       profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
     };
     setMessages((prev) => [...prev, optimisticMsg]);
-    requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+    requestAnimationFrame(scrollToBottom);
 
     // Clear typing
     if (channelRef.current) {
@@ -475,32 +481,41 @@ export default function ChatView() {
       )}
 
       {/* Message input */}
-      <div className="shrink-0 px-4 pb-5 pt-2">
-        <div className={`${cardBg} border ${border} rounded-[24px] p-1.5 flex gap-2 shadow-xl items-center`}>
+      <div className="shrink-0 px-4 pb-5 pt-2 z-20">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendMessage();
+          }}
+          autoComplete="off"
+          action="javascript:void(0);"
+          className={`${cardBg} border ${border} rounded-[24px] p-1.5 flex gap-2 shadow-xl items-center`}
+        >
           <input
-            type="text"
-            name="chat_message_content"
-            autoComplete="off"
+            type="search"
+            name="search"
+            autoComplete="new-password"
             autoCorrect="off"
             autoCapitalize="sentences"
             spellCheck="false"
             data-lpignore="true"
+            data-1p-ignore="true"
             data-form-type="other"
+            aria-autocomplete="none"
             inputMode="text"
             value={newMessage}
             onChange={handleInputChange}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
             placeholder="Message..."
-            className="flex-1 bg-transparent px-4 text-sm font-medium outline-none"
+            className="flex-1 bg-transparent px-4 text-sm font-medium outline-none border-none ring-0 [&::-webkit-search-cancel-button]:hidden"
           />
           <button
-            onClick={sendMessage}
+            type="submit"
             disabled={!newMessage.trim()}
             className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90 shrink-0 disabled:opacity-40"
           >
             <Send size={15} strokeWidth={2.5} />
           </button>
-        </div>
+        </form>
       </div>
 
       <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
