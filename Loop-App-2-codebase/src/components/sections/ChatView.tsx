@@ -38,12 +38,12 @@ export default function ChatView() {
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id]);
 
-  // Background polling safety net (every 2.5 seconds) to ensure 100% instant delivery on mobile networks
+  // Ultra-fast background polling safety net (every 1 second) to ensure 100% instant delivery on mobile networks
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const pollInterval = setInterval(() => {
       fetchMessages(selectedLoop.id);
-    }, 2500);
+    }, 1000);
     return () => clearInterval(pollInterval);
   }, [selectedLoop?.id]);
 
