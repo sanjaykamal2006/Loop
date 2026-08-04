@@ -53,9 +53,13 @@ export default function ChatView() {
     loopMembersRef.current = members;
   }, [members]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (force = false) => {
     if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      const { scrollHeight, clientHeight } = chatScrollRef.current;
+      // Only scroll if content is taller than the container (overflowing) or if explicitly forced when sending
+      if (force || scrollHeight > clientHeight + 20) {
+        chatScrollRef.current.scrollTop = scrollHeight - clientHeight;
+      }
     }
   };
 
@@ -89,7 +93,7 @@ export default function ChatView() {
           if (prev.some((m) => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
-        requestAnimationFrame(scrollToBottom);
+        requestAnimationFrame(() => scrollToBottom(true));
         try {
           const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
           audio.volume = 0.5;
@@ -142,11 +146,11 @@ export default function ChatView() {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
           return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
         }));
-        requestAnimationFrame(scrollToBottom);
+        requestAnimationFrame(() => scrollToBottom(false));
       }
     } else if (data) {
       setMessages(data as unknown as Message[]);
-      requestAnimationFrame(scrollToBottom);
+      requestAnimationFrame(() => scrollToBottom(false));
     }
   };
 
@@ -174,7 +178,7 @@ export default function ChatView() {
       profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
     };
     setMessages((prev) => [...prev, optimisticMsg]);
-    requestAnimationFrame(scrollToBottom);
+    requestAnimationFrame(() => scrollToBottom(true));
 
     // Clear typing
     if (channelRef.current) {
