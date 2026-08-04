@@ -38,6 +38,15 @@ export default function ChatView() {
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id]);
 
+  // Background polling safety net (every 2.5 seconds) to ensure 100% instant delivery on mobile networks
+  useEffect(() => {
+    if (!selectedLoop?.id) return;
+    const pollInterval = setInterval(() => {
+      fetchMessages(selectedLoop.id);
+    }, 2500);
+    return () => clearInterval(pollInterval);
+  }, [selectedLoop?.id]);
+
   const loopMembersRef = useRef<any[]>([]);
 
   useEffect(() => {
@@ -84,27 +93,8 @@ export default function ChatView() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
-          if (payload.new.loop_id !== loopId) return;
-          if (payload.new.user_id === session.user.id) return;
-
-          const sender = loopMembersRef.current.find((m) => m.user_id === payload.new.user_id);
-          const newMsg: Message = {
-            id: payload.new.id,
-            loop_id: payload.new.loop_id,
-            user_id: payload.new.user_id,
-            content: payload.new.content,
-            created_at: payload.new.created_at,
-            edited_at: payload.new.edited_at,
-            reactions: payload.new.reactions,
-            profiles: sender?.profiles || { display_name: "Member" },
-          };
-
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-          requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }));
+        () => {
+          fetchMessages(loopId);
         }
       )
       .on(
@@ -316,12 +306,16 @@ export default function ChatView() {
                 gender: m.profiles?.gender,
                 bio: m.profiles?.bio,
               })}
-              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform overflow-hidden"
               title={m.profiles?.display_name}
             >
-              <span className="text-[10px] font-black text-[#FFC554]">
-                {(m.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
-              </span>
+              {m.profiles?.avatar_url ? (
+                <img src={m.profiles.avatar_url} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-black text-[#FFC554]">
+                  {(m.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
+                </span>
+              )}
             </div>
           ))}
           {/* Info Button to go back to Ride Details */}
@@ -376,11 +370,15 @@ export default function ChatView() {
                     })}
                     className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
                   >
-                    <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
-                      <span className="text-[8px] font-bold text-[#FFC554]">
-                        {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
-                      </span>
-                    </div>
+                    {msg.profiles?.avatar_url ? (
+                      <img src={msg.profiles.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
+                        <span className="text-[8px] font-bold text-[#FFC554]">
+                          {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <p className={`text-[10px] font-semibold ${isMe ? "text-[#FFC554]" : mutedText}`}>
                       {isMe ? "You" : msg.profiles?.display_name || "Member"}
                     </p>

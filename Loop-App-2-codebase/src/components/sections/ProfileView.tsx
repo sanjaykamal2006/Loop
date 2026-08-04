@@ -117,10 +117,38 @@ export default function ProfileView() {
         </div>
       ) : (
       <>
-      <div className="flex flex-col items-center gap-2 my-2">
-        <div className="w-20 h-20 rounded-[28px] bg-[#FFC554] text-black font-black text-2xl flex items-center justify-center shadow-xl shrink-0">
-          {profile.display_name.substring(0, 2).toUpperCase()}
+      <div className="flex flex-col items-center gap-2.5 my-1">
+        {/* Profile Avatar */}
+        <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
+          <div className={`w-28 h-28 rounded-[32px] ${isDark ? "bg-zinc-900 border-white/10" : "bg-zinc-100 border-black/10"} border-2 flex items-center justify-center text-3xl font-black shadow-xl overflow-hidden shrink-0`}>
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-[28px]" />
+            ) : (
+              <span className="opacity-80">{profile.display_name.substring(0, 2).toUpperCase()}</span>
+            )}
+          </div>
+          <div className="absolute inset-0 bg-black/40 rounded-[32px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {isUploading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={28} className="text-white" />}
+          </div>
+          <input 
+            type="file" 
+            id="avatar-upload" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={uploadAvatar}
+            disabled={isUploading}
+          />
         </div>
+
+        {/* Change Photo Button */}
+        <button
+          onClick={() => document.getElementById("avatar-upload")?.click()}
+          disabled={isUploading}
+          className={`px-4 py-1.5 rounded-full ${cardBg} border ${border} text-xs font-black uppercase tracking-wider flex items-center gap-2 active:scale-95 transition-all shadow-sm`}
+        >
+          <Camera size={14} className="text-[#FFC554]" />
+          <span>Change Photo</span>
+        </button>
       </div>
 
       <div className="w-full space-y-2">
@@ -239,7 +267,7 @@ export default function ProfileView() {
             </div>
             <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
-              <p className={`text-xs font-bold ${text}`}>Trusted Vehicles</p>
+              <p className={`text-xs font-bold ${text}`}>Trusted Drivers</p>
             </div>
           </div>
         </button>

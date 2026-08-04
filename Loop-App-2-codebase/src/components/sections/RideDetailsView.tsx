@@ -237,11 +237,15 @@ export default function RideDetailsView() {
                     bio: member.profiles?.bio,
                   })}
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-black text-[#FFC554]">
-                      {(member.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
-                    </span>
-                  </div>
+                  {member.profiles?.avatar_url ? (
+                    <img src={member.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-black text-[#FFC554]">
+                        {(member.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <span className="text-sm font-bold truncate">{member.profiles?.display_name || "Member"}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
