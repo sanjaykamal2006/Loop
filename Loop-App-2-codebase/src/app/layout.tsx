@@ -1,16 +1,37 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from 'next/font/google';
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['300','400','500','600','700'], variable: '--font-space-grotesk', display: 'swap' });
-import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
-import ErrorReporter from "@/components/ErrorReporter";
-import Script from "next/script";
 import { Toaster } from "sonner";
 
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'], 
+  weight: ['300', '400', '500', '600', '700'], 
+  variable: '--font-space-grotesk', 
+  display: 'swap' 
+});
+
 export const metadata: Metadata = {
-  title: "LOOP",
-  description: "Rides go better in Loop.",
+  title: "LOOP - Purpose-Based Ride Coordination",
+  description: "Rides go better in Loop. Mobile-first real-time ride sharing and coordination.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "LOOP",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -21,26 +42,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={spaceGrotesk.variable}>
       <body className="antialiased">
-        <Script
-          id="orchids-browser-logs"
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/orchids-browser-logs.js"
-          strategy="afterInteractive"
-          data-orchids-project-id="548f6498-734b-4e21-a05b-764419424a33"
-        />
-        <ErrorReporter />
-        <Script
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
-          strategy="afterInteractive"
-          data-target-origin="*"
-          data-message-type="ROUTE_CHANGE"
-          data-include-search-params="true"
-          data-only-in-iframe="true"
-          data-debug="true"
-          data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
-        />
         {children}
         <Toaster position="top-center" richColors theme="dark" />
-        <VisualEditsMessenger />
       </body>
     </html>
   );
