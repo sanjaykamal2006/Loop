@@ -403,40 +403,54 @@ export default function ProfileView() {
 
       {/* Privacy Notice Modal */}
       {showPrivacy && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col animate-fade-in">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-            <button onClick={() => setShowPrivacy(false)} className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center active:scale-90">
-              <span className="text-sm">←</span>
-            </button>
-            <h2 className="text-sm font-black uppercase tracking-wider">Privacy Notice</h2>
-          </div>
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 scrollbar-hide">
-            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Last Updated: August 2026</p>
-
-            {[
-              { title: "1. Who We Are", content: "LOOP is a ride coordination platform for university students, created by Sanjay Kamal S (24MIC7130, VIT-AP University)." },
-              { title: "2. What We Collect & Why", content: "• Email address — for account creation and login\n• Display name — so co-passengers can identify you\n• Password — stored securely by Supabase Auth (bcrypt hashed, never in plaintext)\n• Gender (optional) — used solely for the 'Girls Only' ride safety filter\n• Registration number (optional) — for campus identity verification\n• Profile picture (optional) — for visual identification in ride chats\n• Bio (optional) — short description visible to co-passengers\n• Ride data — destinations, departure times, and chat messages within loops\n• Trusted driver entries — driver names and phone numbers you share with the community" },
-              { title: "3. How We Use Your Data", content: "Your data is used solely to provide LOOP's ride coordination service. We do not sell, rent, or share your personal data with advertisers or data brokers." },
-              { title: "4. Third-Party Services", content: "LOOP uses Supabase (supabase.com) for authentication, database, and file storage. The app is hosted on Vercel (vercel.com). These services process your data on our behalf." },
-              { title: "5. Data Retention", content: "Your data is retained as long as your account exists. You can delete your account and all associated data at any time from Profile settings." },
-              { title: "6. Your Rights (DPDP Act, 2023)", content: "• Right to access your personal data (visible on your Profile page)\n• Right to correct inaccurate data (editable on your Profile page)\n• Right to erase your data (via 'Delete My Account' in Profile)\n• Right to withdraw consent (by deleting your account)\n• Right to grievance redressal (contact us below)" },
-              { title: "7. Children's Data", content: "LOOP is intended for university students (18+). We do not knowingly collect data from children under 18." },
-              { title: "8. Security", content: "We use encrypted connections (HTTPS), bcrypt password hashing, Row Level Security on all database tables, and JWT-based authentication." },
-              { title: "9. Contact & Grievance", content: "For any privacy concerns, data requests, or grievances:\nsanjaykamal001@gmail.com" },
-            ].map((section, i) => (
-              <div key={i} className="space-y-1.5">
-                <h3 className="text-xs font-black text-[#FFC554]">{section.title}</h3>
-                <p className="text-xs font-bold leading-relaxed opacity-70 whitespace-pre-line">{section.content}</p>
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className={`w-full max-w-md max-h-[85vh] ${cardBg} border ${border} rounded-[28px] p-6 flex flex-col relative shadow-2xl overflow-hidden`}>
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center">
+                  <FileText size={18} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h2 className="text-base font-black uppercase tracking-tight">Privacy Notice</h2>
+                  <p className={`text-[10px] font-bold ${mutedText}`}>Last Updated: August 2026</p>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="px-5 py-3 border-t border-white/5">
-            <button
-              onClick={() => setShowPrivacy(false)}
-              className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md"
-            >
-              I Understand
-            </button>
+              <button
+                onClick={() => setShowPrivacy(false)}
+                aria-label="Close modal"
+                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center active:scale-90"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-4 pt-4 pr-1 text-xs leading-relaxed opacity-90 scrollbar-hide">
+              {[
+                { title: "1. Who We Are", content: "LOOP is a ride coordination platform for university students, created by Sanjay Kamal S (24MIC7130, VIT-AP University)." },
+                { title: "2. What We Collect & Why", content: "• Email address — for account creation and login\n• Display name — so co-passengers can identify you\n• Password — stored securely by Supabase Auth (bcrypt hashed, never in plaintext)\n• Gender (optional) — used solely for the 'Girls Only' ride safety filter\n• Registration number (optional) — for campus identity verification\n• Profile picture (optional) — for visual identification in ride chats\n• Bio (optional) — short description visible to co-passengers\n• Ride data — destinations, departure times, and chat messages within loops\n• Trusted driver entries — driver names and phone numbers you share with the community" },
+                { title: "3. How We Use Your Data", content: "Your data is used solely to provide LOOP's ride coordination service. We do not sell, rent, or share your personal data with advertisers or data brokers." },
+                { title: "4. Third-Party Services", content: "LOOP uses Supabase (supabase.com) for authentication, database, and file storage. The app is hosted on Vercel (vercel.com). These services process your data on our behalf." },
+                { title: "5. Data Retention", content: "Your data is retained as long as your account exists. You can delete your account and all associated data at any time from Profile settings." },
+                { title: "6. Your Rights (DPDP Act, 2023)", content: "• Right to access your personal data (visible on your Profile page)\n• Right to correct inaccurate data (editable on your Profile page)\n• Right to erase your data (via 'Delete My Account' in Profile)\n• Right to withdraw consent (by deleting your account)\n• Right to grievance redressal (contact us below)" },
+                { title: "7. Children's Data", content: "LOOP is intended for university students (18+). We do not knowingly collect data from children under 18." },
+                { title: "8. Security", content: "We use encrypted connections (HTTPS), bcrypt password hashing, Row Level Security on all database tables, and JWT-based authentication." },
+                { title: "9. Contact & Grievance", content: "For any privacy concerns, data requests, or grievances:\nsanjaykamal001@gmail.com" },
+              ].map((section, i) => (
+                <section key={i} className="space-y-1">
+                  <h3 className="font-black text-sm uppercase tracking-wider text-[#FFC554]">{section.title}</h3>
+                  <p className={`${mutedText} whitespace-pre-line`}>{section.content}</p>
+                </section>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-white/10 shrink-0">
+              <button
+                onClick={() => setShowPrivacy(false)}
+                className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md"
+              >
+                I Understand
+              </button>
+            </div>
           </div>
         </div>
       )}
