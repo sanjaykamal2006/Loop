@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { ChevronLeft } from "lucide-react";
 
@@ -28,7 +30,7 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
         <section className="space-y-3">
           <h2 className="text-lg font-bold text-[#FFC554]">1. Who We Are</h2>
           <p className="text-sm text-white/80 leading-relaxed">
-            LOOP is a ride coordination platform for university students, created by Sanjay Kamal S.
+            LOOP is a ride coordination platform for university students, created by Sanjay Kamal S (24MIC7130, VIT-AP University).
           </p>
         </section>
 
@@ -37,7 +39,7 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
           <ul className="text-sm text-white/80 leading-relaxed space-y-2 list-disc pl-4">
             <li><strong>Email address</strong> — for account creation and login</li>
             <li><strong>Display name</strong> — so co-passengers can identify you</li>
-            <li><strong>Password</strong> — stored securely by Supabase Auth (bcrypt hashed, never stored in plaintext)</li>
+            <li><strong>Password</strong> — stored securely by Supabase Auth (bcrypt hashed, never in plaintext)</li>
             <li><strong>Gender (optional)</strong> — used solely to power the "Girls Only" ride safety filter</li>
             <li><strong>Registration number (optional)</strong> — for campus identity verification among co-passengers</li>
             <li><strong>Profile picture (optional)</strong> — for visual identification in ride chats</li>
@@ -94,7 +96,7 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-[#FFC554]">9. Contact & Grievance</h2>
+          <h2 className="text-lg font-bold text-[#FFC554]">9. Contact & Grievance Redressal</h2>
           <p className="text-sm text-white/80 leading-relaxed">
             For any privacy concerns, data requests, or grievances, contact: <a href="mailto:sanjaykamal001@gmail.com" className="text-[#FFC554] hover:underline">sanjaykamal001@gmail.com</a>
           </p>
