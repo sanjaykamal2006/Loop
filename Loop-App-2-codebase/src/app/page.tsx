@@ -9,8 +9,14 @@ import { Session } from "@supabase/supabase-js";
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
+    // Detect password recovery token in URL hash or search params
+    if (typeof window !== "undefined" && (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery"))) {
+      setIsPasswordReset(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -18,7 +24,10 @@ export default function Home() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordReset(true);
+      }
       setSession(session);
     });
 
@@ -38,6 +47,22 @@ export default function Home() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (isPasswordReset) {
+    return (
+      <main>
+        <AuthLogin
+          initialPasswordReset={true}
+          onPasswordResetComplete={() => {
+            setIsPasswordReset(false);
+            if (typeof window !== "undefined") {
+              window.history.replaceState(null, "", window.location.pathname);
+            }
+          }}
+        />
+      </main>
     );
   }
 

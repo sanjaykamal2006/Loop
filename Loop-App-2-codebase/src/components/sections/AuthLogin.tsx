@@ -7,17 +7,27 @@ import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 
-export default function AuthLogin() {
+interface AuthLoginProps {
+  initialPasswordReset?: boolean;
+  onPasswordResetComplete?: () => void;
+}
+
+export default function AuthLogin({ initialPasswordReset = false, onPasswordResetComplete }: AuthLoginProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(initialPasswordReset);
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+
+  useEffect(() => {
+    setIsResettingPassword(initialPasswordReset);
+  }, [initialPasswordReset]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -80,7 +90,6 @@ export default function AuthLogin() {
         } else {
           setIsVerifying(true);
           setCountdown(60);
-          // Removed "Check your email" toast as requested
         }
       }
     } catch (error: any) {
@@ -90,7 +99,31 @@ export default function AuthLogin() {
     }
   };
 
-    const handleVerifyOtp = async () => {
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const passErr = validatePassword(password);
+    if (passErr) {
+      toast.error(passErr);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      toast.success("Password updated successfully!");
+      if (onPasswordResetComplete) {
+        onPasswordResetComplete();
+      } else {
+        setIsResettingPassword(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
     if (otp.length !== 6) {
       toast.error("Please enter the 6-digit code");
       return;
@@ -136,7 +169,7 @@ export default function AuthLogin() {
       });
       if (error) throw error;
       setCountdown(60);
-      setOtp(""); // Clear expired OTP
+      setOtp("");
       toast.success("New code sent!");
     } catch (error: any) {
       toast.error(error.message || "Failed to resend code");
@@ -147,6 +180,55 @@ export default function AuthLogin() {
 
   if (showPrivacy) {
     return <PrivacyPolicyView onBack={() => setShowPrivacy(false)} />;
+  }
+
+  if (isResettingPassword) {
+    return (
+      <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
+        <div className="dot-matrix-bg text-white" />
+        <div className="flex flex-col h-full px-8 relative z-10 pt-12">
+          <div className="flex flex-col items-center justify-center flex-1 space-y-8">
+            <div className="text-center space-y-3">
+              <h1 className="text-4xl font-black tracking-tighter">NEW PASSWORD</h1>
+              <p className="text-sm font-medium opacity-40 max-w-[240px] mx-auto">
+                Set a new 8+ character password for your account
+              </p>
+            </div>
+
+            <form onSubmit={handleSetNewPassword} className="space-y-6 w-full">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+              >
+                {isLoading ? "Updating..." : "Update Password & Continue"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (isVerifying) {
@@ -169,28 +251,28 @@ export default function AuthLogin() {
               </p>
             </div>
 
-              <div className="space-y-8 w-full flex flex-col items-center">
-                <OTPInput
-                  maxLength={6}
-                  value={otp}
-                  onChange={setOtp}
-                  onComplete={handleVerifyOtp}
-                  containerClassName="flex gap-2"
-                  render={({ slots }) => (
-                    <div className="flex gap-2">
-                      {slots.map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
-                      ))}
-                    </div>
-                  )}
-                />
+            <div className="space-y-8 w-full flex flex-col items-center">
+              <OTPInput
+                maxLength={6}
+                value={otp}
+                onChange={setOtp}
+                onComplete={handleVerifyOtp}
+                containerClassName="flex gap-2"
+                render={({ slots }) => (
+                  <div className="flex gap-2">
+                    {slots.map((slot, idx) => (
+                      <Slot key={idx} {...slot} />
+                    ))}
+                  </div>
+                )}
+              />
 
-                <div className="w-full space-y-4">
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={isLoading || otp.length < 6}
-                    className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                  >
+              <div className="w-full space-y-4">
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={isLoading || otp.length < 6}
+                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+                >
                   {isLoading ? "Verifying..." : "Verify & Continue"}
                 </button>
 
@@ -211,114 +293,114 @@ export default function AuthLogin() {
 
   return (
     <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
-        <div className="dot-matrix-bg text-white" />
-        
-        <div className="flex flex-col items-center justify-center h-full px-8 relative z-10">
-          <div className="w-full space-y-12">
-            <div className="text-center space-y-2">
-              <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
-              <p className="text-sm font-medium opacity-40">Rides go better in Loop.</p>
+      <div className="dot-matrix-bg text-white" />
+      
+      <div className="flex flex-col items-center justify-center h-full px-8 relative z-10">
+        <div className="w-full space-y-12">
+          <div className="text-center space-y-2">
+            <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
+            <p className="text-sm font-medium opacity-40">Rides go better in Loop.</p>
+          </div>
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Email Address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@email.com"
+                className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+              />
             </div>
 
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Email Address</label>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Password</label>
+              <div className="relative">
                 <input
-                  type="email"
+                  type={showPassword ? "text" : "password"}
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@email.com"
-                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {isLogin && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!email) {
-                        toast.error("Please enter your email first");
-                        return;
-                      }
-                      try {
-                        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-                        if (error) throw error;
-                        toast.success("Password reset link sent to your email!");
-                      } catch (err: any) {
-                        toast.error(err.message || "Failed to send reset link");
-                      }
-                    }}
-                    className="text-xs font-bold text-[#FFC554]/60 hover:text-[#FFC554] transition-colors ml-4 mt-1"
-                  >
-                    Forgot Password?
-                  </button>
-                )}
-              </div>
-
-              <div className="pt-4 space-y-4">
-                {!isLogin && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <input 
-                      type="checkbox" 
-                      id="privacy-consent"
-                      checked={agreedToPrivacy}
-                      onChange={(e) => setAgreedToPrivacy(e.target.checked)}
-                      className="accent-[#FFC554]"
-                    />
-                    <label htmlFor="privacy-consent" className="text-xs text-white/60">
-                      I have read and agree to LOOP's{" "}
-                      <button 
-                        type="button"
-                        onClick={() => setShowPrivacy(true)}
-                        className="text-[#FFC554] hover:underline"
-                      >
-                        Privacy Notice
-                      </button>
-                    </label>
-                  </div>
-                )}
                 <button
-                  type="submit"
-                  disabled={isLoading || (!isLogin && !agreedToPrivacy)}
-                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                >
-                  {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
-                </button>
-
-                <button 
                   type="button"
-                  className="w-full py-2 text-sm font-bold opacity-40 hover:opacity-100 transition-opacity"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setShowPassword(false);
-                  }}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
                 >
-                  {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </form>
-          </div>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error("Please enter your email first");
+                      return;
+                    }
+                    try {
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+                      if (error) throw error;
+                      toast.success("Password reset link sent to your email!");
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to send reset link");
+                    }
+                  }}
+                  className="text-xs font-bold text-[#FFC554]/60 hover:text-[#FFC554] transition-colors ml-4 mt-1"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
+
+            <div className="pt-4 space-y-4">
+              {!isLogin && (
+                <div className="flex items-center gap-2 ml-4">
+                  <input 
+                    type="checkbox" 
+                    id="privacy-consent"
+                    checked={agreedToPrivacy}
+                    onChange={(e) => setAgreedToPrivacy(e.target.checked)}
+                    className="accent-[#FFC554]"
+                  />
+                  <label htmlFor="privacy-consent" className="text-xs text-white/60">
+                    I have read and agree to LOOP's{" "}
+                    <button 
+                      type="button"
+                      onClick={() => setShowPrivacy(true)}
+                      className="text-[#FFC554] hover:underline"
+                    >
+                      Privacy Notice
+                    </button>
+                  </label>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={isLoading || (!isLogin && !agreedToPrivacy)}
+                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+              >
+                {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
+              </button>
+
+              <button 
+                type="button"
+                className="w-full py-2 text-sm font-bold opacity-40 hover:opacity-100 transition-opacity"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setShowPassword(false);
+                }}
+              >
+                {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
   );
 }
