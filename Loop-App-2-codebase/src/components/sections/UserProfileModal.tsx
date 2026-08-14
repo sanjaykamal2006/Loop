@@ -22,8 +22,11 @@ export default function UserProfileModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { theme } = useLoop();
+  const { theme, session } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
+  const currentUserId = session?.user?.id;
+
+  const maskRegNo = (regNo: string) => regNo.length > 5 ? regNo.substring(0, 5) + '****' : '****';
 
   if (!isOpen || !user) return null;
 
@@ -60,7 +63,7 @@ export default function UserProfileModal({
           <div className="flex items-center justify-center gap-2 pt-0.5">
             {user.reg_no && (
               <span className="text-[10px] bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
-                {user.reg_no}
+                {user.user_id === currentUserId ? user.reg_no : maskRegNo(user.reg_no)}
               </span>
             )}
             {user.gender && (

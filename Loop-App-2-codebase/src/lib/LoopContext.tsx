@@ -151,7 +151,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       .upsert({ id: session.user.id, ...updates, updated_at: new Date().toISOString() }, { onConflict: "id" });
 
     if (error) {
-      toast.error("Failed to update profile: " + error.message);
+      toast.error("Failed to update profile. Please try again.");
       return false;
     } else {
       setProfile((prev) => ({ ...prev, ...updates }));
@@ -216,7 +216,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         setSelectedLoop(loop);
         setView("chat");
       } else {
-        toast.error("Failed to join loop");
+        toast.error("Failed to join loop. Please try again.");
       }
     } else {
       toast.success("Joined loop!");

@@ -32,6 +32,9 @@ export default function TrustedVehiclesView() {
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [revealedPhones, setRevealedPhones] = useState<Set<string>>(new Set());
+
+  const maskPhone = (phone: string) => phone.length > 4 ? phone.substring(0, 2) + 'XXX XXX' + phone.slice(-2) : '****';
 
   // Form State
   const [name, setName] = useState("");
@@ -79,7 +82,7 @@ export default function TrustedVehiclesView() {
       .single();
 
     if (error) {
-      toast.error(error.message);
+      toast.error("Failed to add driver. Please try again.");
     } else {
       toast.success("Driver added!");
       setVehicles([data as unknown as TrustedVehicle, ...vehicles]);
@@ -141,8 +144,19 @@ export default function TrustedVehiclesView() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
-                <div className={`flex items-center gap-1.5 text-xs font-bold ${mutedText} mt-0.5`}>
-                  <Phone size={10} /> {v.phone_number}
+                <div className={`flex items-center gap-2 mt-0.5`}>
+                  <a href={`tel:${v.phone_number}`} className={`flex items-center gap-1.5 text-xs font-bold ${mutedText} hover:text-[#FFC554]`}>
+                    <Phone size={10} /> 
+                    {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
+                  </a>
+                  {!revealedPhones.has(v.id) && (
+                    <button 
+                      onClick={() => setRevealedPhones(prev => new Set(prev).add(v.id))}
+                      className={`text-[9px] ${mutedText} bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider`}
+                    >
+                      Show
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 mt-2">
                   {v.profiles?.avatar_url ? (

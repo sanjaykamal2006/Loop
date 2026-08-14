@@ -92,8 +92,9 @@ export default function CreateView() {
         .single();
 
       if (error) {
-        toast.error(error.message);
-      } else {
+        console.error(error);
+        toast.error("Failed to create loop. Please try again.");
+      } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
         toast.success("Loop created!");
         setStartPoint("");
@@ -105,7 +106,7 @@ export default function CreateView() {
         fetchUserMemberships();
       }
     } catch {
-      toast.error("An error occurred");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsCreatingLoop(false);
     }

@@ -11,13 +11,13 @@ export default function GenderModal() {
 
   const [name, setName] = useState(profile.display_name || "");
   const [regNo, setRegNo] = useState(profile.reg_no || "");
-  const [gender, setGender] = useState<"male" | "female" | null>((profile.gender as "male" | "female") || null);
+  const [gender, setGender] = useState<"male" | "female" | "unspecified" | null>((profile.gender as any) || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setName(profile.display_name || "");
     setRegNo(profile.reg_no || "");
-    setGender((profile.gender as "male" | "female") || null);
+    setGender((profile.gender as any) || null);
   }, [profile, showGenderSelect]);
 
   if (!showGenderSelect) return null;
@@ -54,7 +54,10 @@ export default function GenderModal() {
             <Users size={32} strokeWidth={2.5} />
           </div>
           <h2 className="text-2xl font-black tracking-tight">Complete Profile</h2>
-          <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-[0.2em]`}>Required to continue</p>
+          <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-[0.2em] mb-2`}>Required to continue</p>
+          <p className="text-xs opacity-50 text-center max-w-[260px] mx-auto mb-4">
+            Gender is used solely for the 'Girls Only' ride safety filter. Choosing 'Prefer not to say' means you won't be able to create or join girls-only loops.
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -94,6 +97,13 @@ export default function GenderModal() {
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setGender("unspecified")}
+              className={`w-full h-12 mt-3 rounded-[20px] border-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === "unspecified" ? "bg-[#FFC554] border-[#FFC554] text-black" : `${border} ${bg} ${mutedText}`}`}
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
+              Prefer not to say
+            </button>
           </div>
         </div>
 

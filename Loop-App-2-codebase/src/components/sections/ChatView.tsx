@@ -192,7 +192,7 @@ export default function ChatView() {
       .single();
 
     if (error || !inserted) {
-      toast.error("Failed to send message");
+      toast.error("Failed to send message. Please try again.");
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       setNewMessage(content);
     } else {
@@ -280,6 +280,16 @@ export default function ChatView() {
       );
       setEditingMsgId(null);
       setEditingContent("");
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    const { error } = await supabase.from('messages').delete().eq('id', messageId).eq('user_id', session.user.id);
+    if (error) {
+      toast.error('Failed to delete message');
+    } else {
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      toast.success('Message deleted');
     }
   };
 
@@ -440,15 +450,25 @@ export default function ChatView() {
                         ))}
                       </div>
                     )}
-                    {/* Edit button */}
+                    {/* Message Actions */}
                     {isMe && !isOptimistic && (
-                      <button
-                        onClick={() => startEditMessage(msg)}
-                        className="absolute -left-7 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-focus-within:opacity-100 active:opacity-100"
+                      <div
+                        className="absolute -left-[52px] top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-focus-within:opacity-100 active:opacity-100 md:group-hover:opacity-100"
                         style={{ WebkitTapHighlightColor: "transparent" }}
                       >
-                        <Edit2 size={10} />
-                      </button>
+                        <button
+                          onClick={() => deleteMessage(msg.id)}
+                          className="w-6 h-6 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center"
+                        >
+                          <X size={10} strokeWidth={3} />
+                        </button>
+                        <button
+                          onClick={() => startEditMessage(msg)}
+                          className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
+                        >
+                          <Edit2 size={10} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
