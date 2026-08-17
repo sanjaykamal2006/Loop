@@ -302,21 +302,21 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
             <p className="text-base font-semibold text-white/70">Rides go better in Loop.</p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label className="text-xs uppercase font-black text-white/70 tracking-[0.15em] ml-4">Email Address</label>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-2.5">
+              <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">Email Address</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@email.com"
-                className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+                className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-base font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs uppercase font-black text-white/70 tracking-[0.15em] ml-4">Password</label>
+            <div className="space-y-2.5">
+              <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -324,7 +324,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
+                  className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-base font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
                 />
                 <button
                   type="button"
@@ -335,31 +335,33 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                 </button>
               </div>
               {isLogin && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!email) {
-                      toast.error("Please enter your email first");
-                      return;
-                    }
-                    try {
-                      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-                      if (error) throw error;
-                      toast.success("Password reset link sent to your email!");
-                    } catch (err: any) {
-                      console.error("Password reset error:", err);
-                      const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset link. Please check your email or try again.";
-                      toast.error(msg);
-                    }
-                  }}
-                  className="text-sm font-bold text-[#FFC554] hover:underline transition-colors ml-4 mt-1"
-                >
-                  Forgot Password?
-                </button>
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email) {
+                        toast.error("Please enter your email first");
+                        return;
+                      }
+                      try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+                        if (error) throw error;
+                        toast.success("Password reset link sent to your email!");
+                      } catch (err: any) {
+                        console.error("Password reset error:", err);
+                        const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset link. Please check your email or try again.";
+                        toast.error(msg);
+                      }
+                    }}
+                    className="text-xs font-extrabold text-[#FFC554] hover:underline tracking-wider transition-colors inline-block"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
               )}
             </div>
 
-            <div className="pt-4 space-y-4">
+            <div className="pt-2 space-y-4">
               {!isLogin && (
                 <div className="flex items-center gap-2 ml-4">
                   <input 
@@ -369,12 +371,12 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                     onChange={(e) => setAgreedToPrivacy(e.target.checked)}
                     className="accent-[#FFC554]"
                   />
-                  <label htmlFor="privacy-consent" className="text-xs text-white/60">
+                  <label htmlFor="privacy-consent" className="text-xs text-white/80 font-medium">
                     I have read and agree to LOOP's{" "}
                     <button 
                       type="button"
                       onClick={() => setShowPrivacy(true)}
-                      className="text-[#FFC554] hover:underline"
+                      className="text-[#FFC554] hover:underline font-bold"
                     >
                       Privacy Notice
                     </button>
@@ -384,21 +386,23 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
               <button
                 type="submit"
                 disabled={isLoading || (!isLogin && !agreedToPrivacy)}
-                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-base tracking-wide transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
               >
                 {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
               </button>
 
-              <button 
-                type="button"
-                className="w-full py-2 text-sm font-bold text-white/70 hover:text-white transition-colors"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setShowPassword(false);
-                }}
-              >
-                {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
-              </button>
+              <div className="text-center pt-1">
+                <button 
+                  type="button"
+                  className="text-xs font-extrabold text-white/80 hover:text-white transition-colors tracking-wide"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setShowPassword(false);
+                  }}
+                >
+                  {isLogin ? "New to Loop? Sign Up" : "Have an account? Login"}
+                </button>
+              </div>
             </div>
           </form>
         </div>
