@@ -336,14 +336,10 @@ export default function ProfileView() {
                 onClick={async () => {
                   setIsDeleting(true);
                   try {
-                    const userId = session.user.id;
-                    await supabase.from('messages').delete().eq('user_id', userId);
-                    await supabase.from('loop_members').delete().eq('user_id', userId);
-                    await supabase.from('trusted_vehicles').delete().eq('user_id', userId);
-                    await supabase.from('loops').update({ status: 'cancelled' }).eq('creator_id', userId);
-                    await supabase.from('profiles').delete().eq('id', userId);
+                    const { error } = await supabase.rpc('delete_user_account');
+                    if (error) throw error;
                     await supabase.auth.signOut();
-                    toast.success('Account deleted successfully.');
+                    toast.success('Account permanently deleted.');
                   } catch (error) {
                     console.error(error);
                     toast.error('Failed to delete account. Please try again.');
