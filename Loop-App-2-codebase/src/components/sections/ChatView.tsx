@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 import { Send, Edit2, Check, X } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";

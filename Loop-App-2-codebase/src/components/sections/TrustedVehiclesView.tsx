@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck } from "lucide-react";
 import type { TrustedVehicle } from "@/lib/types";
 

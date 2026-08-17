@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { Users } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 
 export default function GenderModal() {
   const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop } = useLoop();

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from 'next/font/google';
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/NativeToast";
 
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ['latin'], 
@@ -43,7 +43,7 @@ export default function RootLayout({
     <html lang="en" className={spaceGrotesk.variable}>
       <body className="antialiased">
         {children}
-        <Toaster position="top-center" theme="dark" />
+        <Toaster />
       </body>
     </html>
   );

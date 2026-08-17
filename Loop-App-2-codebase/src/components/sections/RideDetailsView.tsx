@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
 import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, UserMinus, Receipt, Check, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 

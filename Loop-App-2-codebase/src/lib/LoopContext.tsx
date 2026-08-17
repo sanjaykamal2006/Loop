@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 import type { View, Loop, Profile, ThemeClasses } from "@/lib/types";
 
 interface LoopContextValue {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 
 import { Users } from "lucide-react";
 

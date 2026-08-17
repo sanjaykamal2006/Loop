@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, Sun, Moon, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 

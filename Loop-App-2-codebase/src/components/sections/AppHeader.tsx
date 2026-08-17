@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
   const { view, setView, selectedLoop, theme, toggleTheme, fetchLoops, fetchUserMemberships } = useLoop();
