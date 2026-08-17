@@ -347,7 +347,9 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                       if (error) throw error;
                       toast.success("Password reset link sent to your email!");
                     } catch (err: any) {
-                      toast.error(err.message || "Failed to send reset link");
+                      console.error("Password reset error:", err);
+                      const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset link. Please check your email or try again.";
+                      toast.error(msg);
                     }
                   }}
                   className="text-xs font-bold text-[#FFC554]/60 hover:text-[#FFC554] transition-colors ml-4 mt-1"
