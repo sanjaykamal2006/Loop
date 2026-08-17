@@ -43,22 +43,7 @@ export default function RootLayout({
     <html lang="en" className={spaceGrotesk.variable}>
       <body className="antialiased">
         {children}
-        <Toaster 
-          position="bottom-center"
-          toastOptions={{
-            style: {
-              background: '#18181b',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '9999px',
-              fontSize: '12px',
-              fontWeight: '700',
-              fontFamily: 'var(--font-space-grotesk), sans-serif',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-              padding: '12px 20px',
-            },
-          }}
-        />
+        <Toaster position="top-center" theme="dark" />
       </body>
     </html>
   );

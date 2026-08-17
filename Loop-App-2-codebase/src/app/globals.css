@@ -30,6 +30,36 @@ input:-webkit-autofill:active {
   transition: background-color 50000s ease-in-out 0s;
 }
 
+/* Center Notifications / Toasts in the Dead Center of the Screen */
+[data-sonner-toaster] {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  bottom: auto !important;
+  right: auto !important;
+  width: auto !important;
+  max-width: 90vw !important;
+  z-index: 99999 !important;
+}
+
+[data-sonner-toast] {
+  background: #141416 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 197, 84, 0.35) !important;
+  border-radius: 28px !important;
+  padding: 14px 22px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 197, 84, 0.1) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  font-family: var(--font-space-grotesk), sans-serif !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  backdrop-filter: blur(16px) !important;
+  margin: 0 auto !important;
+}
+
 .dot-matrix-bg {
   position: fixed;
   inset: 0;
