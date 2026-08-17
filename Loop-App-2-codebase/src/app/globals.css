@@ -18,6 +18,18 @@
   }
 }
 
+/* Fix Browser Autofill White/Light-Blue Background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1c1c1e inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transition: background-color 50000s ease-in-out 0s;
+}
+
 .dot-matrix-bg {
   position: fixed;
   inset: 0;
