@@ -70,6 +70,9 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
           if (error.message.includes("Email rate limit") || error.status === 429) {
             throw new Error("Rate limit exceeded. Please wait a moment before trying again.");
           }
+          if (error.message.includes("Invalid login credentials") || error.status === 400) {
+            throw new Error("Invalid email or password. Please check your details or sign up.");
+          }
           throw error;
         }
         toast.success("Welcome back!");
