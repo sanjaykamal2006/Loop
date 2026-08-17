@@ -299,12 +299,12 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
         <div className="w-full space-y-12">
           <div className="text-center space-y-2">
             <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
-            <p className="text-sm font-medium opacity-40">Rides go better in Loop.</p>
+            <p className="text-base font-semibold text-white/70">Rides go better in Loop.</p>
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Email Address</label>
+              <label className="text-xs uppercase font-black text-white/70 tracking-[0.15em] ml-4">Email Address</label>
               <input
                 type="email"
                 required
@@ -316,7 +316,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">Password</label>
+              <label className="text-xs uppercase font-black text-white/70 tracking-[0.15em] ml-4">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -329,7 +329,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 opacity-60 active:opacity-100 transition-opacity"
+                  className="absolute right-6 top-1/2 -translate-y-1/2 z-10 text-white/80 hover:text-[#FFC554] active:scale-95 transition-all"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -352,7 +352,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                       toast.error(msg);
                     }
                   }}
-                  className="text-xs font-bold text-[#FFC554]/60 hover:text-[#FFC554] transition-colors ml-4 mt-1"
+                  className="text-sm font-bold text-[#FFC554] hover:underline transition-colors ml-4 mt-1"
                 >
                   Forgot Password?
                 </button>
@@ -391,7 +391,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
 
               <button 
                 type="button"
-                className="w-full py-2 text-sm font-bold opacity-40 hover:opacity-100 transition-opacity"
+                className="w-full py-2 text-sm font-bold text-white/70 hover:text-white transition-colors"
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setShowPassword(false);
