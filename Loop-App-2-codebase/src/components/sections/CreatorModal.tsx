@@ -11,13 +11,10 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div 
-        className={`w-full max-w-sm max-h-[90dvh] sm:max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-hidden`}
+        className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide`}
       >
-        {/* Mobile Drag Indicator */}
-        <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-3 sm:hidden" />
-
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
@@ -36,27 +33,27 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         </div>
 
         {/* Body */}
-        <div className="py-5 flex flex-col items-center text-center space-y-4">
+        <div className="py-4 flex flex-col items-center text-center space-y-3.5">
           {/* Photo */}
-          <div className="w-24 h-24 rounded-[28px] overflow-hidden border border-white/10 shadow-xl shrink-0">
+          <div className="w-20 h-20 rounded-[24px] overflow-hidden border border-white/10 shadow-xl shrink-0">
             <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover" />
           </div>
 
           {/* Name & Subtitle */}
-          <div className="space-y-1">
-            <h3 className="text-xl font-black uppercase tracking-tight">{profileName || "Sanjay Kamal"}</h3>
+          <div className="space-y-0.5">
+            <h3 className="text-lg font-black uppercase tracking-tight">{profileName || "Sanjay Kamal"}</h3>
             <p className="text-xs font-medium opacity-60 tracking-wide">
               Crafted by one builder, for every rider.
             </p>
           </div>
 
           {/* Core Statement */}
-          <div className={`p-4 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-medium leading-relaxed opacity-90 text-left`}>
+          <div className={`p-3.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-medium leading-relaxed opacity-90 text-left`}>
             "LOOP wasn't created to reinvent ride sharing—it was created to remove everything that slows it down. A fast, purpose-built platform where finding a ride takes seconds, not conversations."
           </div>
 
           {/* Tagline */}
-          <p className="text-[11px] font-black uppercase tracking-wider text-[#FFC554]">
+          <p className="text-[10px] font-black uppercase tracking-wider text-[#FFC554]">
             Designed for campuses. Built for communities.
           </p>
         </div>
@@ -65,7 +62,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         <div className="pt-2 border-t border-white/10 shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
+            className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
           >
             Close
           </button>

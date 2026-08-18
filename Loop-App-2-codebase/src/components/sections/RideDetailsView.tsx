@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, UserMinus, Receipt, Check, X } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -25,12 +25,14 @@ export default function RideDetailsView() {
     formatTime,
     theme,
   } = useLoop();
-  const { bg, border, cardBg, mutedText } = theme;
+  const { bg, border, cardBg, mutedText, isDark } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
+
+  const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
 
   useEffect(() => {
     if (selectedLoop) {
@@ -79,7 +81,7 @@ export default function RideDetailsView() {
   };
 
   const removeMember = async (userId: string) => {
-    if (!selectedLoop || !isCreator) return;
+    if (!selectedLoop || !isCreator || isPast) return;
     const { error } = await supabase
       .from("loop_members")
       .delete()
@@ -93,25 +95,8 @@ export default function RideDetailsView() {
     }
   };
 
-  const updateLoopStatus = async (status: "ended") => {
-    if (!selectedLoop || !isCreator) return;
-    const { error } = await supabase
-      .from("loops")
-      .update({ status })
-      .eq("id", selectedLoop.id);
-
-    if (error) {
-      toast.error("Failed to update loop status");
-    } else {
-      toast.success("Loop ended");
-      setSelectedLoop({ ...selectedLoop, status });
-      fetchLoops();
-      setView("home");
-    }
-  };
-
   const saveTotalFare = async () => {
-    if (!selectedLoop || !isCreator) return;
+    if (!selectedLoop || !isCreator || isPast) return;
     const val = parseInt(fareInput);
     if (isNaN(val) || val < 0) return toast.error("Invalid fare amount");
     
@@ -137,6 +122,32 @@ export default function RideDetailsView() {
 
   return (
     <div className="space-y-2.5 pt-1">
+      {/* Archived / Past Status Banner */}
+      {isPast && (
+        <div className={`p-3.5 ${cardBg} border ${selectedLoop.status === 'cancelled' ? 'border-red-500/20' : 'border-emerald-500/20'} rounded-[24px] flex items-center justify-between shadow-sm`}>
+          <div className="flex items-center gap-2.5">
+            {selectedLoop.status === 'cancelled' ? (
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400">
+                <XCircle size={18} />
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <CheckCircle2 size={18} />
+              </div>
+            )}
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider">
+                {selectedLoop.status === 'cancelled' ? 'Ride Cancelled' : 'Ride Completed'}
+              </h4>
+              <p className={`text-[10px] font-bold ${mutedText}`}>Archived ride (read-only)</p>
+            </div>
+          </div>
+          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${selectedLoop.status === 'cancelled' ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+            Archived
+          </span>
+        </div>
+      )}
+
       {/* Destination */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
@@ -166,14 +177,14 @@ export default function RideDetailsView() {
             <Receipt size={14} className={mutedText} strokeWidth={2.5} />
             <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
           </div>
-          {isCreator && !isEditingFare && (
+          {isCreator && !isEditingFare && !isPast && (
             <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95`}>
               {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
             </button>
           )}
         </div>
 
-        {isEditingFare ? (
+        {isEditingFare && !isPast ? (
           <div className="flex items-center gap-2">
             <div className={`flex-1 flex items-center h-10 ${bg} border ${border} rounded-[16px] px-3`}>
               <span className={`font-black ${mutedText} mr-2`}>₹</span>
@@ -252,7 +263,7 @@ export default function RideDetailsView() {
                   <span className={`text-[10px] font-black ${mutedText} capitalize`}>
                     {member.profiles?.gender || "—"}
                   </span>
-                  {isCreator && member.user_id !== session.user.id && (
+                  {isCreator && !isPast && member.user_id !== session.user.id && (
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -273,32 +284,44 @@ export default function RideDetailsView() {
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-2 pt-1">
-        <button
-          onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
-          disabled={isJoining}
-          className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
-        >
-          {isJoined ? "Open Chat" : "Join Loop"}
-        </button>
-
-        {isCreator && (
+        {isPast ? (
           <button
-            onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors`}
+            onClick={() => setView("past-loops")}
+            className={`w-full py-3.5 ${cardBg} border ${border} rounded-[22px] text-xs font-black uppercase tracking-wider active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-sm`}
           >
-            <Trash2 size={13} strokeWidth={2.5} />
-            Delete Loop
+            <ArrowLeft size={16} />
+            Back to Ride History
           </button>
-        )}
+        ) : (
+          <>
+            <button
+              onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
+              disabled={isJoining}
+              className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
+            >
+              {isJoined ? "Open Chat" : "Join Loop"}
+            </button>
 
-        {isJoined && !isCreator && (
-          <button
-            onClick={() => leaveLoop(selectedLoop.id)}
-            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
-          >
-            <LeaveIcon size={13} strokeWidth={2.5} />
-            Leave Loop
-          </button>
+            {isCreator && (
+              <button
+                onClick={() => deleteLoop(selectedLoop.id)}
+                className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors`}
+              >
+                <Trash2 size={13} strokeWidth={2.5} />
+                Delete Loop
+              </button>
+            )}
+
+            {isJoined && !isCreator && (
+              <button
+                onClick={() => leaveLoop(selectedLoop.id)}
+                className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
+              >
+                <LeaveIcon size={13} strokeWidth={2.5} />
+                Leave Loop
+              </button>
+            )}
+          </>
         )}
       </div>
 

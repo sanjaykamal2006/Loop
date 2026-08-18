@@ -149,14 +149,17 @@ export default function TrustedVehiclesView() {
                     <Phone size={10} /> 
                     {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
                   </a>
-                  {!revealedPhones.has(v.id) && (
-                    <button 
-                      onClick={() => setRevealedPhones(prev => new Set(prev).add(v.id))}
-                      className={`text-[9px] ${mutedText} bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider`}
-                    >
-                      Show
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => {
+                      const next = new Set(revealedPhones);
+                      if (next.has(v.id)) next.delete(v.id);
+                      else next.add(v.id);
+                      setRevealedPhones(next);
+                    }}
+                    className="text-[10px] text-[#FFC554] font-black uppercase tracking-wider"
+                  >
+                    {revealedPhones.has(v.id) ? "Hide" : "Show"}
+                  </button>
                 </div>
                 <div className="flex items-center gap-1.5 mt-2">
                   {v.profiles?.avatar_url ? (
@@ -185,12 +188,9 @@ export default function TrustedVehiclesView() {
       </div>
 
       {isAdding && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-xl p-0 sm:p-4 animate-fade-in">
-          <div className={`w-full max-w-md max-h-[90dvh] sm:max-h-[85dvh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 shadow-2xl`}>
-            {/* Mobile Drag Indicator */}
-            <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-2 sm:hidden" />
-
-            <div className="flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fade-in">
+          <div className={`w-full max-w-md max-h-[85vh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl`}>
+            <div className="flex items-center justify-between shrink-0 pb-1">
               <h2 className="text-lg font-black uppercase tracking-tight">Add Driver</h2>
               <button 
                 onClick={() => setIsAdding(false)} 
@@ -208,7 +208,7 @@ export default function TrustedVehiclesView() {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Vehicle Type</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -220,10 +220,10 @@ export default function TrustedVehiclesView() {
                     <button
                       key={t.id}
                       onClick={() => setType(t.id as any)}
-                      className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black shadow-md' : `${isDark ? "bg-white/5" : "bg-black/5"} border-transparent ${mutedText}`}`}
+                      className={`flex flex-col items-center justify-center py-2.5 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black shadow-md' : `${isDark ? "bg-white/5" : "bg-black/5"} border-transparent ${mutedText}`}`}
                     >
-                      <t.icon className="w-6 h-6" />
-                      <span className="text-[10px] font-black uppercase tracking-tight text-center leading-tight mt-1">{t.label}</span>
+                      <t.icon className="w-5 h-5" />
+                      <span className="text-[10px] font-black uppercase tracking-tight text-center leading-tight mt-0.5">{t.label}</span>
                     </button>
                   ))}
                 </div>
@@ -231,7 +231,7 @@ export default function TrustedVehiclesView() {
 
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Driver Name</label>
-                <div className={`flex items-center gap-3 px-4 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
+                <div className={`flex items-center gap-3 px-4 py-2.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
                   <User size={16} className={mutedText} />
                   <input 
                     value={name} 
@@ -244,7 +244,7 @@ export default function TrustedVehiclesView() {
 
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Phone Number</label>
-                <div className={`flex items-center gap-3 px-4 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
+                <div className={`flex items-center gap-3 px-4 py-2.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
                   <Phone size={16} className={mutedText} />
                   <input 
                     type="tel"
@@ -260,7 +260,7 @@ export default function TrustedVehiclesView() {
             <button
               onClick={handleAdd}
               disabled={!canAdd}
-              className={`w-full py-4 bg-[#FFC554] text-black rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100`}
+              className={`w-full py-3.5 bg-[#FFC554] text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-transform`}
             >
               Add Trusted Driver
             </button>

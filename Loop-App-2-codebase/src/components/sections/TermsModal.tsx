@@ -11,15 +11,12 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div 
-        className={`w-full max-w-md max-h-[90dvh] sm:max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-hidden`}
+        className={`w-full max-w-md max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-hidden`}
       >
-        {/* Mobile Drag Indicator */}
-        <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-3 sm:hidden" />
-
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
               <ShieldCheck size={20} strokeWidth={2.5} />
@@ -39,7 +36,7 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
         </div>
 
         {/* Body Content */}
-        <div className="flex-1 overflow-y-auto space-y-4 pt-4 pr-1 text-xs leading-relaxed opacity-90 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto space-y-4 pt-3.5 pr-1 text-xs leading-relaxed opacity-90 scrollbar-hide">
           <section className="space-y-1">
             <h3 className="font-black text-xs uppercase tracking-wider text-[#FFC554]">1. Platform Nature</h3>
             <p className={mutedText}>
@@ -98,10 +95,10 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
         </div>
 
         {/* Footer Action */}
-        <div className="pt-4 border-t border-white/10 shrink-0">
+        <div className="pt-3 border-t border-white/10 shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
+            className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
           >
             I Understand & Agree
           </button>

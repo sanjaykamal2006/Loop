@@ -85,14 +85,22 @@ export default function AppHeader() {
         <div className="flex items-center justify-between w-full pt-2">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setView(view === "chat" ? "chat-list" : "home")}
+              onClick={() => {
+                if (view === "chat") {
+                  setView("chat-list");
+                } else if (view === "ride-details" && (selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled")) {
+                  setView("past-loops");
+                } else {
+                  setView("home");
+                }
+              }}
               aria-label="Go back"
               className={`w-10 h-10 rounded-full border ${border} flex items-center justify-center ${cardBg} active:scale-90 shadow-sm`}
             >
               <ChevronLeft size={20} />
             </button>
             <h1 className="text-2xl font-bold tracking-tight">
-              {view === "create" ? "New Loop" : view === "chat" ? selectedLoop?.destination : "Ride Details"}
+              {view === "create" ? "New Loop" : view === "chat" ? selectedLoop?.destination : (selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled") ? "Archived Ride" : "Ride Details"}
             </h1>
           </div>
           {view === "create" && (
