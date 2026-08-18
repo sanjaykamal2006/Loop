@@ -284,7 +284,7 @@ export default function RideDetailsView() {
         {isCreator && (
           <button
             onClick={() => deleteLoop(selectedLoop.id)}
-            className={`w-full py-3 bg-red-500/10 border border-red-500/20 rounded-[20px] text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
+            className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors`}
           >
             <Trash2 size={13} strokeWidth={2.5} />
             Delete Loop

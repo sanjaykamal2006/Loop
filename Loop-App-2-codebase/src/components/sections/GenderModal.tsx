@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 
 export default function GenderModal() {
   const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop } = useLoop();
-  const { bg, border, cardBg, mutedText } = theme;
+  const { bg, border, cardBg, mutedText, isDark } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
   const [regNo, setRegNo] = useState(profile.reg_no || "");
@@ -47,20 +47,23 @@ export default function GenderModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in">
-      <div className={`${cardBg} border ${border} rounded-[40px] p-8 w-full max-w-sm space-y-6 shadow-2xl relative`}>
+    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+      <div className={`w-full max-w-sm max-h-[90dvh] sm:max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 shadow-2xl relative overflow-y-auto scrollbar-hide`}>
+        {/* Mobile Drag Indicator */}
+        <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-2 sm:hidden" />
+
         <div className="space-y-2 text-center">
-          <div className="w-16 h-16 bg-[#FFC554]/10 rounded-[24px] flex items-center justify-center text-[#FFC554] mx-auto mb-4">
-            <Users size={32} strokeWidth={2.5} />
+          <div className="w-14 h-14 bg-[#FFC554]/10 rounded-[22px] flex items-center justify-center text-[#FFC554] mx-auto mb-2 border border-[#FFC554]/20 shadow-md">
+            <Users size={28} strokeWidth={2.5} />
           </div>
-          <h2 className="text-2xl font-black tracking-tight">Complete Profile</h2>
-          <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-[0.2em] mb-2`}>Required to continue</p>
-          <p className="text-xs opacity-50 text-center max-w-[260px] mx-auto mb-4">
-            Gender is used solely for the 'Girls Only' ride safety filter. Choosing 'Prefer not to say' means you won't be able to create or join girls-only loops.
+          <h2 className="text-xl font-black tracking-tight uppercase">Complete Profile</h2>
+          <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-[0.2em]`}>Required to continue</p>
+          <p className="text-xs opacity-60 text-center max-w-[260px] mx-auto leading-relaxed">
+            Gender is used solely for the 'Girls Only' ride safety filter.
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <div className="space-y-1.5">
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Display Name</label>
             <input
@@ -68,7 +71,7 @@ export default function GenderModal() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className={`w-full h-14 ${cardBg} border ${border} rounded-[24px] px-5 font-bold outline-none focus:border-[#FFC554]/50 transition-colors placeholder:text-gray-500`}
+              className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40`}
             />
           </div>
 
@@ -79,18 +82,18 @@ export default function GenderModal() {
               value={regNo}
               onChange={(e) => setRegNo(e.target.value.toUpperCase())}
               placeholder="e.g. 21BCE1234"
-              className={`w-full h-14 ${cardBg} border ${border} rounded-[24px] px-5 font-bold outline-none focus:border-[#FFC554]/50 transition-colors placeholder:text-gray-500 uppercase`}
+              className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40 uppercase`}
             />
           </div>
 
           <div className="space-y-1.5">
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Gender</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               {["male", "female"].map((g) => (
                 <button
                   key={g}
                   onClick={() => setGender(g as "male" | "female")}
-                  className={`w-full h-12 rounded-[20px] border-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === g ? "bg-[#FFC554] border-[#FFC554] text-black" : `${border} ${bg} ${mutedText}`}`}
+                  className={`w-full h-11 rounded-[18px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === g ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
                 >
                   <div className={`w-1.5 h-1.5 rounded-full ${g === "female" ? "bg-pink-500" : "bg-blue-500"}`} />
                   {g}
@@ -99,9 +102,9 @@ export default function GenderModal() {
             </div>
             <button
               onClick={() => setGender("unspecified")}
-              className={`w-full h-12 mt-3 rounded-[20px] border-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === "unspecified" ? "bg-[#FFC554] border-[#FFC554] text-black" : `${border} ${bg} ${mutedText}`}`}
+              className={`w-full h-11 mt-2 rounded-[18px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === "unspecified" ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
+              <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
               Prefer not to say
             </button>
           </div>
@@ -110,7 +113,7 @@ export default function GenderModal() {
         <button
           onClick={handleSave}
           disabled={isSubmitting}
-          className={`w-full h-14 mt-4 bg-[#FFC554] text-black rounded-[24px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center ${isSubmitting ? 'opacity-50' : ''}`}
+          className={`w-full h-12 bg-[#FFC554] text-black rounded-[20px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg shadow-[#FFC554]/10 ${isSubmitting ? 'opacity-50' : ''}`}
         >
           {isSubmitting ? 'Saving...' : 'Save & Continue'}
         </button>

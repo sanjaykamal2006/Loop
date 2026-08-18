@@ -173,9 +173,10 @@ export default function TrustedVehiclesView() {
               {v.user_id === session.user.id && (
                 <button 
                   onClick={() => handleDelete(v.id)}
-                  className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center shrink-0 active:scale-90"
+                  aria-label="Delete trusted vehicle"
+                  className={`w-8 h-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} text-zinc-400 hover:text-red-400 flex items-center justify-center shrink-0 active:scale-90 transition-colors`}
                 >
-                  <X size={14} strokeWidth={3} />
+                  <X size={14} strokeWidth={2.5} />
                 </button>
               )}
             </div>
@@ -184,18 +185,25 @@ export default function TrustedVehiclesView() {
       </div>
 
       {isAdding && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className={`w-full max-w-md max-h-[85dvh] flex flex-col overflow-y-auto scrollbar-hide ${cardBg} border ${border} rounded-[32px] p-6 space-y-6 shadow-2xl animate-in fade-in zoom-in-95`}>
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-xl p-0 sm:p-4 animate-fade-in">
+          <div className={`w-full max-w-md max-h-[90dvh] sm:max-h-[85dvh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 shadow-2xl`}>
+            {/* Mobile Drag Indicator */}
+            <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-2 sm:hidden" />
+
             <div className="flex items-center justify-between shrink-0">
               <h2 className="text-lg font-black uppercase tracking-tight">Add Driver</h2>
-              <button onClick={() => setIsAdding(false)} className={`w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center active:scale-90`}>
-                <X size={16} strokeWidth={3} />
+              <button 
+                onClick={() => setIsAdding(false)} 
+                aria-label="Close"
+                className={`w-8 h-8 rounded-full ${isDark ? "bg-white/10" : "bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
+              >
+                <X size={16} strokeWidth={2.5} />
               </button>
             </div>
 
             {!canAdd && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-red-500">
-                <Info size={16} />
+              <div className="p-3.5 bg-[#FFC554]/10 border border-[#FFC554]/25 rounded-2xl flex items-center gap-2.5 text-[#FFC554]">
+                <Info size={16} className="shrink-0" />
                 <p className="text-xs font-bold">You have reached the limit of 5 trusted drivers.</p>
               </div>
             )}
