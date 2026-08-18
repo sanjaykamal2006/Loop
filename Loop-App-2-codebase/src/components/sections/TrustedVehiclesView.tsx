@@ -27,7 +27,7 @@ const ShareAutoIcon = ({ className }: { className?: string }) => (
 
 export default function TrustedVehiclesView() {
   const { session, theme, setView } = useLoop();
-  const { cardBg, border, mutedText, text } = theme;
+  const { isDark, cardBg, border, mutedText, text } = theme;
 
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -220,7 +220,7 @@ export default function TrustedVehiclesView() {
                     <button
                       key={t.id}
                       onClick={() => setType(t.id as any)}
-                      className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black' : `bg-black/5 dark:bg-white/5 border-transparent ${mutedText}`}`}
+                      className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black shadow-md' : `${isDark ? "bg-white/5" : "bg-black/5"} border-transparent ${mutedText}`}`}
                     >
                       <t.icon className="w-6 h-6" />
                       <span className="text-[10px] font-black uppercase tracking-tight text-center leading-tight mt-1">{t.label}</span>
@@ -231,27 +231,27 @@ export default function TrustedVehiclesView() {
 
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Driver Name</label>
-                <div className={`flex items-center gap-3 px-4 py-3 bg-black/5 dark:bg-white/5 border ${border} rounded-2xl`}>
+                <div className={`flex items-center gap-3 px-4 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
                   <User size={16} className={mutedText} />
                   <input 
                     value={name} 
                     onChange={e => setName(e.target.value)} 
                     placeholder="Driver's Name" 
-                    className="flex-1 bg-transparent text-sm font-bold outline-none"
+                    className="flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-40"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Phone Number</label>
-                <div className={`flex items-center gap-3 px-4 py-3 bg-black/5 dark:bg-white/5 border ${border} rounded-2xl`}>
+                <div className={`flex items-center gap-3 px-4 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
                   <Phone size={16} className={mutedText} />
                   <input 
                     type="tel"
                     value={phone} 
                     onChange={e => setPhone(e.target.value)} 
                     placeholder="Driver's Number" 
-                    className="flex-1 bg-transparent text-sm font-bold outline-none"
+                    className="flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-40"
                   />
                 </div>
               </div>
