@@ -106,15 +106,15 @@ export default function ProfileView() {
       {/* Profile Photo & Quick Identity Card */}
       <div className="flex flex-col items-center justify-center space-y-3 pt-2">
         <div className="relative group">
-          <div className="w-24 h-24 rounded-[30px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center shadow-xl overflow-hidden">
+          <div className={`w-24 h-24 rounded-[28px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-lg overflow-hidden`}>
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.display_name}
-                className="w-full h-full object-cover rounded-[24px]"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-3xl font-black text-black">
+              <span className={`text-2xl font-black ${isDark ? "text-white" : "text-black"}`}>
                 {profile.display_name?.substring(0, 2).toUpperCase() || "U"}
               </span>
             )}
@@ -183,6 +183,11 @@ export default function ProfileView() {
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. No</p>
                 <p className="font-bold text-sm truncate mt-0.5">{profile.reg_no || "Not Set"}</p>
               </div>
+            </div>
+
+            <div>
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Account (Email)</p>
+              <p className="font-bold text-xs truncate mt-0.5 opacity-90">{session.user.email}</p>
             </div>
 
             <div>
@@ -258,12 +263,6 @@ export default function ProfileView() {
             Female
           </button>
         </div>
-      </div>
-
-      {/* Account Info */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-1 shadow-sm`}>
-        <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Account</p>
-        <p className="text-xs font-bold truncate opacity-90">{session.user.email}</p>
       </div>
 
       {/* Action & Nav List */}
