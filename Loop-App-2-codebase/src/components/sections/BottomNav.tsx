@@ -6,10 +6,26 @@ import { MapPin, Plus, MessageSquare, Users } from "lucide-react";
 import type { View } from "@/lib/types";
 
 export default function BottomNav() {
-  const { view, setView, theme } = useLoop();
+  const { view, setView, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { bg, border, mutedText } = theme;
 
   if (view === "chat" || view === "ride-details") return null;
+
+  const handleNavClick = (v: View) => {
+    if (v === "create") {
+      const isProfileComplete = Boolean(
+        profile.gender && 
+        profile.display_name?.trim() && 
+        profile.reg_no?.trim()
+      );
+      if (!isProfileComplete) {
+        setPendingAction({ type: "create" });
+        setShowGenderSelect(true);
+        return;
+      }
+    }
+    setView(v);
+  };
 
   const items: { v: View; icon: React.ReactNode; label: string }[] = [
     {
@@ -39,9 +55,9 @@ export default function BottomNav() {
       {items.map(({ v, icon, label }) => (
         <button
           key={v}
-          onClick={() => setView(v)}
+          onClick={() => handleNavClick(v)}
           aria-label={`${label} navigation tab`}
-          className={`flex flex-col items-center gap-1.5 active:scale-90  flex-1 py-1 ${view === v ? "text-[#FFC554]" : mutedText}`}
+          className={`flex flex-col items-center gap-1.5 active:scale-90 flex-1 py-1 ${view === v ? "text-[#FFC554]" : mutedText}`}
         >
           {icon}
           <span className={`text-[11px] font-bold tracking-tight ${view === v ? "opacity-100" : "opacity-50"}`}>{label}</span>

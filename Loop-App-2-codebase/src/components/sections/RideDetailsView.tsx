@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, ShieldAlert } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -12,6 +12,7 @@ import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 export default function RideDetailsView() {
   const {
     session,
+    profile,
     selectedLoop,
     userJoinedLoops,
     userLoops,
@@ -25,7 +26,7 @@ export default function RideDetailsView() {
     formatTime,
     theme,
   } = useLoop();
-  const { bg, border, cardBg, mutedText, isDark } = theme;
+  const { bg, border, cardBg, mutedText } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
   const [fareInput, setFareInput] = useState<string>("");
@@ -69,7 +70,7 @@ export default function RideDetailsView() {
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
       .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, gender, reg_no, bio)")
+      .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio)")
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
@@ -233,51 +234,61 @@ export default function RideDetailsView() {
         </div>
         {loopMembers.length > 0 && (
           <div className="space-y-2">
-            {loopMembers.map((member, i) => (
-              <div
-                key={member.user_id || i}
-                className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
-              >
+            {loopMembers.map((member, i) => {
+              const isMe = member.user_id === session.user.id;
+              const avatar = member.profiles?.avatar_url || (isMe ? profile.avatar_url : undefined);
+              const displayName = (isMe && profile.display_name) ? profile.display_name : (member.profiles?.display_name || "Member");
+              const regNo = (isMe && profile.reg_no) ? profile.reg_no : member.profiles?.reg_no;
+              const gender = (isMe && profile.gender) ? profile.gender : member.profiles?.gender;
+              const bio = (isMe && profile.bio) ? profile.bio : member.profiles?.bio;
+
+              return (
                 <div
-                  className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
-                  onClick={() => setSelectedUser({
-                    user_id: member.user_id,
-                    display_name: member.profiles?.display_name || "Member",
-                    reg_no: member.profiles?.reg_no,
-                    gender: member.profiles?.gender,
-                    bio: member.profiles?.bio,
-                  })}
+                  key={member.user_id || i}
+                  className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
                 >
-                  {member.profiles?.avatar_url ? (
-                    <img src={member.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-black text-[#FFC554]">
-                        {(member.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <span className="text-sm font-bold truncate">{member.profiles?.display_name || "Member"}</span>
+                  <div
+                    className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                    onClick={() => setSelectedUser({
+                      user_id: member.user_id,
+                      display_name: displayName,
+                      avatar_url: avatar,
+                      reg_no: regNo,
+                      gender: gender,
+                      bio: bio,
+                    })}
+                  >
+                    {avatar ? (
+                      <img src={avatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-black text-[#FFC554]">
+                          {displayName.substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-sm font-bold truncate">{displayName}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`text-[10px] font-black ${mutedText} capitalize`}>
+                      {gender || "—"}
+                    </span>
+                    {isCreator && !isPast && !isMe && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeMember(member.user_id);
+                        }}
+                        aria-label="Remove member"
+                        className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90"
+                      >
+                        <UserMinus size={12} strokeWidth={3} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className={`text-[10px] font-black ${mutedText} capitalize`}>
-                    {member.profiles?.gender || "—"}
-                  </span>
-                  {isCreator && !isPast && member.user_id !== session.user.id && (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeMember(member.user_id);
-                      }}
-                      aria-label="Remove member"
-                      className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90"
-                    >
-                      <UserMinus size={12} strokeWidth={3} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

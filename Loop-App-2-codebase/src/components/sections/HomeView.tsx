@@ -11,10 +11,24 @@ const SolidCarIcon = ({ size = 24, className = "" }) => (
 );
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme } = useLoop();
+  const { activeLoops, userJoinedLoops, session, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleCreateClick = () => {
+    const isProfileComplete = Boolean(
+      profile.gender && 
+      profile.display_name?.trim() && 
+      profile.reg_no?.trim()
+    );
+    if (!isProfileComplete) {
+      setPendingAction({ type: "create" });
+      setShowGenderSelect(true);
+      return;
+    }
+    setView("create");
+  };
 
   const feedLoops = activeLoops
     .filter(l => l.status === 'open')
@@ -35,7 +49,7 @@ export default function HomeView() {
           <p className={`text-xs ${mutedText} mt-1 max-w-[220px]`}>Start a new loop or check back soon for active rides.</p>
         </div>
         <button
-          onClick={() => setView("create")}
+          onClick={handleCreateClick}
           className="h-10 px-5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform"
         >
           + Create Loop

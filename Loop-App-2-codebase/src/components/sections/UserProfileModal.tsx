@@ -22,13 +22,15 @@ export default function UserProfileModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { theme, session } = useLoop();
+  const { theme, session, profile } = useLoop();
   const { isDark, border, mutedText } = theme;
   const currentUserId = session?.user?.id;
 
   const maskRegNo = (regNo: string) => regNo.length > 5 ? regNo.substring(0, 5) + '****' : '****';
 
   if (!isOpen || !user) return null;
+
+  const avatarUrl = user.avatar_url || (user.user_id === currentUserId ? profile.avatar_url : undefined);
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
@@ -43,13 +45,15 @@ export default function UserProfileModal({
         </button>
 
         {/* Profile Avatar / Initials */}
-        <div className="w-20 h-20 rounded-[24px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center shadow-xl overflow-hidden shrink-0 mt-1">
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt={user.display_name} className="w-full h-full object-cover rounded-[20px]" />
+        <div className="w-24 h-24 rounded-[28px] bg-zinc-800 border-2 border-white/10 flex items-center justify-center shadow-xl overflow-hidden shrink-0 mt-1">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={user.display_name} className="w-full h-full object-cover rounded-[24px]" />
           ) : (
-            <span className="text-xl font-black text-black">
-              {user.display_name.substring(0, 2).toUpperCase()}
-            </span>
+            <div className="w-full h-full bg-[#FFC554] flex items-center justify-center">
+              <span className="text-2xl font-black text-black">
+                {user.display_name.substring(0, 2).toUpperCase()}
+              </span>
+            </div>
           )}
         </div>
 

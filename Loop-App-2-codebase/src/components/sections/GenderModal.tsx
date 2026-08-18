@@ -42,6 +42,9 @@ export default function GenderModal() {
         const targetLoop = pendingAction.data;
         setPendingAction(null);
         joinLoop(targetLoop, updates);
+      } else if (pendingAction?.type === "create") {
+        setPendingAction(null);
+        setView("create");
       }
     }
   };

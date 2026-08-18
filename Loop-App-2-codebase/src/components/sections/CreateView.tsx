@@ -41,22 +41,32 @@ export default function CreateView() {
     if (minute) setMinute(minute.padStart(2, '0'));
   };
 
-  // Resume creation after profile is set
+  // Strictly require completed profile to access or submit in CreateView
   useEffect(() => {
-    if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
-      setPendingAction(null);
-      createLoop();
+    const isProfileComplete = Boolean(
+      profile.gender && 
+      profile.display_name?.trim() && 
+      profile.reg_no?.trim()
+    );
+    if (!isProfileComplete) {
+      setPendingAction({ type: "create" });
+      setShowGenderSelect(true);
     }
-  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, setPendingAction]);
+  }, [profile.gender, profile.display_name, profile.reg_no, setPendingAction, setShowGenderSelect]);
 
   const createLoop = async () => {
-    if (!profile.gender || !profile.display_name || !profile.reg_no) {
+    const isProfileComplete = Boolean(
+      profile.gender && 
+      profile.display_name?.trim() && 
+      profile.reg_no?.trim()
+    );
+    if (!isProfileComplete) {
       setPendingAction({ type: "create" });
       setShowGenderSelect(true);
       return;
     }
-    if (!startPoint) return toast.error("Starting Point is required");
-    if (!dest) return toast.error("Destination is required");
+    if (!startPoint.trim()) return toast.error("Starting Point is required");
+    if (!dest.trim()) return toast.error("Destination is required");
     if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
     if (isCreatingLoop) return;
 
