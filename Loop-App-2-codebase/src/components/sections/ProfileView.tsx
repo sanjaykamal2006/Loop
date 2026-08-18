@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, IndianRupee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
+import ExpectedFaresModal from "./ExpectedFaresModal";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -19,6 +20,7 @@ export default function ProfileView() {
   const [isUploading, setIsUploading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
+  const [showFaresModal, setShowFaresModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,185 +51,224 @@ export default function ProfileView() {
     };
   }, [setView]);
 
-  const handleSave = () => {
-    updateProfile({ display_name: tempName, reg_no: tempRegNo, bio: tempBio });
-    setIsEditingProfile(false);
+  const handleSaveProfile = async () => {
+    if (!tempName.trim()) return toast.error("Display name cannot be empty");
+    if (!tempRegNo.trim()) return toast.error("Reg. No cannot be empty");
+
+    const success = await updateProfile({
+      display_name: tempName.trim(),
+      reg_no: tempRegNo.trim().toUpperCase(),
+      bio: tempBio.trim(),
+    });
+
+    if (success) {
+      setIsEditingProfile(false);
+    }
   };
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Limit to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error("Image must be smaller than 5MB");
+    }
+
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-      if (!event.target.files || event.target.files.length === 0) return;
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${session.user.id}-${Math.random()}.${fileExt}`;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from("avatars")
         .getPublicUrl(filePath);
 
       await updateProfile({ avatar_url: publicUrl });
-      toast.success("Avatar updated!");
-    } catch (error: any) {
-      console.error(error);
-      toast.error("Failed to upload avatar. Please try again.");
+      toast.success("Profile photo updated!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center pt-1 pb-1 gap-3">
-      <div className="flex flex-col items-center gap-2.5 my-1">
-        {/* Profile Avatar */}
-        <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
-          <div className={`w-28 h-28 rounded-[32px] ${isDark ? "bg-zinc-900 border-white/10" : "bg-zinc-100 border-black/10"} border-2 flex items-center justify-center text-3xl font-black shadow-xl overflow-hidden shrink-0`}>
+    <div className="space-y-4 pt-1 pb-10">
+      {/* Profile Photo & Quick Identity Card */}
+      <div className="flex flex-col items-center justify-center space-y-3 pt-2">
+        <div className="relative group">
+          <div className="w-24 h-24 rounded-[30px] bg-[#FFC554] p-1 border-2 border-[#FFC554]/40 flex items-center justify-center shadow-xl overflow-hidden">
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-[28px]" />
+              <img
+                src={profile.avatar_url}
+                alt={profile.display_name}
+                className="w-full h-full object-cover rounded-[24px]"
+              />
             ) : (
-              <span className="opacity-80">{profile.display_name.substring(0, 2).toUpperCase()}</span>
+              <span className="text-3xl font-black text-black">
+                {profile.display_name?.substring(0, 2).toUpperCase() || "U"}
+              </span>
             )}
           </div>
-          <div className="absolute inset-0 bg-black/40 rounded-[32px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isUploading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Camera size={28} className="text-white" />}
-          </div>
-          <input 
-            type="file" 
-            id="avatar-upload" 
-            accept="image/*" 
-            className="hidden" 
-            onChange={uploadAvatar}
-            disabled={isUploading}
-          />
+
+          <label
+            htmlFor="avatar-upload"
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#FFC554] text-black border-2 border-black flex items-center justify-center shadow-lg cursor-pointer active:scale-90 transition-transform"
+          >
+            <Camera size={14} strokeWidth={2.5} />
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+              disabled={isUploading}
+            />
+          </label>
         </div>
 
-        {/* Change Photo Button */}
-        <button
-          onClick={() => document.getElementById("avatar-upload")?.click()}
-          disabled={isUploading}
-          className={`px-4 py-1.5 rounded-full ${cardBg} border ${border} text-xs font-black uppercase tracking-wider flex items-center gap-2 active:scale-95 transition-all shadow-sm`}
+        <label
+          htmlFor="avatar-upload"
+          className="h-8 px-4 rounded-full bg-white/5 border border-white/10 text-xs font-black uppercase tracking-wider text-[#FFC554] flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
         >
-          <Camera size={14} className="text-[#FFC554]" />
-          <span>Change Photo</span>
-        </button>
+          <Camera size={12} />
+          {isUploading ? "Uploading..." : "Change Photo"}
+        </label>
       </div>
 
-      <div className="w-full space-y-2">
-        {/* Identity Card */}
-        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px]`}>
-          <div className="flex items-center justify-between mb-3">
-            <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-widest`}>Identity</p>
-            {isEditingProfile ? (
-              <button
-                onClick={handleSave}
-                className="w-9 h-9 bg-[#FFC554] rounded-full flex items-center justify-center shadow-lg active:scale-90"
-              >
-                <Check size={16} className="text-black" strokeWidth={3} />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setTempName(profile.display_name);
-                  setTempRegNo(profile.reg_no || "");
-                  setTempBio(profile.bio || "");
-                  setIsEditingProfile(true);
-                }}
-                className="p-2 rounded-full active:scale-90"
-              >
-                <Edit2 size={15} className="text-[#FFC554]" />
-              </button>
-            )}
+      {/* Identity Card */}
+      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3.5 shadow-sm`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users size={14} className={mutedText} />
+            <span className={`text-[10px] font-black uppercase tracking-wider ${mutedText}`}>Identity</span>
           </div>
-          <div className="flex items-start gap-4">
-            <div className="flex-1 space-y-1.5">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Display Name</p>
-              {isEditingProfile ? (
-                <input
-                  value={tempName}
-                  onChange={(e) => setTempName(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
-                  placeholder="Name"
-                />
-              ) : (
-                <h2 className="text-base font-black tracking-tight">{profile.display_name}</h2>
-              )}
-            </div>
-            <div className="w-28 space-y-1.5">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Reg. No</p>
-              {isEditingProfile ? (
-                <input
-                  value={tempRegNo}
-                  onChange={(e) => setTempRegNo(e.target.value)}
-                  className={`w-full bg-black/10 border ${border} rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-[#FFC554]`}
-                  placeholder="Reg #"
-                />
-              ) : (
-                <h2 className="text-base font-black tracking-tight">{profile.reg_no || "—"}</h2>
-              )}
-            </div>
-          </div>
+          {!isEditingProfile ? (
+            <button
+              onClick={() => setIsEditingProfile(true)}
+              aria-label="Edit Profile"
+              className="text-xs font-bold text-[#FFC554] hover:underline flex items-center gap-1"
+            >
+              <Edit2 size={12} />
+            </button>
+          ) : (
+            <button
+              onClick={handleSaveProfile}
+              aria-label="Save Profile"
+              className="text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1"
+            >
+              <Check size={14} strokeWidth={3} />
+              Save
+            </button>
+          )}
+        </div>
 
-          <div className="mt-3 pt-3 border-t border-white/5 space-y-1.5">
-            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Bio</p>
-            {isEditingProfile ? (
+        {!isEditingProfile ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</p>
+                <p className="font-bold text-sm truncate mt-0.5">{profile.display_name || "Not Set"}</p>
+              </div>
+              <div>
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. No</p>
+                <p className="font-bold text-sm truncate mt-0.5">{profile.reg_no || "Not Set"}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Bio</p>
+              <p className="text-xs font-medium opacity-80 mt-0.5">
+                {profile.bio?.trim() ? profile.bio : "The One."}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</label>
+              <input
+                type="text"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                placeholder="Display Name"
+                className={`w-full h-9 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. Number</label>
+              <input
+                type="text"
+                value={tempRegNo}
+                onChange={(e) => setTempRegNo(e.target.value)}
+                placeholder="Registration Number"
+                className={`w-full h-9 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Bio</label>
               <textarea
                 value={tempBio}
                 onChange={(e) => setTempBio(e.target.value)}
+                placeholder="Short bio..."
                 rows={2}
-                maxLength={120}
-                className={`w-full bg-black/10 border ${border} rounded-xl p-2 text-xs font-bold outline-none focus:border-[#FFC554] resize-none`}
-                placeholder="Add a short bio (e.g. CS '26 | Daily commuter)..."
+                className={`w-full p-2.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none focus:border-[#FFC554] resize-none`}
               />
-            ) : (
-              <p className="text-xs font-bold leading-relaxed opacity-80">
-                {profile.bio?.trim() ? profile.bio : <span className={mutedText}>No bio added yet.</span>}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Gender Card */}
-        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between`}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-              <Users size={16} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-1">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Gender</p>
-              <p className="text-sm font-bold capitalize">{profile.gender || "Not set"}</p>
             </div>
           </div>
-          <div className={`flex gap-1 ${isDark ? "bg-white/5" : "bg-black/5"} p-1 rounded-xl transition-colors duration-1000`}>
-            {["male", "female"].map((g) => (
-              <button
-                key={g}
-                onClick={() => updateProfile({ gender: g })}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-90 transition-all ${profile.gender === g ? "bg-[#FFC554] text-black shadow-sm" : mutedText}`}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
+      </div>
 
-        {/* Account Email Card */}
-        <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center gap-3`}>
-          <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-            <LogOut size={16} strokeWidth={2.5} className="rotate-180" />
-          </div>
-          <div className="space-y-1 overflow-hidden">
-            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Account</p>
-            <p className="text-sm font-bold opacity-60 truncate">{session.user.email}</p>
-          </div>
+      {/* Gender Safety Setting */}
+      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center justify-between shadow-sm`}>
+        <div className="space-y-0.5">
+          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Gender</p>
+          <p className="text-xs font-bold capitalize">{profile.gender || "Not set"}</p>
         </div>
+        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button
+            onClick={() => updateProfile({ gender: "male" })}
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+              profile.gender === "male"
+                ? "bg-[#FFC554] text-black shadow-sm"
+                : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            Male
+          </button>
+          <button
+            onClick={() => updateProfile({ gender: "female" })}
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+              profile.gender === "female"
+                ? "bg-[#FFC554] text-black shadow-sm"
+                : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            Female
+          </button>
+        </div>
+      </div>
 
-        {/* Ride History (Past Loops) Card */}
+      {/* Account Info */}
+      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-1 shadow-sm`}>
+        <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Account</p>
+        <p className="text-xs font-bold truncate opacity-90">{session.user.email}</p>
+      </div>
+
+      {/* Action & Nav List */}
+      <div className="space-y-2 pt-1">
+        {/* Past Loops */}
         <button
           onClick={() => setView("past-loops")}
           className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
@@ -254,7 +295,23 @@ export default function ProfileView() {
             </div>
             <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
-              <p className={`text-xs font-bold ${text}`}>Trusted Drivers & Expected Fares</p>
+              <p className={`text-xs font-bold ${text}`}>Trusted Drivers</p>
+            </div>
+          </div>
+        </button>
+
+        {/* Expected Campus Fares */}
+        <button
+          onClick={() => setShowFaresModal(true)}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+              <IndianRupee size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Guide</p>
+              <p className={`text-xs font-bold ${text}`}>Expected Campus Fares</p>
             </div>
           </div>
         </button>
@@ -294,6 +351,7 @@ export default function ProfileView() {
 
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
+      <ExpectedFaresModal isOpen={showFaresModal} onClose={() => setShowFaresModal(false)} />
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (

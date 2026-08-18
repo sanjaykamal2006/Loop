@@ -82,3 +82,14 @@ export interface TrustedVehicle {
   created_at: string;
   profiles?: { display_name: string; avatar_url?: string };
 }
+
+export interface ExpectedFare {
+  id: string;
+  user_id: string;
+  from_location: string;
+  to_location: string;
+  expected_fare: number;
+  vehicle_type?: string;
+  created_at: string;
+  profiles?: { display_name: string; avatar_url?: string };
+}

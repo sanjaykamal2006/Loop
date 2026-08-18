@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck, MapPin, ArrowRight, IndianRupee, Search } from "lucide-react";
+import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck } from "lucide-react";
 import type { TrustedVehicle } from "@/lib/types";
 
 const AutoIcon = ({ className }: { className?: string }) => (
@@ -33,7 +33,6 @@ export default function TrustedVehiclesView() {
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revealedPhones, setRevealedPhones] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState("");
 
   const maskPhone = (phone: string) => phone.length > 4 ? phone.substring(0, 2) + 'XXX XXX' + phone.slice(-2) : '****';
 
@@ -41,9 +40,6 @@ export default function TrustedVehiclesView() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [type, setType] = useState<"bike" | "auto" | "share_auto" | "">("");
-  const [fromLocation, setFromLocation] = useState("Campus");
-  const [toLocation, setToLocation] = useState("");
-  const [expectedFare, setExpectedFare] = useState("");
 
   const myVehiclesCount = vehicles.filter(v => v.user_id === session.user.id).length;
   const canAdd = myVehiclesCount < 5;
@@ -56,10 +52,10 @@ export default function TrustedVehiclesView() {
     setLoading(true);
     const { data, error } = await supabase
       .from("trusted_vehicles")
-      .select("id, user_id, driver_name, phone_number, vehicle_type, from_location, to_location, expected_fare, created_at, profiles:user_id(display_name, avatar_url)")
+      .select("id, user_id, driver_name, phone_number, vehicle_type, created_at, profiles:user_id(display_name, avatar_url)")
       .order("created_at", { ascending: false });
 
-    if (error) toast.error("Failed to fetch drivers & fares");
+    if (error) toast.error("Failed to fetch drivers");
     else setVehicles((data || []) as unknown as TrustedVehicle[]);
     setLoading(false);
   };
@@ -70,11 +66,9 @@ export default function TrustedVehiclesView() {
       return;
     }
     if (!name.trim() || !phone.trim() || !type) {
-      toast.error("Please enter driver name, phone, and vehicle type.");
+      toast.error("Please fill all fields.");
       return;
     }
-
-    const fareNum = expectedFare ? parseInt(expectedFare) : null;
 
     const { data, error } = await supabase
       .from("trusted_vehicles")
@@ -82,26 +76,20 @@ export default function TrustedVehiclesView() {
         user_id: session.user.id,
         driver_name: name.trim(),
         phone_number: phone.trim(),
-        vehicle_type: type,
-        from_location: fromLocation.trim() || "Campus",
-        to_location: toLocation.trim() || null,
-        expected_fare: fareNum,
+        vehicle_type: type
       })
-      .select("id, user_id, driver_name, phone_number, vehicle_type, from_location, to_location, expected_fare, created_at, profiles:user_id(display_name, avatar_url)")
+      .select("id, user_id, driver_name, phone_number, vehicle_type, created_at, profiles:user_id(display_name, avatar_url)")
       .single();
 
     if (error) {
       toast.error("Failed to add driver. Please try again.");
     } else {
-      toast.success("Driver & Expected Fare added!");
+      toast.success("Driver added!");
       setVehicles([data as unknown as TrustedVehicle, ...vehicles]);
       setIsAdding(false);
       setName("");
       setPhone("");
       setType("");
-      setFromLocation("Campus");
-      setToLocation("");
-      setExpectedFare("");
     }
   };
 
@@ -109,7 +97,7 @@ export default function TrustedVehiclesView() {
     const { error } = await supabase.from("trusted_vehicles").delete().eq("id", id);
     if (error) toast.error("Failed to delete");
     else {
-      toast.success("Driver removed");
+      toast.success("Removed");
       setVehicles(vehicles.filter(v => v.id !== id));
     }
   };
@@ -123,138 +111,62 @@ export default function TrustedVehiclesView() {
     }
   };
 
-  const filteredVehicles = vehicles.filter((v) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      v.driver_name?.toLowerCase().includes(q) ||
-      v.from_location?.toLowerCase().includes(q) ||
-      v.to_location?.toLowerCase().includes(q) ||
-      v.vehicle_type?.toLowerCase().includes(q)
-    );
-  });
-
   return (
     <div className="flex flex-col h-full pt-2">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setView("profile")} 
             aria-label="Back to profile"
-            className={`w-9 h-9 rounded-full ${cardBg} border ${border} flex items-center justify-center active:scale-90 transition-transform`}
+            className={`w-8 h-8 rounded-full ${cardBg} border ${border} flex items-center justify-center active:scale-90 transition-transform`}
           >
             <ArrowLeft size={16} />
           </button>
-          <div>
-            <h1 className="text-xl font-black uppercase tracking-tight">Drivers & Fares</h1>
-            <p className={`text-[10px] font-bold ${mutedText}`}>Verified drivers & standard campus fares</p>
-          </div>
+          <h1 className="text-xl font-black uppercase tracking-tight">Trusted Drivers</h1>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
           aria-label="Add trusted driver"
-          className="bg-[#FFC554] text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform shrink-0"
+          className="bg-[#FFC554] text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
         >
           <Plus strokeWidth={3} size={20} />
         </button>
       </div>
 
-      {/* Search Input */}
-      {vehicles.length > 2 && (
-        <div className="mb-3 px-1">
-          <div className={`flex items-center gap-2.5 px-3.5 h-10 ${cardBg} border ${border} rounded-2xl`}>
-            <Search size={14} className={mutedText} />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search destination, route, or driver..."
-              className="flex-1 bg-transparent text-xs font-bold outline-none placeholder:opacity-40"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Driver & Fares List */}
       <div className="flex-1 overflow-y-auto space-y-3 pb-8 scrollbar-hide px-1">
         {loading ? (
-          <p className={`text-center text-xs font-bold ${mutedText} mt-10`}>Loading drivers & fares...</p>
-        ) : filteredVehicles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center space-y-3 px-4">
-            <div className="w-16 h-16 rounded-[24px] bg-[#FFC554]/10 border border-[#FFC554]/20 flex items-center justify-center text-[#FFC554]">
-              <ShieldCheck size={32} strokeWidth={1.8} />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em]">
-                {searchQuery ? "No Matching Drivers" : "No Drivers or Fares Yet"}
-              </p>
-              <p className={`text-xs font-medium ${mutedText} mt-1 max-w-[240px]`}>
-                {searchQuery ? "Try searching for a different destination or driver name." : "Add trusted campus auto, bike, or cab drivers with expected route fares for everyone to use."}
-              </p>
-            </div>
-            {!searchQuery && (
-              <button
-                onClick={() => setIsAdding(true)}
-                className="mt-2 px-5 py-2.5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider active:scale-95 shadow-md"
-              >
-                + Add Driver & Fare
-              </button>
-            )}
+          <p className={`text-center text-sm font-bold ${mutedText} mt-10`}>Loading...</p>
+        ) : vehicles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 text-center opacity-40">
+            <ShieldCheck size={36} strokeWidth={1.5} className="mb-3" />
+            <p className="text-xs font-black uppercase tracking-[0.2em]">No Drivers Yet</p>
           </div>
         ) : (
-          filteredVehicles.map(v => (
-            <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] space-y-3 shadow-sm hover:border-[#FFC554]/30 transition-colors`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 shrink-0 bg-[#FFC554]/10 rounded-2xl flex items-center justify-center text-[#FFC554]">
-                    {renderIcon(v.vehicle_type, "w-6 h-6")}
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm uppercase tracking-tight">{v.driver_name}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <a href={`tel:${v.phone_number}`} className={`flex items-center gap-1 text-xs font-bold ${mutedText} hover:text-[#FFC554]`}>
-                        <Phone size={10} /> 
-                        {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
-                      </a>
-                      <button 
-                        onClick={() => {
-                          const next = new Set(revealedPhones);
-                          if (next.has(v.id)) next.delete(v.id);
-                          else next.add(v.id);
-                          setRevealedPhones(next);
-                        }}
-                        className="text-[10px] text-[#FFC554] font-black uppercase tracking-wider"
-                      >
-                        {revealedPhones.has(v.id) ? "Hide" : "Show"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expected Fare Tag */}
-                {v.expected_fare ? (
-                  <div className="text-right shrink-0">
-                    <span className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-xs font-black text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30">
-                      ₹{v.expected_fare}
-                    </span>
-                    <p className={`text-[8px] font-black uppercase tracking-wider ${mutedText} mt-0.5`}>Expected Fare</p>
-                  </div>
-                ) : null}
+          vehicles.map(v => (
+            <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] flex items-center gap-4`}>
+              <div className="w-12 h-12 shrink-0 bg-[#FFC554]/10 rounded-xl flex items-center justify-center text-[#FFC554]">
+                {renderIcon(v.vehicle_type, "w-8 h-8")}
               </div>
-
-              {/* Route Display if present */}
-              {(v.from_location || v.to_location) && (
-                <div className={`p-2.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-xl flex items-center gap-2 text-xs font-bold`}>
-                  <MapPin size={12} className="text-[#FFC554] shrink-0" />
-                  <span className="truncate opacity-80">{v.from_location || "Campus"}</span>
-                  <ArrowRight size={11} className="shrink-0 opacity-40" />
-                  <span className="truncate text-[#FFC554]">{v.to_location || "Anywhere"}</span>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
+                <div className={`flex items-center gap-2 mt-0.5`}>
+                  <a href={`tel:${v.phone_number}`} className={`flex items-center gap-1.5 text-xs font-bold ${mutedText} hover:text-[#FFC554]`}>
+                    <Phone size={10} /> 
+                    {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
+                  </a>
+                  <button 
+                    onClick={() => {
+                      const next = new Set(revealedPhones);
+                      if (next.has(v.id)) next.delete(v.id);
+                      else next.add(v.id);
+                      setRevealedPhones(next);
+                    }}
+                    className="text-[10px] text-[#FFC554] font-black uppercase tracking-wider"
+                  >
+                    {revealedPhones.has(v.id) ? "Hide" : "Show"}
+                  </button>
                 </div>
-              )}
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mt-2">
                   {v.profiles?.avatar_url ? (
                     <img src={v.profiles.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
                   ) : (
@@ -262,35 +174,29 @@ export default function TrustedVehiclesView() {
                       {v.profiles?.display_name?.substring(0, 1).toUpperCase()}
                     </div>
                   )}
-                  <p className={`text-[9px] uppercase tracking-wider font-bold opacity-60`}>
-                    Added by {v.user_id === session.user.id ? "You" : v.profiles?.display_name || "Student"}
-                  </p>
+                  <p className={`text-[9px] uppercase tracking-wider font-bold opacity-60`}>Added by {v.user_id === session.user.id ? "You" : v.profiles?.display_name}</p>
                 </div>
-
-                {v.user_id === session.user.id && (
-                  <button 
-                    onClick={() => handleDelete(v.id)}
-                    aria-label="Delete trusted driver"
-                    className={`w-7 h-7 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} text-zinc-400 hover:text-red-400 flex items-center justify-center shrink-0 active:scale-90 transition-colors`}
-                  >
-                    <X size={13} strokeWidth={2.5} />
-                  </button>
-                )}
               </div>
+              
+              {v.user_id === session.user.id && (
+                <button 
+                  onClick={() => handleDelete(v.id)}
+                  aria-label="Delete trusted vehicle"
+                  className={`w-8 h-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} text-zinc-400 hover:text-red-400 flex items-center justify-center shrink-0 active:scale-90 transition-colors`}
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* Add Driver & Fare Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fade-in">
           <div className={`w-full max-w-md max-h-[85vh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl`}>
             <div className="flex items-center justify-between shrink-0 pb-1 border-b border-white/10">
-              <div>
-                <h2 className="text-base font-black uppercase tracking-tight">Add Driver & Fare</h2>
-                <p className={`text-[10px] font-bold ${mutedText}`}>Share trusted campus transport info</p>
-              </div>
+              <h2 className="text-lg font-black uppercase tracking-tight">Add Driver</h2>
               <button 
                 onClick={() => setIsAdding(false)} 
                 aria-label="Close"
@@ -307,9 +213,8 @@ export default function TrustedVehiclesView() {
               </div>
             )}
 
-            <div className="space-y-3">
-              {/* Vehicle Type */}
-              <div className="space-y-1">
+            <div className="space-y-3.5">
+              <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Vehicle Type</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
@@ -329,70 +234,29 @@ export default function TrustedVehiclesView() {
                 </div>
               </div>
 
-              {/* Driver Name & Phone */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Driver Name</label>
-                  <div className={`flex items-center gap-2 px-3 py-2 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
-                    <User size={14} className={mutedText} />
-                    <input 
-                      value={name} 
-                      onChange={e => setName(e.target.value)} 
-                      placeholder="Name" 
-                      className="flex-1 bg-transparent text-xs font-bold outline-none placeholder:opacity-40"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Phone Number</label>
-                  <div className={`flex items-center gap-2 px-3 py-2 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
-                    <Phone size={14} className={mutedText} />
-                    <input 
-                      type="tel"
-                      value={phone} 
-                      onChange={e => setPhone(e.target.value)} 
-                      placeholder="Number" 
-                      className="flex-1 bg-transparent text-xs font-bold outline-none placeholder:opacity-40"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Route & Expected Fare */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>From Location</label>
+              <div className="space-y-1.5">
+                <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Driver Name</label>
+                <div className={`flex items-center gap-3 px-4 py-2.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
+                  <User size={16} className={mutedText} />
                   <input 
-                    value={fromLocation} 
-                    onChange={e => setFromLocation(e.target.value)} 
-                    placeholder="e.g. Main Gate" 
-                    className={`w-full px-3 py-2 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-bold outline-none placeholder:opacity-40`}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>To Destination</label>
-                  <input 
-                    value={toLocation} 
-                    onChange={e => setToLocation(e.target.value)} 
-                    placeholder="e.g. Station / Airport" 
-                    className={`w-full px-3 py-2 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-bold outline-none placeholder:opacity-40`}
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    placeholder="Driver's Name" 
+                    className="flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-40"
                   />
                 </div>
               </div>
 
-              {/* Expected Fare (Optional) */}
-              <div className="space-y-1">
-                <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Expected Fare (₹)</label>
-                <div className={`flex items-center gap-2 px-3 py-2 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
-                  <span className={`text-xs font-black ${mutedText}`}>₹</span>
+              <div className="space-y-1.5">
+                <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Phone Number</label>
+                <div className={`flex items-center gap-3 px-4 py-2.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
+                  <Phone size={16} className={mutedText} />
                   <input 
-                    type="number"
-                    value={expectedFare} 
-                    onChange={e => setExpectedFare(e.target.value)} 
-                    placeholder="e.g. 150 (standard negotiated auto rate)" 
-                    className="flex-1 bg-transparent text-xs font-bold outline-none placeholder:opacity-40"
+                    type="tel"
+                    value={phone} 
+                    onChange={e => setPhone(e.target.value)} 
+                    placeholder="Driver's Number" 
+                    className="flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-40"
                   />
                 </div>
               </div>
@@ -401,9 +265,9 @@ export default function TrustedVehiclesView() {
             <button
               onClick={handleAdd}
               disabled={!canAdd}
-              className={`w-full py-3 bg-[#FFC554] text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-transform mt-2`}
+              className={`w-full py-3.5 bg-[#FFC554] text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-transform`}
             >
-              Save Driver & Fare
+              Add Trusted Driver
             </button>
           </div>
         </div>
