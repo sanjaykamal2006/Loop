@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck, IndianRupee } from "lucide-react";
 import type { TrustedVehicle } from "@/lib/types";
+import ExpectedFaresModal from "./ExpectedFaresModal";
 
 const AutoIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -31,6 +32,7 @@ export default function TrustedVehiclesView() {
 
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [showFaresModal, setShowFaresModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revealedPhones, setRevealedPhones] = useState<Set<string>>(new Set());
 
@@ -113,43 +115,74 @@ export default function TrustedVehiclesView() {
 
   return (
     <div className="flex flex-col h-full pt-2">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setView("profile")} 
             aria-label="Back to profile"
-            className={`w-8 h-8 rounded-full ${cardBg} border ${border} flex items-center justify-center active:scale-90 transition-transform`}
+            className={`w-9 h-9 rounded-full ${cardBg} border ${border} flex items-center justify-center active:scale-90 transition-transform`}
           >
             <ArrowLeft size={16} />
           </button>
-          <h1 className="text-xl font-black uppercase tracking-tight">Trusted Drivers</h1>
+          <div>
+            <h1 className="text-xl font-black uppercase tracking-tight">Trusted Drivers</h1>
+            <p className={`text-[10px] font-bold ${mutedText}`}>Verified campus driver contacts</p>
+          </div>
         </div>
-        <button 
-          onClick={() => setIsAdding(true)}
-          aria-label="Add trusted driver"
-          className="bg-[#FFC554] text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-        >
-          <Plus strokeWidth={3} size={20} />
-        </button>
+
+        {/* Action Buttons: Expected Fares Rupee Pill + Add Driver */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFaresModal(true)}
+            aria-label="Open expected campus fares"
+            className="h-9 px-3 rounded-full bg-[#FFC554]/15 border border-[#FFC554]/30 text-[#FFC554] font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm hover:bg-[#FFC554]/25 transition-all shrink-0"
+          >
+            <IndianRupee size={12} strokeWidth={2.5} />
+            <span>Fares</span>
+          </button>
+
+          <button 
+            onClick={() => setIsAdding(true)}
+            aria-label="Add trusted driver"
+            className="bg-[#FFC554] text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform shrink-0"
+          >
+            <Plus strokeWidth={3} size={20} />
+          </button>
+        </div>
       </div>
 
+      {/* Driver List */}
       <div className="flex-1 overflow-y-auto space-y-3 pb-8 scrollbar-hide px-1">
         {loading ? (
-          <p className={`text-center text-sm font-bold ${mutedText} mt-10`}>Loading...</p>
+          <p className={`text-center text-sm font-bold ${mutedText} mt-10`}>Loading drivers...</p>
         ) : vehicles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-center opacity-40">
-            <ShieldCheck size={36} strokeWidth={1.5} className="mb-3" />
-            <p className="text-xs font-black uppercase tracking-[0.2em]">No Drivers Yet</p>
+          <div className="flex flex-col items-center justify-center h-48 text-center space-y-3 px-4">
+            <div className="w-16 h-16 rounded-[24px] bg-[#FFC554]/10 border border-[#FFC554]/20 flex items-center justify-center text-[#FFC554]">
+              <ShieldCheck size={32} strokeWidth={1.8} />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em]">No Trusted Drivers Yet</p>
+              <p className={`text-xs font-medium ${mutedText} mt-1 max-w-[240px]`}>
+                Add trusted auto, bike, or cab drivers to help other students on campus.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsAdding(true)}
+              className="mt-2 px-5 py-2.5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider active:scale-95 shadow-md"
+            >
+              + Add Driver
+            </button>
           </div>
         ) : (
           vehicles.map(v => (
-            <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] flex items-center gap-4`}>
-              <div className="w-12 h-12 shrink-0 bg-[#FFC554]/10 rounded-xl flex items-center justify-center text-[#FFC554]">
-                {renderIcon(v.vehicle_type, "w-8 h-8")}
+            <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] flex items-center gap-4 shadow-sm hover:border-[#FFC554]/30 transition-colors`}>
+              <div className="w-12 h-12 shrink-0 bg-[#FFC554]/10 rounded-2xl flex items-center justify-center text-[#FFC554]">
+                {renderIcon(v.vehicle_type, "w-7 h-7")}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
-                <div className={`flex items-center gap-2 mt-0.5`}>
+                <div className="flex items-center gap-2 mt-0.5">
                   <a href={`tel:${v.phone_number}`} className={`flex items-center gap-1.5 text-xs font-bold ${mutedText} hover:text-[#FFC554]`}>
                     <Phone size={10} /> 
                     {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
@@ -174,7 +207,7 @@ export default function TrustedVehiclesView() {
                       {v.profiles?.display_name?.substring(0, 1).toUpperCase()}
                     </div>
                   )}
-                  <p className={`text-[9px] uppercase tracking-wider font-bold opacity-60`}>Added by {v.user_id === session.user.id ? "You" : v.profiles?.display_name}</p>
+                  <p className={`text-[9px] uppercase tracking-wider font-bold opacity-60`}>Added by {v.user_id === session.user.id ? "You" : v.profiles?.display_name || "Student"}</p>
                 </div>
               </div>
               
@@ -192,6 +225,7 @@ export default function TrustedVehiclesView() {
         )}
       </div>
 
+      {/* Add Driver Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fade-in">
           <div className={`w-full max-w-md max-h-[85vh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl`}>
@@ -272,6 +306,9 @@ export default function TrustedVehiclesView() {
           </div>
         </div>
       )}
+
+      {/* Expected Fares Modal Triggered via Rupee Pill */}
+      <ExpectedFaresModal isOpen={showFaresModal} onClose={() => setShowFaresModal(false)} />
     </div>
   );
 }

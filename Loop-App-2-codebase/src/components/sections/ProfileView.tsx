@@ -2,12 +2,11 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, IndianRupee } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
-import ExpectedFaresModal from "./ExpectedFaresModal";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -20,7 +19,6 @@ export default function ProfileView() {
   const [isUploading, setIsUploading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
-  const [showFaresModal, setShowFaresModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -70,7 +68,6 @@ export default function ProfileView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limit to 5MB
     if (file.size > 5 * 1024 * 1024) {
       return toast.error("Image must be smaller than 5MB");
     }
@@ -103,7 +100,7 @@ export default function ProfileView() {
 
   return (
     <div className="space-y-4 pt-1 pb-10">
-      {/* Profile Photo & Quick Identity Card */}
+      {/* Profile Photo without yellow accent */}
       <div className="flex flex-col items-center justify-center space-y-3 pt-2">
         <div className="relative group">
           <div className={`w-24 h-24 rounded-[28px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-lg overflow-hidden`}>
@@ -145,60 +142,66 @@ export default function ProfileView() {
         </label>
       </div>
 
-      {/* Identity Card */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3.5 shadow-sm`}>
+      {/* Identity Card - Well-spaced with Email at the very last */}
+      <div className={`p-5 ${cardBg} border ${border} rounded-[28px] space-y-4 shadow-sm`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users size={14} className={mutedText} />
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
+              <Users size={14} className={mutedText} />
+            </div>
             <span className={`text-[10px] font-black uppercase tracking-wider ${mutedText}`}>Identity</span>
           </div>
           {!isEditingProfile ? (
             <button
               onClick={() => setIsEditingProfile(true)}
               aria-label="Edit Profile"
-              className="text-xs font-bold text-[#FFC554] hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-[#FFC554] hover:underline flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFC554]/10 active:scale-95 transition-transform"
             >
-              <Edit2 size={12} />
+              <Edit2 size={11} />
+              <span>Edit</span>
             </button>
           ) : (
             <button
               onClick={handleSaveProfile}
               aria-label="Save Profile"
-              className="text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-black flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFC554] active:scale-95 transition-transform font-black"
             >
-              <Check size={14} strokeWidth={3} />
-              Save
+              <Check size={13} strokeWidth={3} />
+              <span>Save</span>
             </button>
           )}
         </div>
 
         {!isEditingProfile ? (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-3.5">
+            {/* 1. Display Name & Reg. No */}
+            <div className="grid grid-cols-2 gap-3 pb-1 border-b border-white/5">
               <div>
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</p>
-                <p className="font-bold text-sm truncate mt-0.5">{profile.display_name || "Not Set"}</p>
+                <p className="font-bold text-sm truncate mt-1">{profile.display_name || "Not Set"}</p>
               </div>
               <div>
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. No</p>
-                <p className="font-bold text-sm truncate mt-0.5">{profile.reg_no || "Not Set"}</p>
+                <p className="font-bold text-sm truncate mt-1">{profile.reg_no || "Not Set"}</p>
               </div>
             </div>
 
-            <div>
-              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Account (Email)</p>
-              <p className="font-bold text-xs truncate mt-0.5 opacity-90">{session.user.email}</p>
-            </div>
-
-            <div>
+            {/* 2. Bio */}
+            <div className="pb-1 border-b border-white/5">
               <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Bio</p>
-              <p className="text-xs font-medium opacity-80 mt-0.5">
+              <p className="text-xs font-medium opacity-80 mt-1 leading-relaxed">
                 {profile.bio?.trim() ? profile.bio : "The One."}
               </p>
             </div>
+
+            {/* 3. Account (Email) at the very LAST */}
+            <div>
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Account (Email)</p>
+              <p className="font-bold text-xs truncate mt-1 opacity-90">{session.user.email}</p>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5 pt-1">
             <div className="space-y-1">
               <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</label>
               <input
@@ -206,7 +209,7 @@ export default function ProfileView() {
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
                 placeholder="Display Name"
-                className={`w-full h-9 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+                className={`w-full h-10 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
               />
             </div>
 
@@ -217,7 +220,7 @@ export default function ProfileView() {
                 value={tempRegNo}
                 onChange={(e) => setTempRegNo(e.target.value)}
                 placeholder="Registration Number"
-                className={`w-full h-9 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+                className={`w-full h-10 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
               />
             </div>
 
@@ -228,7 +231,7 @@ export default function ProfileView() {
                 onChange={(e) => setTempBio(e.target.value)}
                 placeholder="Short bio..."
                 rows={2}
-                className={`w-full p-2.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none focus:border-[#FFC554] resize-none`}
+                className={`w-full p-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none focus:border-[#FFC554] resize-none`}
               />
             </div>
           </div>
@@ -299,22 +302,6 @@ export default function ProfileView() {
           </div>
         </button>
 
-        {/* Expected Campus Fares */}
-        <button
-          onClick={() => setShowFaresModal(true)}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
-              <IndianRupee size={16} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-0.5 text-left">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Guide</p>
-              <p className={`text-xs font-bold ${text}`}>Expected Campus Fares</p>
-            </div>
-          </div>
-        </button>
-
         {/* About Creator */}
         <button
           onClick={() => setShowCreator(true)}
@@ -350,7 +337,6 @@ export default function ProfileView() {
 
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
-      <ExpectedFaresModal isOpen={showFaresModal} onClose={() => setShowFaresModal(false)} />
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
