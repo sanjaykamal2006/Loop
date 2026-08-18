@@ -63,17 +63,23 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
         if (error) {
           if (error.message.includes("Email rate limit") || error.status === 429) {
             throw new Error("Rate limit exceeded. Please wait a moment before trying again.");
           }
-          if (error.message.includes("Invalid login credentials") || error.status === 400) {
-            throw new Error("Invalid email or password. Please check your details or sign up.");
+          
+          const { data: userExists } = await supabase.rpc('check_user_exists', {
+            user_email: email.trim(),
+          });
+
+          if (!userExists) {
+            throw new Error("Account does not exist. Please sign up first.");
+          } else {
+            throw new Error("Incorrect email or password. Please try again or reset your password.");
           }
-          throw error;
         }
         toast.success("Welcome back!");
       } else {
@@ -342,18 +348,36 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                   <button
                     type="button"
                     onClick={async () => {
-                      if (!email) {
+                      if (!email?.trim()) {
                         toast.error("Please enter your email first");
                         return;
                       }
+                      setIsLoading(true);
                       try {
-                        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+                        const { data: userExists, error: checkErr } = await supabase.rpc('check_user_exists', {
+                          user_email: email.trim(),
+                        });
+
+                        if (checkErr) {
+                          console.error("User check error:", checkErr);
+                        }
+
+                        if (!userExists) {
+                          toast.error("Account does not exist. Please check your email or sign up.");
+                          return;
+                        }
+
+                        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { 
+                          redirectTo: window.location.origin 
+                        });
                         if (error) throw error;
                         toast.success("Password reset link sent to your email!");
                       } catch (err: any) {
                         console.error("Password reset error:", err);
                         const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset link. Please check your email or try again.";
                         toast.error(msg);
+                      } finally {
+                        setIsLoading(false);
                       }
                     }}
                     className="text-xs font-extrabold text-[#FFC554] hover:underline tracking-wider transition-colors inline-block"
