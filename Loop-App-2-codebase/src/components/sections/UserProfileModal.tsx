@@ -23,25 +23,24 @@ export default function UserProfileModal({
   onClose: () => void;
 }) {
   const { theme, session } = useLoop();
-  const { isDark, cardBg, border, mutedText } = theme;
+  const { isDark, border, mutedText } = theme;
   const currentUserId = session?.user?.id;
 
   const maskRegNo = (regNo: string) => regNo.length > 5 ? regNo.substring(0, 5) + '****' : '****';
 
   if (!isOpen || !user) return null;
 
-  const avatarSrc =
-    user.avatar_url ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.display_name || user.user_id || "User")}`;
-
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-      <div className={`w-full max-w-sm ${cardBg} border ${border} rounded-[32px] p-6 flex flex-col items-center relative shadow-2xl overflow-hidden text-center space-y-4`}>
+    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+      <div className={`w-full max-w-sm max-h-[90dvh] sm:max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border-t sm:border ${border} rounded-t-[32px] sm:rounded-[32px] p-6 flex flex-col items-center relative shadow-2xl overflow-hidden text-center space-y-4`}>
+        {/* Mobile Drag Indicator */}
+        <div className="w-10 h-1 rounded-full bg-white/20 mx-auto -mt-2 mb-1 sm:hidden" />
+
         {/* Close Button */}
         <button
           onClick={onClose}
           aria-label="Close profile modal"
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center active:scale-90"
+          className={`absolute top-4 right-4 w-8 h-8 rounded-full ${isDark ? "bg-white/10" : "bg-black/5"} flex items-center justify-center active:scale-90 transition-transform`}
         >
           <X size={16} />
         </button>
@@ -90,7 +89,7 @@ export default function UserProfileModal({
         {/* Dismiss Button */}
         <button
           onClick={onClose}
-          className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md"
+          className="w-full py-3.5 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
         >
           Done
         </button>

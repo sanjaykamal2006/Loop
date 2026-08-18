@@ -144,7 +144,7 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
-                    window.dispatchEvent(new CustomEvent("open-past-loops"));
+                    setView("past-loops");
                   }}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
                 >

@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, Sun, Moon, AlertTriangle } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 
 export default function ProfileView() {
-  const { session, profile, updateProfile, handleSignOut, theme, toggleTheme, setView } = useLoop();
+  const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [tempName, setTempName] = useState(profile.display_name);
@@ -17,10 +17,8 @@ export default function ProfileView() {
   const [tempBio, setTempBio] = useState(profile.bio || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
-  const [pastLoops, setPastLoops] = useState<any[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -32,8 +30,7 @@ export default function ProfileView() {
 
   React.useEffect(() => {
     const handlePastLoops = () => {
-      fetchPastLoops();
-      setShowHistory(true);
+      setView("past-loops");
     };
     const handleTerms = () => {
       setShowTerms(true);
@@ -50,19 +47,7 @@ export default function ProfileView() {
       window.removeEventListener("open-terms-modal", handleTerms);
       window.removeEventListener("open-creator-modal", handleCreator);
     };
-  }, [session.user.id]);
-
-  const fetchPastLoops = async () => {
-    const { data } = await supabase
-      .from("loop_members")
-      .select("loop_id, loops(*)")
-      .eq("user_id", session.user.id)
-      .eq("loops.status", "ended");
-    
-    if (data) {
-      setPastLoops(data.map(d => d.loops).filter(Boolean));
-    }
-  };
+  }, [setView]);
 
   const handleSave = () => {
     updateProfile({ display_name: tempName, reg_no: tempRegNo, bio: tempBio });
@@ -99,27 +84,6 @@ export default function ProfileView() {
 
   return (
     <div className="flex flex-col items-center pt-1 pb-1 gap-3">
-      {showHistory ? (
-        <div className="w-full space-y-3">
-          <button onClick={() => setShowHistory(false)} className={`text-[10px] font-black uppercase tracking-wider ${mutedText} mb-2`}>
-            ← Back to Profile
-          </button>
-          <h2 className="text-lg font-black uppercase tracking-tight mb-2">Past Loops</h2>
-          {pastLoops.length === 0 && (
-            <p className={`text-xs ${mutedText} text-center mt-10`}>No past loops found.</p>
-          )}
-          {pastLoops.map(loop => (
-            <div key={loop.id} className={`p-3 ${cardBg} border ${border} rounded-[20px] space-y-1 shadow-sm`}>
-              <div className="flex justify-between items-start">
-                <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>{loop.start_point || "Anywhere"} →</p>
-                <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>{new Date(loop.created_at).toLocaleDateString()}</p>
-              </div>
-              <h3 className="font-black text-sm uppercase tracking-tight">{loop.destination}</h3>
-            </div>
-          ))}
-        </div>
-      ) : (
-      <>
       <div className="flex flex-col items-center gap-2.5 my-1">
         {/* Profile Avatar */}
         <div className="relative group cursor-pointer" onClick={() => document.getElementById("avatar-upload")?.click()}>
@@ -155,13 +119,14 @@ export default function ProfileView() {
       </div>
 
       <div className="w-full space-y-2">
+        {/* Identity Card */}
         <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px]`}>
           <div className="flex items-center justify-between mb-3">
             <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-widest`}>Identity</p>
             {isEditingProfile ? (
               <button
                 onClick={handleSave}
-                className="w-9 h-9 bg-[#FFC554] rounded-full flex items-center justify-center shadow-lg active:scale-90 "
+                className="w-9 h-9 bg-[#FFC554] rounded-full flex items-center justify-center shadow-lg active:scale-90"
               >
                 <Check size={16} className="text-black" strokeWidth={3} />
               </button>
@@ -173,7 +138,7 @@ export default function ProfileView() {
                   setTempBio(profile.bio || "");
                   setIsEditingProfile(true);
                 }}
-                className="p-2 rounded-full active:scale-90 "
+                className="p-2 rounded-full active:scale-90"
               >
                 <Edit2 size={15} className="text-[#FFC554]" />
               </button>
@@ -227,6 +192,7 @@ export default function ProfileView() {
           </div>
         </div>
 
+        {/* Gender Card */}
         <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
@@ -250,6 +216,7 @@ export default function ProfileView() {
           </div>
         </div>
 
+        {/* Account Email Card */}
         <div className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center gap-3`}>
           <div className="w-8 h-8 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
             <LogOut size={16} strokeWidth={2.5} className="rotate-180" />
@@ -260,6 +227,23 @@ export default function ProfileView() {
           </div>
         </div>
 
+        {/* Ride History (Past Loops) Card */}
+        <button
+          onClick={() => setView("past-loops")}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+              <History size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Activity</p>
+              <p className={`text-xs font-bold ${text}`}>Past Loops (History)</p>
+            </div>
+          </div>
+        </button>
+
+        {/* Trusted Drivers */}
         <button
           onClick={() => setView("trusted-vehicles")}
           className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
@@ -275,6 +259,7 @@ export default function ProfileView() {
           </div>
         </button>
 
+        {/* About Creator */}
         <button
           onClick={() => setShowCreator(true)}
           className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
@@ -290,6 +275,7 @@ export default function ProfileView() {
           </div>
         </button>
 
+        {/* Sign Out */}
         <button
           onClick={handleSignOut}
           className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] shadow-sm mt-2`}
@@ -305,16 +291,14 @@ export default function ProfileView() {
           Delete My Account
         </button>
       </div>
-      </>
-      )}
 
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in">
-          <div className={`w-full max-w-sm ${cardBg} border ${border} rounded-[28px] p-6 space-y-4 shadow-2xl`}>
+        <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in">
+          <div className={`w-full max-w-sm ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[28px] p-6 space-y-4 shadow-2xl`}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center">
                 <AlertTriangle size={20} className="text-red-500" />
