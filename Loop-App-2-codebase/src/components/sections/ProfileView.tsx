@@ -254,7 +254,7 @@ export default function ProfileView() {
             </div>
             <div className="space-y-0.5 text-left">
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Community</p>
-              <p className={`text-xs font-bold ${text}`}>Trusted Drivers</p>
+              <p className={`text-xs font-bold ${text}`}>Trusted Drivers & Expected Fares</p>
             </div>
           </div>
         </button>

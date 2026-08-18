@@ -76,6 +76,9 @@ export interface TrustedVehicle {
   driver_name: string;
   phone_number: string;
   vehicle_type: "bike" | "auto" | "share_auto";
+  from_location?: string;
+  to_location?: string;
+  expected_fare?: number;
   created_at: string;
   profiles?: { display_name: string; avatar_url?: string };
 }
