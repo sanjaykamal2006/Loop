@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, Languages } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
+import TeluguGuideModal from "./TeluguGuideModal";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -19,6 +20,7 @@ export default function ProfileView() {
   const [isUploading, setIsUploading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
+  const [showTeluguGuide, setShowTeluguGuide] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -38,14 +40,19 @@ export default function ProfileView() {
     const handleCreator = () => {
       setShowCreator(true);
     };
+    const handleTeluguGuide = () => {
+      setShowTeluguGuide(true);
+    };
 
     window.addEventListener("open-past-loops", handlePastLoops);
     window.addEventListener("open-terms-modal", handleTerms);
     window.addEventListener("open-creator-modal", handleCreator);
+    window.addEventListener("open-telugu-guide-modal", handleTeluguGuide);
     return () => {
       window.removeEventListener("open-past-loops", handlePastLoops);
       window.removeEventListener("open-terms-modal", handleTerms);
       window.removeEventListener("open-creator-modal", handleCreator);
+      window.removeEventListener("open-telugu-guide-modal", handleTeluguGuide);
     };
   }, [setView]);
 
@@ -302,6 +309,22 @@ export default function ProfileView() {
           </div>
         </button>
 
+        {/* Telugu Auto Guide */}
+        <button
+          onClick={() => setShowTeluguGuide(true)}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <Languages size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Campus Guide</p>
+              <p className={`text-xs font-bold ${text}`}>Telugu Auto Phrases</p>
+            </div>
+          </div>
+        </button>
+
         {/* About Creator */}
         <button
           onClick={() => setShowCreator(true)}
@@ -335,6 +358,7 @@ export default function ProfileView() {
         </button>
       </div>
 
+      <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
 
