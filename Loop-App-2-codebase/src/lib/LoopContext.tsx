@@ -164,18 +164,35 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Fetch loops ---
   const fetchLoops = useCallback(async () => {
+    try {
+      // Automatically trigger database expiration for old loops (> 5 hours)
+      await supabase.rpc("expire_old_loops");
+    } catch {
+      // Ignore background RPC errors
+    }
+
     const { data: profileData } = await supabase
       .from("profiles").select("gender").eq("id", session.user.id).single();
     const userGender = profileData?.gender;
+
+    const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
       .from("loops")
       .select("*, loop_members(count)")
       .in("status", ["open", "started", "active", "in_progress"])
+      .gte("created_at", fiveHoursAgo)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
+      const now = new Date();
       const filtered = data.filter((l: any) => {
+        // Enforce 5-hour cutoff on created_at and departure_time
+        const createdAt = new Date(l.created_at);
+        if (now.getTime() - createdAt.getTime() > 5 * 60 * 60 * 1000) return false;
+
+        if (l.expires_at && new Date(l.expires_at) < now) return false;
+
         if (l.creator_id === session.user.id) return true;
         if (l.is_female_only && userGender !== "female") return false;
         return true;

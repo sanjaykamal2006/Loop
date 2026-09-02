@@ -83,7 +83,7 @@ export default function CreateView() {
     }
     
     const expiresAt = new Date(departure);
-    expiresAt.setHours(expiresAt.getHours() + 8);
+    expiresAt.setHours(expiresAt.getHours() + 5);
 
     try {
       const { data, error } = await supabase
