@@ -33,57 +33,20 @@ const PHRASES: Phrase[] = [
     tip: "Bus hub for cheap APSRTC buses to BZA/GNT"
   },
   {
-    id: "f3",
-    category: "fares",
-    english: "How much to PNBS Bus Stand?",
-    phonetic: "PNBS bus stand ki entha?",
-    telugu: "PNBS బస్ స్టాండ్ కి ఎంత?"
-  },
-  {
     id: "f4",
     category: "fares",
-    english: "How much to Gannavaram Airport?",
-    phonetic: "Airport ki entha?",
-    telugu: "ఎయిర్‌పోర్ట్ కి ఎంత?"
-  },
-  {
-    id: "f5",
-    category: "fares",
-    english: "How much per seat for share auto?",
-    phonetic: "Share auto lo okkariki entha?",
-    telugu: "షేర్ ఆటో లో ఒక్కరికి ఎంత?",
-    tip: "Usually ₹30–₹50 per seat to Secretariat / Mandadam"
+    english: "How much to Vijayawada Airport?",
+    phonetic: "Vijayawada airport ki entha?",
+    telugu: "విజయవాడ ఎయిర్‌పోర్ట్ కి ఎంత?"
   },
 
   // 2. Bargaining & Rates
-  {
-    id: "b1",
-    category: "bargain",
-    english: "Campus board rate says this much only, please agree.",
-    phonetic: "Campus board lo ide rate undi, randi anna.",
-    telugu: "క్యాంపస్ బోర్డు లో ఇదే రేట్ ఉంది, రండి అన్నా.",
-    tip: "Refers to the official security booth rate board"
-  },
   {
     id: "b2",
     category: "bargain",
     english: "Everyone takes this rate only, please reduce a bit.",
     phonetic: "Andaru inthe teesukuntaru, konchem thagginchandi.",
     telugu: "అందరూ ఇంతే తీసుకుంటారు, కొంచెం తగ్గించండి."
-  },
-  {
-    id: "b3",
-    category: "bargain",
-    english: "We are 4 students sharing, will you take us?",
-    phonetic: "Memu naluguru students unnam, vastara?",
-    telugu: "మేము నలుగురు స్టూడెంట్స్ ఉన్నాం, వస్తారా?"
-  },
-  {
-    id: "b4",
-    category: "bargain",
-    english: "If the rate is fixed, we'll get in.",
-    phonetic: "Aa rate aithe ekkutham.",
-    telugu: "ఆ రేట్ అయితే ఎక్కుతాం."
   },
 
   // 3. Stops & Pickup
@@ -93,13 +56,6 @@ const PHRASES: Phrase[] = [
     english: "Drop us at the Campus Main Gate.",
     phonetic: "Main gate daggara drop cheyandi.",
     telugu: "మెయిన్ గేట్ దగ్గర డ్రాప్ చేయండి."
-  },
-  {
-    id: "s2",
-    category: "stops",
-    english: "Are you going via Secretariat?",
-    phonetic: "Secretariat meedhuga velthara?",
-    telugu: "సెక్రటేరియట్ మీదుగా వెళ్తారా?"
   },
   {
     id: "s3",
@@ -113,9 +69,9 @@ const PHRASES: Phrase[] = [
   {
     id: "p1",
     category: "payment",
-    english: "Do you have PhonePe / GPay / Scanner?",
-    phonetic: "PhonePe leda scanner undha anna?",
-    telugu: "PhonePe లేదా Scanner ఉందా అన్నా?"
+    english: "Please show the scanner / QR code.",
+    phonetic: "Scanner chupinchandi anna.",
+    telugu: "స్కానర్ చూపించండి అన్నా."
   },
   {
     id: "p2",
