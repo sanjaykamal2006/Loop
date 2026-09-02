@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X } from "lucide-react";
+import { Send, Edit2, Check, X, Share2 } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
@@ -296,8 +296,28 @@ export default function ChatView() {
   if (!selectedLoop) return null;
 
   const isHost = selectedLoop?.creator_id === session.user.id;
-  const isJoined = members.some(m => m.user_id === session.user.id);
-  const shareText = encodeURIComponent(`I'm riding to ${selectedLoop?.destination}. Track my loop!`);
+  const handleShare = async () => {
+    const emptySeats = Math.max(0, (selectedLoop?.participants_limit || 4) - members.length);
+    const timeStr = formatTime(selectedLoop?.departure_time);
+    const fromStr = selectedLoop?.start_point ? `from ${selectedLoop.start_point}` : "from Campus Main Gate";
+    const femaleTag = selectedLoop?.is_female_only ? " (Girls Only 🌸)" : "";
+
+    const rawShareMessage = `🚖 *LOOP: Ride to ${selectedLoop?.destination}*${femaleTag}\n⏰ Leaving at: ${timeStr} (${fromStr})\n👥 Seats free: ${emptySeats} of ${selectedLoop?.participants_limit}\n\n👉 Join this ride on LOOP: https://loop-demo-app.vercel.app`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `LOOP: Ride to ${selectedLoop?.destination}`,
+          text: rawShareMessage,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+      }
+    }
+    const shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(rawShareMessage)}`;
+    window.open(shareUrl, "_blank");
+  };
 
   return (
     <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
@@ -335,9 +355,14 @@ export default function ChatView() {
         </div>
         
         <div className="flex items-center gap-2 ml-4">
-          <a href={`https://wa.me/?text=${shareText}`} target="_blank" className="h-8 px-3 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-black uppercase tracking-wider flex items-center active:scale-90 shrink-0">
-            SOS / Share
-          </a>
+          <button
+            onClick={handleShare}
+            aria-label="Share ride invite"
+            className="h-8 px-3 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm hover:bg-emerald-500/25 transition-all shrink-0"
+          >
+            <Share2 size={12} strokeWidth={2.5} />
+            <span>Share</span>
+          </button>
         </div>
       </div>
 
