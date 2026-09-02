@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Search, Copy, Check, Languages, Sparkles, Volume2, ArrowLeft } from "lucide-react";
+import { X, Search, Copy, Check, Languages, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 interface Phrase {
@@ -166,7 +166,7 @@ export default function TeluguGuideModal({
   onClose: () => void;
 }) {
   const { theme } = useLoop();
-  const { isDark, border, cardBg, mutedText, text } = theme;
+  const { isDark, border, cardBg, mutedText } = theme;
 
   const [selectedCat, setSelectedCat] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -194,7 +194,7 @@ export default function TeluguGuideModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fade-in">
-      <div className={`w-full max-w-md h-[88vh] flex flex-col ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-5 shadow-2xl overflow-hidden`}>
+      <div className={`w-full max-w-md max-h-[72vh] flex flex-col ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-5 shadow-2xl overflow-hidden`}>
         
         {/* If showing a phrase full-screen to show driver */}
         {fullscreenPhrase ? (
@@ -212,7 +212,7 @@ export default function TeluguGuideModal({
               </span>
             </div>
 
-            <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-6 bg-white/5 border border-white/10 rounded-[28px]">
+            <div className="flex-1 min-h-0 flex flex-col justify-center items-center text-center p-6 space-y-6 bg-white/5 border border-white/10 rounded-[28px] overflow-y-auto scrollbar-hide">
               <div className="space-y-2">
                 <p className={`text-xs font-black uppercase tracking-widest ${mutedText}`}>
                   {fullscreenPhrase.english}
@@ -299,7 +299,7 @@ export default function TeluguGuideModal({
             </div>
 
             {/* Phrases List */}
-            <div className="flex-1 overflow-y-auto space-y-2.5 pt-1 pr-0.5 scrollbar-hide min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pt-1 pb-4 pr-0.5 scrollbar-hide">
               {filteredPhrases.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-center space-y-2">
                   <p className="text-xs font-black uppercase tracking-wider opacity-60">No phrases found</p>
