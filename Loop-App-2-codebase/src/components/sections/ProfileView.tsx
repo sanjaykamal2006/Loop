@@ -309,22 +309,6 @@ export default function ProfileView() {
           </div>
         </button>
 
-        {/* Telugu Auto Guide */}
-        <button
-          onClick={() => setShowTeluguGuide(true)}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
-              <Languages size={16} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-0.5 text-left">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Campus Guide</p>
-              <p className={`text-xs font-bold ${text}`}>Telugu Auto Phrases</p>
-            </div>
-          </div>
-        </button>
-
         {/* About Creator */}
         <button
           onClick={() => setShowCreator(true)}

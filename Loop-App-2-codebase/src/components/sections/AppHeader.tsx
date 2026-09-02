@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw } from "lucide-react";
+import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
@@ -129,7 +129,7 @@ export default function AppHeader() {
             </button>
 
             {showSettingsMenu && (
-              <div className={`absolute right-0 top-12 w-52 p-2 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in`}>
+              <div className={`absolute right-0 top-12 w-56 p-2 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in`}>
                 <div className={`p-1 bg-white/5 border ${border} rounded-full flex items-center w-full my-1`}>
                   <button
                     onClick={() => !isDark && toggleTheme()}
@@ -158,6 +158,17 @@ export default function AppHeader() {
                 >
                   <History size={15} className="text-purple-400" />
                   <span>Past Loops (History)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
+                    window.dispatchEvent(new CustomEvent("open-telugu-guide-modal"));
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                >
+                  <Languages size={15} className="text-amber-400" />
+                  <span>Telugu Auto Phrases</span>
                 </button>
 
                 <button
