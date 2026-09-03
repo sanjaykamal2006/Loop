@@ -191,16 +191,16 @@ export default function CreateView() {
         </div>
       </div>
 
-      {/* I'm Driving Toggle Card with Compact Vehicle Pills */}
-      <div className={`p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] space-y-2 transition-all ${isDriver ? "border-[#FFC554]/40 shadow-sm" : ""}`}>
+      {/* Offering a Ride Toggle Card with Compact Vehicle Pills */}
+      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] space-y-2.5 transition-all ${isDriver ? "border-[#FFC554]/50 shadow-sm" : ""}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
-              <SteeringWheelIcon size={16} />
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
+              <SteeringWheelIcon size={18} />
             </div>
-            <div>
-              <span className="text-xs font-black tracking-tight uppercase">I'm Driving</span>
-              <p className={`text-[9px] font-bold ${mutedText}`}>Offer a lift with your vehicle</p>
+            <div className="space-y-0.5">
+              <span className="text-xs font-black tracking-tight uppercase block leading-tight">Offering a Ride</span>
+              <p className={`text-[10px] font-bold ${mutedText} leading-tight`}>Offer a lift with your vehicle</p>
             </div>
           </div>
           <button
