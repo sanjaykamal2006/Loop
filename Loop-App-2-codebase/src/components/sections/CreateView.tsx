@@ -200,7 +200,7 @@ export default function CreateView() {
             </div>
             <div>
               <span className="text-xs font-black tracking-tight uppercase">I'm Driving</span>
-              <p className={`text-[9px] font-bold ${mutedText}`}>Offering ride with my vehicle</p>
+              <p className={`text-[9px] font-bold ${mutedText}`}>Offer a lift with your vehicle</p>
             </div>
           </div>
           <button
