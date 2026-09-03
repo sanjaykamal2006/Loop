@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2 } from "lucide-react";
+import { Send, Edit2, Check, X, Share2, MapPin } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
@@ -296,6 +296,66 @@ export default function ChatView() {
   if (!selectedLoop) return null;
 
   const isHost = selectedLoop?.creator_id === session.user.id;
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
+
+  const handleShareLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    setIsSharingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const mapsUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
+        const content = `📍 My Spot: ${mapsUrl}`;
+
+        // Optimistic message in UI
+        const optimisticId = `loc-${Date.now()}`;
+        const optimisticMsg: Message = {
+          id: optimisticId,
+          loop_id: selectedLoop.id,
+          user_id: session.user.id,
+          content,
+          created_at: new Date().toISOString(),
+          profiles: {
+            display_name: profile.display_name || "Me",
+            avatar_url: profile.avatar_url,
+            gender: profile.gender || "",
+            reg_no: profile.reg_no,
+          },
+        };
+        setMessages((prev) => [...prev, optimisticMsg]);
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        }
+
+        const { error } = await supabase.from("messages").insert({
+          loop_id: selectedLoop.id,
+          user_id: session.user.id,
+          content,
+        });
+
+        setIsSharingLocation(false);
+        if (error) {
+          toast.error("Failed to share location");
+          setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+        } else {
+          toast.success("Spot shared in chat!");
+        }
+      },
+      (err) => {
+        setIsSharingLocation(false);
+        if (err.code === 1) {
+          toast.error("Location permission denied. Please allow in browser settings.");
+        } else {
+          toast.error("Could not fetch location. Try again.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handleShare = async () => {
     const emptySeats = Math.max(0, (selectedLoop?.participants_limit || 4) - members.length);
     const timeStr = formatTime(selectedLoop?.departure_time);
@@ -354,11 +414,21 @@ export default function ChatView() {
           </button>
         </div>
         
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-1.5 ml-2 shrink-0">
+          <button
+            onClick={handleShareLocation}
+            disabled={isSharingLocation}
+            aria-label="Share current location pin"
+            className="h-8 px-2.5 rounded-full bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm hover:bg-[#FFC554]/25 transition-all shrink-0"
+          >
+            <MapPin size={12} strokeWidth={2.5} className={isSharingLocation ? "animate-pulse" : ""} />
+            <span>{isSharingLocation ? "..." : "Spot"}</span>
+          </button>
+
           <button
             onClick={handleShare}
             aria-label="Share ride invite"
-            className="h-8 px-3 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm hover:bg-emerald-500/25 transition-all shrink-0"
+            className="h-8 px-2.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm hover:bg-emerald-500/25 transition-all shrink-0"
           >
             <Share2 size={12} strokeWidth={2.5} />
             <span>Share</span>
@@ -446,15 +516,48 @@ export default function ChatView() {
                     onDoubleClick={() => isMe && !isOptimistic && startEditMessage(msg)}
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
-                    <div
-                      className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
-                        isMe
-                          ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
-                          : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
-                      }`}
-                    >
-                      {msg.content}
-                    </div>
+                    {msg.content.includes("https://maps.google.com/?q=") ? (
+                      <div
+                        className={`p-3 rounded-[20px] shadow-sm border ${
+                          isMe
+                            ? "bg-[#FFC554] text-black border-[#FFC554]/50 rounded-tr-[4px]"
+                            : `${cardBg} ${border} ${text} rounded-tl-[4px]`
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isMe ? "bg-black text-[#FFC554]" : "bg-[#FFC554]/20 text-[#FFC554]"}`}>
+                            <MapPin size={15} strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-black uppercase tracking-wider leading-none">Shared Spot</p>
+                            <p className="text-[9px] opacity-70 font-medium mt-0.5">Live GPS Pin</p>
+                          </div>
+                        </div>
+                        <a
+                          href={msg.content.match(/https:\/\/maps\.google\.com\/\?q=[^\s]+/)?.[0] || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-full py-1.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-transform active:scale-95 shadow-sm ${
+                            isMe
+                              ? "bg-black text-[#FFC554]"
+                              : "bg-[#FFC554] text-black"
+                          }`}
+                        >
+                          <span>Open in Maps</span>
+                          <span className="text-xs">&nearr;</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <div
+                        className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
+                          isMe
+                            ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                            : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    )}
                     {/* Reactions Pill */}
                     {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                       <div className={`absolute -bottom-2 ${isMe ? "right-2" : "left-2"} flex gap-0.5 bg-black/80 dark:bg-white/80 rounded-full px-1.5 py-0.5 border border-white/10 shadow-md`}>
