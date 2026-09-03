@@ -59,3 +59,6 @@ LOOP is a real-time, purpose-based campus coordination platform designed as a mo
 8. **Security & Data Deletion**:
    - `check_user_exists(email)` RPC prevents password reset spam to deleted/non-existent accounts.
    - `delete_user_account()` RPC provides full cascading GDPR/DPDP-compliant account purging.
+9. **1-Tap "Spot" Location Pin**:
+   - Located in the Chat header right next to the Share button.
+   - Fetches one-time browser GPS coordinates and drops an interactive "Shared Spot" card into the chat with an "Open in Maps ↗" button.
