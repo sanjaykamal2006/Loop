@@ -8,7 +8,7 @@ import { Users } from "lucide-react";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 
 export default function CreateView() {
-  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme } = useLoop();
+  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState("");
@@ -43,8 +43,9 @@ export default function CreateView() {
     if (minute) setMinute(minute.padStart(2, '0'));
   };
 
-  // Strictly require completed profile to access or submit in CreateView
+  // Strictly require completed profile to access or submit in CreateView (only after profile is loaded)
   useEffect(() => {
+    if (!isProfileLoaded) return;
     const isProfileComplete = Boolean(
       profile.gender && 
       profile.display_name?.trim() && 
@@ -54,7 +55,7 @@ export default function CreateView() {
       setPendingAction({ type: "create" });
       setShowGenderSelect(true);
     }
-  }, [profile.gender, profile.display_name, profile.reg_no, setPendingAction, setShowGenderSelect]);
+  }, [isProfileLoaded, profile.gender, profile.display_name, profile.reg_no, setPendingAction, setShowGenderSelect]);
 
   const createLoop = async () => {
     const isProfileComplete = Boolean(

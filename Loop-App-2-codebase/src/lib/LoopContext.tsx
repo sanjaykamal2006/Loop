@@ -23,6 +23,7 @@ interface LoopContextValue {
 
   // Profile
   profile: Profile;
+  isProfileLoaded: boolean;
   updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
   handleSignOut: () => Promise<void>;
 
@@ -68,7 +69,16 @@ export function LoopProvider({ session, children }: { session: Session; children
   const [userLoops, setUserLoops] = useState<string[]>([]);
 
   // Profile
-  const [profile, setProfile] = useState<Profile>({ display_name: "", theme: "dark" });
+  const [profile, setProfile] = useState<Profile>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`loop_profile_${session.user.id}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return { display_name: "", theme: "dark" };
+  });
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
 
   // Gender guard
   const [showGenderSelect, setShowGenderSelect] = useState(false);
@@ -130,21 +140,31 @@ export function LoopProvider({ session, children }: { session: Session; children
         theme: "dark",
         updated_at: new Date().toISOString(),
       });
-      setProfile({ display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined, bio: "" });
+      const newProf: Profile = { display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined, bio: "" };
+      setProfile(newProf);
+      try {
+        localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
+      } catch {}
+      setIsProfileLoaded(true);
       return;
     }
 
     if (!error && data) {
       const name = data.display_name || session.user.email?.split("@")[0] || "User";
-      setProfile({
+      const newProf: Profile = {
         display_name: name,
         theme: (data.theme as "dark" | "light") || "dark",
         gender: data.gender,
         reg_no: data.reg_no || "",
         avatar_url: data.avatar_url,
         bio: data.bio || "",
-      });
+      };
+      setProfile(newProf);
+      try {
+        localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
+      } catch {}
     }
+    setIsProfileLoaded(true);
   }, [session.user.id, session.user.email]);
 
   // --- Update profile ---
@@ -157,7 +177,13 @@ export function LoopProvider({ session, children }: { session: Session; children
       toast.error("Failed to update profile. Please try again.");
       return false;
     } else {
-      setProfile((prev) => ({ ...prev, ...updates }));
+      setProfile((prev) => {
+        const next = { ...prev, ...updates };
+        try {
+          localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
       if (updates.display_name !== undefined || updates.reg_no !== undefined || updates.bio !== undefined) {
         toast.success("Profile updated!");
       }
@@ -333,6 +359,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     themeTransition,
     toggleTheme,
     profile,
+    isProfileLoaded,
     updateProfile,
     handleSignOut,
     activeLoops,
