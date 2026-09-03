@@ -130,30 +130,33 @@ export default function CreateView() {
   };
 
   return (
-    <div className="space-y-3.5 pt-1 pb-10">
-      <div className="space-y-1.5">
+    <div className="space-y-2.5 pt-1 pb-4">
+      {/* Starting Point */}
+      <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
         <input
           value={startPoint}
           onChange={(e) => setStartPoint(e.target.value)}
-          placeholder="Where from? (e.g. Main Gate, CB)"
-          className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-5 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
+          placeholder="Where from?"
+          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
       </div>
 
-      <div className="space-y-1.5">
+      {/* Destination */}
+      <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
         <input
           value={dest}
           onChange={(e) => setDest(e.target.value)}
-          placeholder="Where to? (e.g. BZA Station, Benz Circle)"
-          className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-5 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
+          placeholder="Where to?"
+          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
       </div>
 
-      <div className="space-y-1.5">
+      {/* Starting Time */}
+      <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Time</label>
-        <div className={`${cardBg} border ${border} rounded-[24px] p-3 flex items-center justify-between`}>
+        <div className={`${cardBg} border ${border} rounded-[20px] p-2.5 px-3 flex items-center justify-between`}>
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -161,24 +164,25 @@ export default function CreateView() {
               onChange={(e) => handleHourChange(e.target.value)}
               onBlur={padTime}
               placeholder="HH"
-              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
+              className={`w-9 h-9 ${bg} border ${border} rounded-xl text-center font-black text-sm outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
             />
-            <span className="font-black text-[#FFC554] text-lg">:</span>
+            <span className="font-black text-[#FFC554] text-base">:</span>
             <input
               type="text"
               value={minute}
               onChange={(e) => handleMinuteChange(e.target.value)}
               onBlur={padTime}
               placeholder="MM"
-              className={`w-10 h-10 ${bg} border ${border} rounded-xl text-center font-black text-base outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
+              className={`w-9 h-9 ${bg} border ${border} rounded-xl text-center font-black text-sm outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
             />
           </div>
-          <div className={`flex ${bg} p-1 rounded-xl border ${border}`}>
+          <div className={`flex ${bg} p-0.5 rounded-xl border ${border}`}>
             {(["AM", "PM"] as const).map((p) => (
               <button
                 key={p}
+                type="button"
                 onClick={() => setAmpm(p)}
-                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all ${ampm === p ? "bg-[#FFC554] text-black shadow-md" : mutedText}`}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all ${ampm === p ? "bg-[#FFC554] text-black shadow-sm" : mutedText}`}
               >
                 {p}
               </button>
@@ -187,16 +191,16 @@ export default function CreateView() {
         </div>
       </div>
 
-      {/* I'm Driving (Day Scholar / Personal Vehicle) Toggle Card */}
-      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] space-y-3 transition-all ${isDriver ? "border-[#FFC554]/50 shadow-md" : ""}`}>
+      {/* I'm Driving Toggle Card with Compact Vehicle Pills */}
+      <div className={`p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] space-y-2 transition-all ${isDriver ? "border-[#FFC554]/40 shadow-sm" : ""}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
-              <SteeringWheelIcon size={20} />
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
+              <SteeringWheelIcon size={16} />
             </div>
             <div>
               <span className="text-xs font-black tracking-tight uppercase">I'm Driving</span>
-              <p className={`text-[10px] font-bold ${mutedText}`}>Day scholar offering empty seats</p>
+              <p className={`text-[9px] font-bold ${mutedText}`}>Offering ride with my vehicle</p>
             </div>
           </div>
           <button
@@ -211,77 +215,65 @@ export default function CreateView() {
                 setLimit(4);
               }
             }}
-            className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isDriver ? "bg-[#FFC554]" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
+            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isDriver ? "bg-[#FFC554]" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
           >
-            <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-6" : "translate-x-0"}`} />
+            <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-5" : "translate-x-0"}`} />
           </button>
         </div>
 
-        {/* Vehicle Selection Chips */}
+        {/* Compact 1-Row Vehicle Selection Pills */}
         {isDriver && (
-          <div className="pt-2 border-t border-white/5 space-y-2 animate-fade-in">
-            <label className={`text-[9px] uppercase font-black ${mutedText} tracking-wider ml-0.5`}>Select Your Vehicle</label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { type: "scooter", label: "Scooter", icon: "🛵", note: "1 Seat" },
-                { type: "bike", label: "Bike", icon: "🏍️", note: "1 Seat" },
-                { type: "car", label: "Car", icon: "🚗", note: "1-4 Seats" }
-              ].map(v => (
-                <button
-                  key={v.type}
-                  type="button"
-                  onClick={() => {
-                    setVehicleType(v.type as any);
-                    if (v.type === "scooter" || v.type === "bike") {
-                      setLimit(1);
-                    } else if (limit === 1) {
-                      setLimit(3);
-                    }
-                  }}
-                  className={`py-2 px-2 rounded-2xl border flex flex-col items-center gap-1 active:scale-95 transition-all ${
-                    vehicleType === v.type
-                      ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md font-black"
-                      : `${bg} ${border} ${mutedText} font-bold hover:text-white`
-                  }`}
-                >
-                  <span className="text-lg leading-none">{v.icon}</span>
-                  <span className="text-[11px] font-black uppercase tracking-wider">{v.label}</span>
-                  <span className="text-[8px] opacity-70 uppercase tracking-widest">{v.note}</span>
-                </button>
-              ))}
-            </div>
+          <div className="pt-1.5 border-t border-white/5 flex gap-1.5 animate-fade-in">
+            {[
+              { type: "scooter", label: "Scooter (1)", icon: "🛵" },
+              { type: "bike", label: "Bike (1)", icon: "🏍️" },
+              { type: "car", label: "Car (1-4)", icon: "🚗" }
+            ].map(v => (
+              <button
+                key={v.type}
+                type="button"
+                onClick={() => {
+                  setVehicleType(v.type as any);
+                  if (v.type === "scooter" || v.type === "bike") {
+                    setLimit(1);
+                  } else if (limit === 1) {
+                    setLimit(3);
+                  }
+                }}
+                className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all text-xs ${
+                  vehicleType === v.type
+                    ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
+                    : `${bg} ${border} ${mutedText} font-bold hover:text-white`
+                }`}
+              >
+                <span className="text-sm leading-none">{v.icon}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider">{v.label}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Available Seats Selection */}
-      <div className="space-y-1.5">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
-        
-        {isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
-          <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] flex items-center justify-between`}>
-            <div>
-              <p className="text-xs font-black uppercase tracking-tight">1 Passenger Seat</p>
-              <p className={`text-[10px] font-bold ${mutedText}`}>Locked for two-wheeler ride</p>
-            </div>
-            <span className="text-xs font-black text-black bg-[#FFC554] px-3.5 py-1.5 rounded-full shadow-sm">
-              1 Seat
-            </span>
-          </div>
-        ) : isDriver && vehicleType === "car" ? (
+      {/* Available Seats: Only show selector if Car or normal ride */}
+      {isDriver && vehicleType === "car" ? (
+        <div className="space-y-1">
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
           <div className="flex gap-2">
             {[1, 2, 3, 4].map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setLimit(n)}
-                className={`flex-1 h-11 rounded-2xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
               >
                 {n} {n === 1 ? "seat" : "seats"}
               </button>
             ))}
           </div>
-        ) : (
+        </div>
+      ) : !isDriver ? (
+        <div className="space-y-1">
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
           <div className="space-y-1.5">
             <div className="flex gap-1.5">
               {[2, 3, 4, 5, 6].map((n) => (
@@ -289,7 +281,7 @@ export default function CreateView() {
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
                 >
                   {n}
                 </button>
@@ -301,40 +293,41 @@ export default function CreateView() {
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
                 >
                   {n}
                 </button>
               ))}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {/* Female Only Option */}
-      <div className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
-            <Users size={20} strokeWidth={2.5} />
+      <div className={`flex items-center justify-between p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
+            <Users size={16} strokeWidth={2.5} />
           </div>
           <div>
             <span className="text-xs font-black tracking-tight uppercase">Female Only</span>
-            <p className={`text-[10px] font-bold ${mutedText}`}>Visible to women only</p>
+            <p className={`text-[9px] font-bold ${mutedText}`}>Visible to women only</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setIsFemaleOnly(!isFemaleOnly)}
-          className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
+          className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
         >
-          <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-6" : "translate-x-0"}`} />
+          <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-5" : "translate-x-0"}`} />
         </button>
       </div>
 
+      {/* Submit Button */}
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50"
+        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[20px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50"
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>
