@@ -14,6 +14,8 @@ export interface Loop {
   status?: "open" | "started" | "in_progress" | "cancelled" | "ended" | "active";
   start_point?: string;
   total_fare?: number;
+  is_driver_offering?: boolean;
+  vehicle_type?: "car" | "bike" | "scooter" | null;
 }
 
 export interface Profile {

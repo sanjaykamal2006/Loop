@@ -3,12 +3,7 @@
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { Users, Clock, MapPin } from "lucide-react";
-
-const SolidCarIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" className={className} viewBox="0 0 16 16">
-    <path d="M2.52 3.515A2.5 2.5 0 0 1 4.82 2h6.362c1 0 1.904.596 2.298 1.515l.792 1.848c.075.175.21.319.38.404.5.25.855.715.965 1.262l.335 1.679c.033.161.049.325.049.49v.413c0 .814-.39 1.543-1 1.997V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.338c-1.292.048-2.745.088-4 .088s-2.708-.04-4-.088V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1.892c-.61-.454-1-1.183-1-1.997v-.413a2.5 2.5 0 0 1 .049-.49l.335-1.68c.11-.546.465-1.012.964-1.261a.807.807 0 0 0 .381-.404l.792-1.848ZM3 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2m10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2M6 8a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2zM2.906 5.189a.51.51 0 0 0 .497.731c.91-.073 3.35-.17 4.597-.17 1.247 0 3.688.097 4.597.17a.51.51 0 0 0 .497-.731l-.956-1.913A.5.5 0 0 0 11.691 3H4.309a.5.5 0 0 0-.447.276L2.906 5.19Z"/>
-  </svg>
-);
+import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
 
 export default function HomeView() {
   const { activeLoops, userJoinedLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
@@ -59,7 +54,7 @@ export default function HomeView() {
   }
 
   return (
-    <div className="space-y-3 pt-1">
+    <div className="space-y-3 pt-1 pb-8">
       {activeLoops.filter(l => l.status === 'open').length > 2 && (
         <input
           value={searchQuery}
@@ -92,9 +87,15 @@ export default function HomeView() {
               </div>
             )}
 
-            {/* Icon Block */}
+            {/* Icon Block with dynamic vehicle icon */}
             <div className="w-[48px] h-[48px] bg-[#FFC53D] rounded-[16px] flex items-center justify-center shrink-0">
-              <SolidCarIcon size={24} className="text-[#000000]" />
+              {loop.is_driver_offering && loop.vehicle_type === "bike" ? (
+                <MotorcycleIcon size={24} className="text-[#000000]" />
+              ) : loop.is_driver_offering && loop.vehicle_type === "scooter" ? (
+                <ScooterIcon size={24} className="text-[#000000]" />
+              ) : (
+                <SolidCarIcon size={24} className="text-[#000000]" />
+              )}
             </div>
 
             {/* Text Block */}
@@ -120,8 +121,18 @@ export default function HomeView() {
               </div>
             </div>
 
+            {/* Steering Wheel Icon for Day Scholar / Student Driver */}
+            {loop.is_driver_offering && (
+              <div 
+                className="w-7 h-7 rounded-full bg-[#FFC554]/15 border border-[#FFC554]/30 flex items-center justify-center text-[#FFC554] shrink-0 mr-1"
+                title="Student Driver offering ride"
+              >
+                <SteeringWheelIcon size={15} />
+              </div>
+            )}
+
             {/* Divider */}
-            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-3`} />
+            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
 
             {/* Time Block */}
             <div className="flex flex-col items-center justify-center shrink-0 min-w-[52px]">

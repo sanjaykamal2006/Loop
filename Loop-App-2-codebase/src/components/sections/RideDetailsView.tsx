@@ -8,6 +8,7 @@ import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, User
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
+import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 
 export default function RideDetailsView() {
   const {
@@ -171,58 +172,77 @@ export default function RideDetailsView() {
         </div>
       </div>
 
-      {/* Fare Splitter */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Receipt size={14} className={mutedText} strokeWidth={2.5} />
-            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
+      {/* Fare Splitter or Student Driver Personal Ride Info */}
+      {selectedLoop.is_driver_offering ? (
+        <div className={`p-4 ${cardBg} border border-[#FFC554]/30 rounded-[28px] flex items-center justify-between shadow-sm`}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFC554]/15 border border-[#FFC554]/25 flex items-center justify-center text-[#FFC554] shrink-0">
+              <SteeringWheelIcon size={20} />
+            </div>
+            <div>
+              <p className={`text-[9px] font-black ${mutedText} uppercase tracking-wider`}>Student Driver</p>
+              <h4 className="font-black text-sm uppercase text-[#FFC554]">
+                Personal {selectedLoop.vehicle_type || "Vehicle"} Drop
+              </h4>
+            </div>
           </div>
-          {isCreator && !isEditingFare && !isPast && (
-            <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95`}>
-              {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
-            </button>
+          <span className={`text-[9px] font-black text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/25 px-2.5 py-1 rounded-full uppercase tracking-wider`}>
+            Coordinate in chat
+          </span>
+        </div>
+      ) : (
+        <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt size={14} className={mutedText} strokeWidth={2.5} />
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
+            </div>
+            {isCreator && !isEditingFare && !isPast && (
+              <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95`}>
+                {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
+              </button>
+            )}
+          </div>
+
+          {isEditingFare && !isPast ? (
+            <div className="flex items-center gap-2">
+              <div className={`flex-1 flex items-center h-10 ${bg} border ${border} rounded-[16px] px-3`}>
+                <span className={`font-black ${mutedText} mr-2`}>₹</span>
+                <input 
+                  type="number" 
+                  value={fareInput} 
+                  onChange={e => setFareInput(e.target.value)} 
+                  placeholder="Total Fare"
+                  className="flex-1 bg-transparent text-sm font-bold outline-none"
+                  autoFocus
+                />
+              </div>
+              <button onClick={saveTotalFare} className="w-10 h-10 bg-green-500/10 text-green-500 flex items-center justify-center rounded-[16px] active:scale-95">
+                <Check size={16} strokeWidth={3} />
+              </button>
+              <button onClick={() => setIsEditingFare(false)} className={`w-10 h-10 ${cardBg} border border-red-500/20 text-red-500 flex items-center justify-center rounded-[16px] active:scale-95`}>
+                <X size={16} strokeWidth={3} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
+                <h3 className="font-black text-lg">
+                  {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
+                </h3>
+              </div>
+              
+              <div className="text-right">
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
+                <h3 className="font-black text-lg text-[#FFC554]">
+                  {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
+                </h3>
+              </div>
+            </div>
           )}
         </div>
-
-        {isEditingFare && !isPast ? (
-          <div className="flex items-center gap-2">
-            <div className={`flex-1 flex items-center h-10 ${bg} border ${border} rounded-[16px] px-3`}>
-              <span className={`font-black ${mutedText} mr-2`}>₹</span>
-              <input 
-                type="number" 
-                value={fareInput} 
-                onChange={e => setFareInput(e.target.value)} 
-                placeholder="Total Fare"
-                className="flex-1 bg-transparent text-sm font-bold outline-none"
-                autoFocus
-              />
-            </div>
-            <button onClick={saveTotalFare} className="w-10 h-10 bg-green-500/10 text-green-500 flex items-center justify-center rounded-[16px] active:scale-95">
-              <Check size={16} strokeWidth={3} />
-            </button>
-            <button onClick={() => setIsEditingFare(false)} className={`w-10 h-10 ${cardBg} border border-red-500/20 text-red-500 flex items-center justify-center rounded-[16px] active:scale-95`}>
-              <X size={16} strokeWidth={3} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between w-full">
-            <div>
-              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
-              <h3 className="font-black text-lg">
-                {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
-              </h3>
-            </div>
-            
-            <div className="text-right">
-              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
-              <h3 className="font-black text-lg text-[#FFC554]">
-                {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
-              </h3>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Passengers */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>

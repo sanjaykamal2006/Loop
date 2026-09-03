@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-
 import { Users } from "lucide-react";
+import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 
 export default function CreateView() {
   const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme } = useLoop();
@@ -16,8 +16,10 @@ export default function CreateView() {
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
-  const [limit, setLimit] = useState(8);
+  const [limit, setLimit] = useState(4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
+  const [isDriver, setIsDriver] = useState(false);
+  const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">("bike");
   const [isCreatingLoop, setIsCreatingLoop] = useState(false);
 
   const handleHourChange = (val: string) => {
@@ -85,16 +87,20 @@ export default function CreateView() {
     const expiresAt = new Date(departure);
     expiresAt.setHours(expiresAt.getHours() + 5);
 
+    const finalLimit = isDriver ? (vehicleType === "car" ? limit : 1) : limit;
+
     try {
       const { data, error } = await supabase
         .from("loops")
         .insert({
           creator_id: session.user.id,
-          start_point: startPoint,
-          destination: dest,
+          start_point: startPoint.trim(),
+          destination: dest.trim(),
           departure_time: departure.toISOString(),
-          participants_limit: limit,
+          participants_limit: finalLimit,
           is_female_only: isFemaleOnly,
+          is_driver_offering: isDriver,
+          vehicle_type: isDriver ? vehicleType : null,
           expires_at: expiresAt.toISOString(),
           status: "open",
         })
@@ -106,11 +112,12 @@ export default function CreateView() {
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
-        toast.success("Loop created!");
+        toast.success(isDriver ? "Ride offer created!" : "Loop created!");
         setStartPoint("");
         setDest("");
         setHour("");
         setMinute("");
+        setIsDriver(false);
         setView("home");
         fetchLoops();
         fetchUserMemberships();
@@ -123,13 +130,13 @@ export default function CreateView() {
   };
 
   return (
-    <div className="space-y-4 pt-1">
+    <div className="space-y-3.5 pt-1 pb-10">
       <div className="space-y-1.5">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
         <input
           value={startPoint}
           onChange={(e) => setStartPoint(e.target.value)}
-          placeholder="Where from?"
+          placeholder="Where from? (e.g. Main Gate, CB)"
           className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-5 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
       </div>
@@ -139,7 +146,7 @@ export default function CreateView() {
         <input
           value={dest}
           onChange={(e) => setDest(e.target.value)}
-          placeholder="Where to?"
+          placeholder="Where to? (e.g. BZA Station, Benz Circle)"
           className={`w-full h-12 ${cardBg} border ${border} rounded-[20px] px-5 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
       </div>
@@ -180,34 +187,131 @@ export default function CreateView() {
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
-        <div className="space-y-1.5">
-          <div className="flex gap-1.5">
-            {[2, 3, 4, 5, 6].map((n) => (
-              <button
-                key={n}
-                onClick={() => setLimit(n)}
-                className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
-              >
-                {n}
-              </button>
-            ))}
+      {/* I'm Driving (Day Scholar / Personal Vehicle) Toggle Card */}
+      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] space-y-3 transition-all ${isDriver ? "border-[#FFC554]/50 shadow-md" : ""}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
+              <SteeringWheelIcon size={20} />
+            </div>
+            <div>
+              <span className="text-xs font-black tracking-tight uppercase">I'm Driving</span>
+              <p className={`text-[10px] font-bold ${mutedText}`}>Day scholar offering empty seats</p>
+            </div>
           </div>
-          <div className="flex gap-1.5 px-4">
-            {[7, 8, 9, 10].map((n) => (
-              <button
-                key={n}
-                onClick={() => setLimit(n)}
-                className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !isDriver;
+              setIsDriver(next);
+              if (next) {
+                if (vehicleType === "bike" || vehicleType === "scooter") setLimit(1);
+                else setLimit(3);
+              } else {
+                setLimit(4);
+              }
+            }}
+            className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isDriver ? "bg-[#FFC554]" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
+          >
+            <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-6" : "translate-x-0"}`} />
+          </button>
         </div>
+
+        {/* Vehicle Selection Chips */}
+        {isDriver && (
+          <div className="pt-2 border-t border-white/5 space-y-2 animate-fade-in">
+            <label className={`text-[9px] uppercase font-black ${mutedText} tracking-wider ml-0.5`}>Select Your Vehicle</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { type: "scooter", label: "Scooter", icon: "🛵", note: "1 Seat" },
+                { type: "bike", label: "Bike", icon: "🏍️", note: "1 Seat" },
+                { type: "car", label: "Car", icon: "🚗", note: "1-4 Seats" }
+              ].map(v => (
+                <button
+                  key={v.type}
+                  type="button"
+                  onClick={() => {
+                    setVehicleType(v.type as any);
+                    if (v.type === "scooter" || v.type === "bike") {
+                      setLimit(1);
+                    } else if (limit === 1) {
+                      setLimit(3);
+                    }
+                  }}
+                  className={`py-2 px-2 rounded-2xl border flex flex-col items-center gap-1 active:scale-95 transition-all ${
+                    vehicleType === v.type
+                      ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md font-black"
+                      : `${bg} ${border} ${mutedText} font-bold hover:text-white`
+                  }`}
+                >
+                  <span className="text-lg leading-none">{v.icon}</span>
+                  <span className="text-[11px] font-black uppercase tracking-wider">{v.label}</span>
+                  <span className="text-[8px] opacity-70 uppercase tracking-widest">{v.note}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Available Seats Selection */}
+      <div className="space-y-1.5">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
+        
+        {isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
+          <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] flex items-center justify-between`}>
+            <div>
+              <p className="text-xs font-black uppercase tracking-tight">1 Passenger Seat</p>
+              <p className={`text-[10px] font-bold ${mutedText}`}>Locked for two-wheeler ride</p>
+            </div>
+            <span className="text-xs font-black text-black bg-[#FFC554] px-3.5 py-1.5 rounded-full shadow-sm">
+              1 Seat
+            </span>
+          </div>
+        ) : isDriver && vehicleType === "car" ? (
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setLimit(n)}
+                className={`flex-1 h-11 rounded-2xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+              >
+                {n} {n === 1 ? "seat" : "seats"}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <div className="flex gap-1.5">
+              {[2, 3, 4, 5, 6].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setLimit(n)}
+                  className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 px-4">
+              {[7, 8, 9, 10].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setLimit(n)}
+                  className={`flex-1 h-10 rounded-xl border font-black text-sm active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Female Only Option */}
       <div className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
@@ -219,6 +323,7 @@ export default function CreateView() {
           </div>
         </div>
         <button
+          type="button"
           onClick={() => setIsFemaleOnly(!isFemaleOnly)}
           className={`w-12 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
         >
@@ -229,9 +334,9 @@ export default function CreateView() {
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98]  disabled:opacity-50"
+        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50"
       >
-        {isCreatingLoop ? "Creating..." : "Create Loop"}
+        {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>
     </div>
   );
