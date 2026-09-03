@@ -6,7 +6,7 @@ import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck,
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, toggleTheme, fetchLoops, fetchUserMemberships } = useLoop();
+  const { view, setView, selectedLoop, theme, toggleTheme, fetchLoops, fetchUserMemberships, chatSource } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -87,7 +87,11 @@ export default function AppHeader() {
             <button
               onClick={() => {
                 if (view === "chat") {
-                  setView("chat-list");
+                  if (chatSource === "chat-list") {
+                    setView("chat-list");
+                  } else {
+                    setView("ride-details");
+                  }
                 } else if (view === "ride-details" && (selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled")) {
                   setView("past-loops");
                 } else {

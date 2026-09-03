@@ -26,10 +26,12 @@ export default function RideDetailsView() {
     fetchLoops,
     formatTime,
     theme,
+    setChatSource,
   } = useLoop();
   const { bg, border, cardBg, mutedText } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true);
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
@@ -44,6 +46,7 @@ export default function RideDetailsView() {
 
   useEffect(() => {
     if (!selectedLoop) return;
+    setIsLoadingMembers(true);
     fetchLoopMembers(selectedLoop.id);
 
     const memberSub = supabase
@@ -75,10 +78,12 @@ export default function RideDetailsView() {
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
+    setIsLoadingMembers(false);
   };
 
   const enterChat = () => {
     if (!selectedLoop) return;
+    setChatSource("ride-details");
     setView("chat");
   };
 
@@ -249,10 +254,28 @@ export default function RideDetailsView() {
         <div className="flex items-center justify-between">
           <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Passengers</p>
           <span className="text-xs font-black text-[#FFC554]">
-            {loopMembers.length}/{selectedLoop.participants_limit}
+            {isLoadingMembers
+              ? `${selectedLoop.member_count || 1}/${selectedLoop.participants_limit}`
+              : `${loopMembers.length}/${selectedLoop.participants_limit}`}
           </span>
         </div>
-        {loopMembers.length > 0 && (
+        
+        {isLoadingMembers ? (
+          <div className="space-y-2">
+            {Array.from({ length: Math.max(1, selectedLoop.member_count || 1) }).map((_, i) => (
+              <div
+                key={i}
+                className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl animate-pulse`}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
+                  <div className="h-4 w-28 bg-white/10 rounded-md" />
+                </div>
+                <div className="h-3 w-10 bg-white/10 rounded-md shrink-0" />
+              </div>
+            ))}
+          </div>
+        ) : loopMembers.length > 0 ? (
           <div className="space-y-2">
             {loopMembers.map((member, i) => {
               const isMe = member.user_id === session.user.id;
@@ -310,7 +333,7 @@ export default function RideDetailsView() {
               );
             })}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Action Buttons */}

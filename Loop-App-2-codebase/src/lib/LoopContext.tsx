@@ -47,6 +47,8 @@ interface LoopContextValue {
 
   // Utility
   formatTime: (iso: string) => string;
+  chatSource: "ride-details" | "chat-list";
+  setChatSource: (s: "ride-details" | "chat-list") => void;
 }
 
 const LoopContext = createContext<LoopContextValue | null>(null);
@@ -71,6 +73,7 @@ export function LoopProvider({ session, children }: { session: Session; children
   // Gender guard
   const [showGenderSelect, setShowGenderSelect] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop } | null>(null);
+  const [chatSource, setChatSource] = useState<"ride-details" | "chat-list">("ride-details");
 
   // --- Browser back button support ---
   const setView = useCallback((v: View) => {
@@ -346,6 +349,8 @@ export function LoopProvider({ session, children }: { session: Session; children
     pendingAction,
     setPendingAction,
     formatTime,
+    chatSource,
+    setChatSource,
   };
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;

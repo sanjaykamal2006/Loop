@@ -5,7 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { MessageSquare, ChevronLeft } from "lucide-react";
 
 export default function ChatListView() {
-  const { activeLoops, userJoinedLoops, setSelectedLoop, setView, formatTime, theme } = useLoop();
+  const { activeLoops, userJoinedLoops, setSelectedLoop, setView, formatTime, theme, setChatSource } = useLoop();
   const { border, cardBg, mutedText } = theme;
 
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
@@ -26,6 +26,7 @@ export default function ChatListView() {
           key={loop.id}
           onClick={() => {
             setSelectedLoop(loop);
+            setChatSource("chat-list");
             setView("chat");
           }}
           className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm cursor-pointer active:scale-[0.98] `}
