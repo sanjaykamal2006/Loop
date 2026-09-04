@@ -62,8 +62,28 @@ export function useLoop() {
 
 export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
   const [view, setViewState] = useState<View>("home");
-  const [activeLoops, setActiveLoops] = useState<Loop[]>([]);
-  const [selectedLoop, setSelectedLoop] = useState<Loop | null>(null);
+  const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("loop_selected_loop");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
+
+  const setSelectedLoop = useCallback((loop: Loop | null) => {
+    setSelectedLoopState(loop);
+    if (typeof window !== "undefined") {
+      try {
+        if (loop) {
+          localStorage.setItem("loop_selected_loop", JSON.stringify(loop));
+        } else {
+          localStorage.removeItem("loop_selected_loop");
+        }
+      } catch {}
+    }
+  }, []);
   const [isJoining, setIsJoining] = useState(false);
   const [userJoinedLoops, setUserJoinedLoops] = useState<string[]>([]);
   const [userLoops, setUserLoops] = useState<string[]>([]);

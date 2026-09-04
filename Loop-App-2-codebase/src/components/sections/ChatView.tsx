@@ -129,7 +129,7 @@ export default function ChatView() {
   const fetchMessages = async (loopId: string) => {
     const { data, error } = await supabase
       .from("messages")
-      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles:user_id (display_name, avatar_url, reg_no, gender, bio)")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles!fk_messages_profiles (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId)
       .order("created_at", { ascending: true });
 
@@ -302,19 +302,13 @@ export default function ChatView() {
     if (!content) return null;
     const coordsMatch = content.match(/[?&]q=([-0-9.]+),([-0-9.]+)/) || content.match(/[?&]query=([-0-9.]+),([-0-9.]+)/);
     if (coordsMatch) {
-      return `https://www.google.com/maps/search/?api=1&query=${coordsMatch[1]},${coordsMatch[2]}`;
+      return `https://maps.google.com/maps?q=${coordsMatch[1]},${coordsMatch[2]}`;
     }
     if (content.includes("google.com/maps") || content.includes("maps.google.com")) {
       const match = content.match(/https?:\/\/[^\s]+/);
       if (match) return match[0];
     }
     return null;
-  };
-
-  const handleOpenMap = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleShareLocation = async () => {
@@ -326,7 +320,7 @@ export default function ChatView() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+        const mapsUrl = `https://maps.google.com/maps?q=${latitude},${longitude}`;
         const content = `📍 My Spot: ${mapsUrl}`;
 
         // Optimistic message in UI
@@ -552,8 +546,10 @@ export default function ChatView() {
                       }
 
                       return (
-                        <div
-                          onClick={(e) => handleOpenMap(e, mapsUrl)}
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className={`block w-[230px] max-w-[80vw] rounded-[24px] overflow-hidden border shadow-lg cursor-pointer transition-all active:scale-[0.98] ${
                             isDark
                               ? "bg-[#1C1C1E] border-white/10 hover:border-white/20 text-white"
@@ -602,7 +598,7 @@ export default function ChatView() {
                               <ArrowUpRight size={14} strokeWidth={2.5} />
                             </div>
                           </div>
-                        </div>
+                        </a>
                       );
                     })()}
                     {/* Reactions Pill */}

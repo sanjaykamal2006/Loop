@@ -28,15 +28,15 @@ function AppContent() {
       {view !== "past-loops" && <AppHeader />}
 
       {/* Chat gets its own full-height container */}
-      {view === "chat" && selectedLoop ? (
-        <ChatView />
+      {view === "chat" ? (
+        selectedLoop ? <ChatView /> : <ChatListView />
       ) : (
         <main className={`flex-1 overflow-y-auto relative z-0 px-5 scrollbar-hide pb-28 ${view === "past-loops" ? "pt-5" : ""}`}>
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
           {view === "chat-list" && <ChatListView />}
           {view === "profile" && <ProfileView />}
-          {view === "ride-details" && selectedLoop && <RideDetailsView />}
+          {view === "ride-details" && (selectedLoop ? <RideDetailsView /> : <HomeView />)}
           {view === "trusted-vehicles" && <TrustedVehiclesView />}
           {view === "past-loops" && <PastLoopsView />}
         </main>
