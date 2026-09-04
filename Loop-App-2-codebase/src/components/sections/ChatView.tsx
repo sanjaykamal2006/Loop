@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2, MapPin } from "lucide-react";
+import { Send, Edit2, Check, X, Share2, MapPin, Navigation, ArrowUpRight } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
@@ -517,36 +517,59 @@ export default function ChatView() {
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
                     {msg.content.includes("https://maps.google.com/?q=") ? (
-                      <div
-                        className={`p-3 rounded-[20px] shadow-sm border ${
-                          isMe
-                            ? "bg-[#FFC554] text-black border-[#FFC554]/50 rounded-tr-[4px]"
-                            : `${cardBg} ${border} ${text} rounded-tl-[4px]`
-                        }`}
+                      <a
+                        href={msg.content.match(/https:\/\/maps\.google\.com\/\?q=[^\s]+/)?.[0] || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block w-[230px] max-w-[80vw] rounded-[24px] overflow-hidden border shadow-lg transition-all active:scale-[0.98] ${
+                          isDark
+                            ? "bg-[#1C1C1E] border-white/10 hover:border-white/20 text-white"
+                            : "bg-[#FFFFFF] border-black/10 hover:border-black/20 text-black shadow-md"
+                        } ${isMe ? "rounded-tr-[6px]" : "rounded-tl-[6px]"}`}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isMe ? "bg-black text-[#FFC554]" : "bg-[#FFC554]/20 text-[#FFC554]"}`}>
-                            <MapPin size={15} strokeWidth={2.5} />
+                        {/* Apple-style Mini Map Graphic Header */}
+                        <div className="relative h-24 w-full bg-gradient-to-b from-[#2A2A2E] to-[#18181A] flex items-center justify-center overflow-hidden border-b border-white/5">
+                          {/* Map Grid Texture */}
+                          <div 
+                            className="absolute inset-0 opacity-20 pointer-events-none"
+                            style={{
+                              backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)",
+                              backgroundSize: "20px 20px"
+                            }}
+                          />
+                          
+                          {/* Radar Pulse & Navigation Beacon */}
+                          <div className="relative z-10 flex flex-col items-center">
+                            <div className="relative flex items-center justify-center">
+                              <div className="absolute w-12 h-12 rounded-full bg-[#FFC554]/25 animate-ping opacity-75" />
+                              <div className="relative w-10 h-10 rounded-full bg-[#FFC554] text-black flex items-center justify-center shadow-lg shadow-[#FFC554]/30">
+                                <Navigation size={18} className="fill-black -rotate-45 ml-0.5 mb-0.5" />
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-[11px] font-black uppercase tracking-wider leading-none">Shared Spot</p>
-                            <p className="text-[9px] opacity-70 font-medium mt-0.5">Live GPS Pin</p>
+
+                          {/* Live Pin Badge */}
+                          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[8px] font-bold text-white/90 uppercase tracking-widest">Live Spot</span>
                           </div>
                         </div>
-                        <a
-                          href={msg.content.match(/https:\/\/maps\.google\.com\/\?q=[^\s]+/)?.[0] || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-full py-1.5 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-transform active:scale-95 shadow-sm ${
-                            isMe
-                              ? "bg-black text-[#FFC554]"
-                              : "bg-[#FFC554] text-black"
-                          }`}
-                        >
-                          <span>Open in Maps</span>
-                          <span className="text-xs">&nearr;</span>
-                        </a>
-                      </div>
+
+                        {/* Card Info & Apple-style Action Row */}
+                        <div className="p-3 space-y-2">
+                          <div>
+                            <h4 className="font-bold text-xs tracking-tight">Current Location</h4>
+                            <p className={`text-[10px] ${mutedText} font-medium mt-0.5`}>
+                              Shared by {isMe ? "You" : msg.profiles?.display_name || "Rider"}
+                            </p>
+                          </div>
+
+                          <div className={`pt-2 border-t ${isDark ? "border-white/10" : "border-black/5"} flex items-center justify-between text-[#FFC554]`}>
+                            <span className="text-[10px] font-bold tracking-wider uppercase">Open in Maps</span>
+                            <ArrowUpRight size={14} strokeWidth={2.5} />
+                          </div>
+                        </div>
+                      </a>
                     ) : (
                       <div
                         className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
