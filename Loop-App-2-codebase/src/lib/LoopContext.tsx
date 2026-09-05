@@ -62,6 +62,7 @@ export function useLoop() {
 
 export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
   const [view, setViewState] = useState<View>("home");
+  const [activeLoops, setActiveLoops] = useState<Loop[]>([]);
   const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() => {
     if (typeof window !== "undefined") {
       try {
