@@ -549,59 +549,42 @@ export default function ChatView() {
                         href={mapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`block w-[295px] max-w-[85vw] p-4.5 rounded-[26px] border shadow-sm transition-all active:scale-[0.98] ${
+                        className={`block w-[240px] max-w-[80vw] p-3 rounded-[20px] border shadow-sm transition-all active:scale-[0.98] ${
                           isDark
                             ? "bg-[#18181B] border-white/10 text-white shadow-black/40"
                             : "bg-white border-zinc-200/80 text-zinc-900 shadow-zinc-200/60"
                         }`}
                       >
-                        {/* Top Header: Avatar, Name & Status Pill */}
-                        <div className="flex items-center justify-between gap-2 mb-3.5">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {senderAvatar ? (
-                              <img src={senderAvatar} alt={senderName} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center font-black text-xs shrink-0">
-                                {senderInitial}
+                        {/* Main Content: Accent Circle + Title + Subtitle */}
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-full bg-[#FFC554] flex items-center justify-center shrink-0 shadow-sm">
+                            <Navigation size={18} className="fill-zinc-950 text-zinc-950" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <h4 className="font-bold text-[13px] tracking-tight text-zinc-900 dark:text-white leading-tight">
+                                Current Location
+                              </h4>
+                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                                <span>Shared</span>
                               </div>
-                            )}
-                            <span className="font-bold text-sm tracking-tight truncate text-zinc-900 dark:text-white">
-                              {senderName}
-                            </span>
-                          </div>
-
-                          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 ${
-                            isDark ? "bg-white/5 text-zinc-300 border border-white/5" : "bg-zinc-100 text-zinc-600"
-                          }`}>
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                            <span>Location Shared</span>
-                          </div>
-                        </div>
-
-                        {/* Middle Section: Circle Arrow & Current Location */}
-                        <div className="flex items-center gap-3.5 my-2.5">
-                          <div className="w-12 h-12 rounded-full bg-[#FEEAA0] dark:bg-[#FFC554] flex items-center justify-center shrink-0 shadow-sm">
-                            <Navigation size={22} className="fill-zinc-900 dark:fill-zinc-950 text-zinc-900 dark:text-zinc-950" />
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-extrabold text-[16px] tracking-tight text-zinc-900 dark:text-white leading-snug">
-                              Current Location
-                            </h4>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5 truncate">
+                            </div>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium mt-0.5 truncate">
                               Shared by {senderName}
                             </p>
                           </div>
                         </div>
 
-                        {/* Bottom Action Bar: Open In Maps */}
-                        <div className="border-t border-zinc-100 dark:border-white/10 pt-3.5 mt-3.5 flex items-center justify-between text-zinc-600 dark:text-zinc-300">
-                          <div className="flex items-center gap-2.5">
-                            <Map size={17} strokeWidth={2.2} className="text-zinc-500 dark:text-zinc-400" />
-                            <span className="text-[11px] font-bold tracking-widest uppercase">
+                        {/* Bottom Action Bar */}
+                        <div className="border-t border-zinc-100 dark:border-white/10 pt-2 mt-2.5 flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                          <div className="flex items-center gap-1.5">
+                            <Map size={13} strokeWidth={2.2} className="text-zinc-400 dark:text-zinc-400" />
+                            <span className="text-[10px] font-bold tracking-widest uppercase">
                               OPEN IN MAPS
                             </span>
                           </div>
-                          <ChevronRight size={18} strokeWidth={2.5} className="text-zinc-400 dark:text-zinc-500" />
+                          <ChevronRight size={14} strokeWidth={2.5} className="text-zinc-400 dark:text-zinc-500" />
                         </div>
                       </a>
                     )}
