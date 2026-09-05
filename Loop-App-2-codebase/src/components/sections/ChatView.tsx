@@ -10,7 +10,7 @@ import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView } = useLoop();
-  const { border, cardBg, mutedText, text } = theme;
+  const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
