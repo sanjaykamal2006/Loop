@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2, MapPin, Navigation, ArrowUpRight } from "lucide-react";
+import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 
@@ -462,9 +462,14 @@ export default function ChatView() {
         ) : (
           messages.map((msg, idx) => {
             const isMe = msg.user_id === session.user.id;
-            const showSender = idx === 0 || messages[idx - 1]?.user_id !== msg.user_id;
+            const mapsUrl = getMapsUrlFromMessage(msg.content);
+            const isLocationMsg = Boolean(mapsUrl);
+            const showSender = (idx === 0 || messages[idx - 1]?.user_id !== msg.user_id) && !isLocationMsg;
             const isEditing = editingMsgId === msg.id;
             const isOptimistic = msg.id.startsWith("opt-");
+            const senderName = isMe ? profile.display_name || "You" : msg.profiles?.display_name || "Member";
+            const senderAvatar = isMe ? profile.avatar_url : msg.profiles?.avatar_url;
+            const senderInitial = (senderName || "U").substring(0, 1).toUpperCase();
 
             return (
               <div
@@ -525,82 +530,81 @@ export default function ChatView() {
                   </div>
                 ) : (
                   <div
-                    className={`relative max-w-[80%] group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''}`}
-                    onDoubleClick={() => isMe && !isOptimistic && startEditMessage(msg)}
+                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''}`}
+                    onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
-                    {(() => {
-                      const mapsUrl = getMapsUrlFromMessage(msg.content);
-                      if (!mapsUrl) {
-                        return (
-                          <div
-                            className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
-                              isMe
-                                ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
-                                : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
-                            }`}
-                          >
-                            {msg.content}
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <a
-                          href={mapsUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`block w-[230px] max-w-[80vw] rounded-[24px] overflow-hidden border shadow-lg cursor-pointer transition-all active:scale-[0.98] ${
-                            isDark
-                              ? "bg-[#1C1C1E] border-white/10 hover:border-white/20 text-white"
-                              : "bg-[#FFFFFF] border-black/10 hover:border-black/20 text-black shadow-md"
-                          } ${isMe ? "rounded-tr-[6px]" : "rounded-tl-[6px]"}`}
-                        >
-                          {/* Apple-style Mini Map Graphic Header */}
-                          <div className="relative h-24 w-full bg-gradient-to-b from-[#2A2A2E] to-[#18181A] flex items-center justify-center overflow-hidden border-b border-white/5">
-                            {/* Map Grid Texture */}
-                            <div 
-                              className="absolute inset-0 opacity-20 pointer-events-none"
-                              style={{
-                                backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)",
-                                backgroundSize: "20px 20px"
-                              }}
-                            />
-                            
-                            {/* Radar Pulse & Navigation Beacon */}
-                            <div className="relative z-10 flex flex-col items-center">
-                              <div className="relative flex items-center justify-center">
-                                <div className="absolute w-12 h-12 rounded-full bg-[#FFC554]/25 animate-ping opacity-75" />
-                                <div className="relative w-10 h-10 rounded-full bg-[#FFC554] text-black flex items-center justify-center shadow-lg shadow-[#FFC554]/30">
-                                  <Navigation size={18} className="fill-black -rotate-45 ml-0.5 mb-0.5" />
-                                </div>
+                    {!mapsUrl ? (
+                      <div
+                        className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
+                          isMe
+                            ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                            : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    ) : (
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block w-[295px] max-w-[85vw] p-4.5 rounded-[26px] border shadow-sm transition-all active:scale-[0.98] ${
+                          isDark
+                            ? "bg-[#18181B] border-white/10 text-white shadow-black/40"
+                            : "bg-white border-zinc-200/80 text-zinc-900 shadow-zinc-200/60"
+                        }`}
+                      >
+                        {/* Top Header: Avatar, Name & Status Pill */}
+                        <div className="flex items-center justify-between gap-2 mb-3.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {senderAvatar ? (
+                              <img src={senderAvatar} alt={senderName} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center font-black text-xs shrink-0">
+                                {senderInitial}
                               </div>
-                            </div>
-
-                            {/* Live Pin Badge */}
-                            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
-                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                              <span className="text-[8px] font-bold text-white/90 uppercase tracking-widest">Live Spot</span>
-                            </div>
+                            )}
+                            <span className="font-bold text-sm tracking-tight truncate text-zinc-900 dark:text-white">
+                              {senderName}
+                            </span>
                           </div>
 
-                          {/* Card Info & Apple-style Action Row */}
-                          <div className="p-3 space-y-2">
-                            <div>
-                              <h4 className="font-bold text-xs tracking-tight">Current Location</h4>
-                              <p className={`text-[10px] ${mutedText} font-medium mt-0.5`}>
-                                Shared by {isMe ? "You" : msg.profiles?.display_name || "Rider"}
-                              </p>
-                            </div>
-
-                            <div className={`pt-2 border-t ${isDark ? "border-white/10" : "border-black/5"} flex items-center justify-between text-[#FFC554]`}>
-                              <span className="text-[10px] font-bold tracking-wider uppercase">Open in Maps</span>
-                              <ArrowUpRight size={14} strokeWidth={2.5} />
-                            </div>
+                          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 ${
+                            isDark ? "bg-white/5 text-zinc-300 border border-white/5" : "bg-zinc-100 text-zinc-600"
+                          }`}>
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                            <span>Location Shared</span>
                           </div>
-                        </a>
-                      );
-                    })()}
+                        </div>
+
+                        {/* Middle Section: Circle Arrow & Current Location */}
+                        <div className="flex items-center gap-3.5 my-2.5">
+                          <div className="w-12 h-12 rounded-full bg-[#FEEAA0] dark:bg-[#FFC554] flex items-center justify-center shrink-0 shadow-sm">
+                            <Navigation size={22} className="fill-zinc-900 dark:fill-zinc-950 text-zinc-900 dark:text-zinc-950" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-extrabold text-[16px] tracking-tight text-zinc-900 dark:text-white leading-snug">
+                              Current Location
+                            </h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5 truncate">
+                              Shared by {senderName}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Bottom Action Bar: Open In Maps */}
+                        <div className="border-t border-zinc-100 dark:border-white/10 pt-3.5 mt-3.5 flex items-center justify-between text-zinc-600 dark:text-zinc-300">
+                          <div className="flex items-center gap-2.5">
+                            <Map size={17} strokeWidth={2.2} className="text-zinc-500 dark:text-zinc-400" />
+                            <span className="text-[11px] font-bold tracking-widest uppercase">
+                              OPEN IN MAPS
+                            </span>
+                          </div>
+                          <ChevronRight size={18} strokeWidth={2.5} className="text-zinc-400 dark:text-zinc-500" />
+                        </div>
+                      </a>
+                    )}
                     {/* Reactions Pill */}
                     {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                       <div className={`absolute -bottom-2 ${isMe ? "right-2" : "left-2"} flex gap-0.5 bg-black/80 dark:bg-white/80 rounded-full px-1.5 py-0.5 border border-white/10 shadow-md`}>
