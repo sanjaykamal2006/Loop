@@ -1,0 +1,20 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs every 2 days at 06:00 UTC (well within the 7-day inactivity limit)
+    - cron: '0 6 */2 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-supabase:
+    name: Prevent Inactivity Pause
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database Activity
+        run: |
+          echo "Sending keep-alive ping to Supabase..."
+          curl -f -s "https://molpzciemegendacaglt.supabase.co/rest/v1/loops?select=id&limit=1" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" || echo "Ping dispatched"
+          echo "Keep-alive ping completed."

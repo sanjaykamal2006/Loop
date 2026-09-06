@@ -143,7 +143,17 @@ export default function ChatView() {
         }
       });
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+      } else if (document.visibilityState === "visible") {
+        fetchMessages(loopId);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, [selectedLoop?.id, session.user.id, profile.display_name]);
