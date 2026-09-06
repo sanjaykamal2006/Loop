@@ -30,15 +30,21 @@ export default function HomeView() {
   const feedLoops = openLoops.filter(l => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
+    const qClean = q.replace(/[-_\s]+/g, "");
 
-    const matchDestination = l.destination?.toLowerCase().includes(q);
-    const matchStart = l.start_point?.toLowerCase().includes(q);
-    const matchPurpose = l.purpose?.toLowerCase().includes(q);
-    const matchCreator = Boolean(
-      l.creator?.display_name?.toLowerCase().includes(q) ||
-      l.creator?.reg_no?.toLowerCase().includes(q)
-    );
-    const matchVehicle = l.vehicle_type?.toLowerCase().includes(q);
+    const checkMatch = (val?: string | null) => {
+      if (!val) return false;
+      const lower = val.toLowerCase();
+      if (lower.includes(q)) return true;
+      if (qClean && lower.replace(/[-_\s]+/g, "").includes(qClean)) return true;
+      return false;
+    };
+
+    const matchDestination = checkMatch(l.destination);
+    const matchStart = checkMatch(l.start_point);
+    const matchPurpose = checkMatch(l.purpose);
+    const matchCreator = checkMatch(l.creator?.display_name) || checkMatch(l.creator?.reg_no);
+    const matchVehicle = checkMatch(l.vehicle_type);
     const matchDriver = (q.includes("driver") || q.includes("offer") || q.includes("ride")) && l.is_driver_offering;
     const matchFemale = (q.includes("female") || q.includes("women") || q.includes("girl")) && l.is_female_only;
 
