@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
+import EditLoopModal from "./EditLoopModal";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 
 export default function RideDetailsView() {
@@ -35,6 +36,7 @@ export default function RideDetailsView() {
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
 
@@ -358,6 +360,16 @@ export default function RideDetailsView() {
 
             {isCreator && (
               <button
+                onClick={() => setIsEditModalOpen(true)}
+                className={`w-full py-3 ${cardBg} border border-[#FFC554]/30 hover:border-[#FFC554]/60 rounded-[20px] text-[#FFC554] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
+              >
+                <Edit3 size={13} strokeWidth={2.5} />
+                Edit Ride Details
+              </button>
+            )}
+
+            {isCreator && (
+              <button
                 onClick={() => deleteLoop(selectedLoop.id)}
                 className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors`}
               >
@@ -380,6 +392,19 @@ export default function RideDetailsView() {
       </div>
 
       <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
+
+      {selectedLoop && (
+        <EditLoopModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          loop={selectedLoop}
+          currentMemberCount={loopMembers.length}
+          onUpdated={(updated) => {
+            setSelectedLoop(updated);
+            fetchLoops();
+          }}
+        />
+      )}
     </div>
   );
 }
