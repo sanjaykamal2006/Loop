@@ -39,6 +39,7 @@ interface LoopContextValue {
   deleteLoop: (loopId: string) => Promise<void>;
   leaveLoop: (loopId: string) => Promise<void>;
   isJoining: boolean;
+  isDeleting: boolean;
 
   // Gender guard
   showGenderSelect: boolean;
@@ -86,6 +87,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
   }, []);
   const [isJoining, setIsJoining] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [userJoinedLoops, setUserJoinedLoops] = useState<string[]>([]);
   const [userLoops, setUserLoops] = useState<string[]>([]);
 
@@ -310,14 +312,62 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Delete loop ---
   const deleteLoop = useCallback(async (loopId: string) => {
-    const { error } = await supabase.from("loops").update({ status: "cancelled" }).eq("id", loopId);
-    if (error) toast.error("Failed to delete loop");
-    else {
-      toast.success("Loop deleted");
-      setView("home");
-      fetchLoops();
+    if (!loopId) {
+      toast.error("Invalid loop reference");
+      return;
     }
-  }, [fetchLoops]);
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      // 1. First attempt: Use security definer RPC which verifies creator and updates cleanly
+      const { data: rpcData, error: rpcError } = await supabase.rpc("delete_loop", {
+        target_loop_id: loopId,
+      });
+
+      let isSuccess = false;
+
+      if (!rpcError) {
+        if (rpcData && typeof rpcData === "object" && (rpcData as any).success === false) {
+          toast.error((rpcData as any).error || "Failed to delete loop");
+          setIsDeleting(false);
+          return;
+        }
+        isSuccess = true;
+      } else {
+        console.warn("delete_loop RPC failed, falling back to direct table update:", rpcError);
+        // 2. Fallback: Direct table update
+        const { error: updateError } = await supabase
+          .from("loops")
+          .update({ status: "cancelled" })
+          .eq("id", loopId);
+
+        if (updateError) {
+          console.error("Error deleting loop:", updateError);
+          toast.error(updateError.message || "Failed to delete loop");
+          setIsDeleting(false);
+          return;
+        }
+        isSuccess = true;
+      }
+
+      if (isSuccess) {
+        toast.success("Loop deleted");
+        // Optimistically clean up local state
+        setActiveLoops((prev) => prev.filter((l) => l.id !== loopId));
+        setUserLoops((prev) => prev.filter((id) => id !== loopId));
+        setSelectedLoop(null);
+        setView("home");
+        fetchLoops();
+        fetchUserMemberships();
+      }
+    } catch (err: any) {
+      console.error("Unexpected error deleting loop:", err);
+      toast.error("Failed to delete loop");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [isDeleting, setView, fetchLoops, fetchUserMemberships, setSelectedLoop]);
 
   // --- Leave loop ---
   const leaveLoop = useCallback(async (loopId: string) => {
@@ -392,6 +442,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     deleteLoop,
     leaveLoop,
     isJoining,
+    isDeleting,
     showGenderSelect,
     setShowGenderSelect,
     pendingAction,

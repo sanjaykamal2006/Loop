@@ -22,6 +22,7 @@ export default function RideDetailsView() {
     deleteLoop,
     leaveLoop,
     isJoining,
+    isDeleting,
     setSelectedLoop,
     setView,
     fetchLoops,
@@ -37,6 +38,7 @@ export default function RideDetailsView() {
   const [isEditingFare, setIsEditingFare] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
 
@@ -126,7 +128,7 @@ export default function RideDetailsView() {
 
   if (!selectedLoop) return null;
 
-  const isCreator = userLoops.includes(selectedLoop.id);
+  const isCreator = Boolean(selectedLoop && (selectedLoop.creator_id === session?.user?.id || userLoops.includes(selectedLoop.id)));
   const isJoined = userJoinedLoops.includes(selectedLoop.id);
 
   return (
@@ -369,13 +371,36 @@ export default function RideDetailsView() {
             )}
 
             {isCreator && (
-              <button
-                onClick={() => deleteLoop(selectedLoop.id)}
-                className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors`}
-              >
-                <Trash2 size={13} strokeWidth={2.5} />
-                Delete Loop
-              </button>
+              showDeleteConfirm ? (
+                <div className="flex gap-2 animate-fade-in">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className={`flex-1 py-3 ${cardBg} border ${border} rounded-[20px] text-xs font-bold text-zinc-400 active:scale-[0.98] disabled:opacity-50`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      deleteLoop(selectedLoop.id);
+                    }}
+                    disabled={isDeleting}
+                    className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.15em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
+                  >
+                    <Trash2 size={13} strokeWidth={2.5} className={isDeleting ? "animate-spin" : ""} />
+                    {isDeleting ? "Deleting..." : "Confirm Delete"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isDeleting}
+                  className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50`}
+                >
+                  <Trash2 size={13} strokeWidth={2.5} />
+                  Delete Loop
+                </button>
+              )
             )}
 
             {isJoined && !isCreator && (
