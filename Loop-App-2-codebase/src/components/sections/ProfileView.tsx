@@ -196,8 +196,8 @@ export default function ProfileView() {
             {/* 2. Bio */}
             <div className="pb-1 border-b border-white/5">
               <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Bio</p>
-              <p className="text-xs font-medium opacity-80 mt-1 leading-relaxed">
-                {profile.bio?.trim() ? profile.bio : "The One."}
+              <p className={`text-xs font-medium mt-1 leading-relaxed ${profile.bio?.trim() ? "opacity-80" : `${mutedText} opacity-40 italic`}`}>
+                {profile.bio?.trim() ? profile.bio : "No bio added yet."}
               </p>
             </div>
 
