@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { Users, Clock, MapPin } from "lucide-react";
+import { Users, Clock, MapPin, Search, X } from "lucide-react";
 import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
+  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,15 +25,27 @@ export default function HomeView() {
     setView("create");
   };
 
-  const feedLoops = activeLoops
-    .filter(l => l.status === 'open')
-    .filter(l => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (l.destination?.toLowerCase().includes(q) || l.start_point?.toLowerCase().includes(q));
-    });
+  const openLoops = activeLoops.filter(l => l.status === 'open');
 
-  if (activeLoops.filter(l => l.status === 'open').length === 0) {
+  const feedLoops = openLoops.filter(l => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+
+    const matchDestination = l.destination?.toLowerCase().includes(q);
+    const matchStart = l.start_point?.toLowerCase().includes(q);
+    const matchPurpose = l.purpose?.toLowerCase().includes(q);
+    const matchCreator = Boolean(
+      l.creator?.display_name?.toLowerCase().includes(q) ||
+      l.creator?.reg_no?.toLowerCase().includes(q)
+    );
+    const matchVehicle = l.vehicle_type?.toLowerCase().includes(q);
+    const matchDriver = (q.includes("driver") || q.includes("offer") || q.includes("ride")) && l.is_driver_offering;
+    const matchFemale = (q.includes("female") || q.includes("women") || q.includes("girl")) && l.is_female_only;
+
+    return Boolean(matchDestination || matchStart || matchPurpose || matchCreator || matchVehicle || matchDriver || matchFemale);
+  });
+
+  if (openLoops.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[55vh] text-center space-y-4">
         <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#FFC554]/60">
@@ -55,22 +67,56 @@ export default function HomeView() {
 
   return (
     <div className="space-y-3 pt-1 pb-8">
-      {activeLoops.filter(l => l.status === 'open').length > 2 && (
+      {/* Pill Search Bar */}
+      <div className={`relative w-full h-[42px] ${cardBg} border ${border} rounded-full flex items-center px-3.5 gap-2.5 shadow-sm focus-within:border-[#FFC554]/80 focus-within:ring-1 focus-within:ring-[#FFC554]/30 transition-all`}>
+        <Search size={16} className="text-[#FFC554] shrink-0" />
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search destination or origin..."
-          className={`w-full h-10 ${cardBg} border ${border} rounded-2xl px-4 text-xs font-bold outline-none focus:border-[#FFC554] placeholder:opacity-40 transition-colors mb-1`}
+          placeholder="Search destination, pickup, or user..."
+          className="flex-1 bg-transparent text-[13px] font-medium outline-none placeholder:text-zinc-500 placeholder:text-xs placeholder:font-normal"
         />
-      )}
+        {searchQuery.trim() && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2 py-0.5 rounded-full">
+              {feedLoops.length} {feedLoops.length === 1 ? "loop" : "loops"}
+            </span>
+            <button
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+              className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white shrink-0 active:scale-90 transition-transform"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        )}
+      </div>
 
+      {/* Empty State when Search has no matches */}
       {feedLoops.length === 0 && searchQuery && (
-        <p className={`text-xs ${mutedText} text-center py-8`}>No rides matching "{searchQuery}"</p>
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#FFC554]/70">
+            <Search size={22} strokeWidth={1.75} />
+          </div>
+          <div>
+            <p className="text-sm font-bold tracking-tight">No loops found</p>
+            <p className={`text-xs ${mutedText} mt-1 max-w-[240px]`}>
+              No active rides match <span className="text-[#FFC554] font-semibold">"{searchQuery}"</span>. Try searching another destination, pickup, or user.
+            </p>
+          </div>
+          <button
+            onClick={() => setSearchQuery("")}
+            className="h-8 px-4 rounded-full bg-white/10 hover:bg-white/15 text-xs font-bold tracking-wide active:scale-95 transition-all"
+          >
+            Clear Search
+          </button>
+        </div>
       )}
 
       {feedLoops.map((loop) => {
         const isFull = (loop.member_count || 0) >= loop.participants_limit;
         const isJoined = userJoinedLoops.includes(loop.id);
+        const creatorName = userLoops.includes(loop.id) ? "You" : loop.creator?.display_name;
 
         return (
           <div
@@ -112,6 +158,11 @@ export default function HomeView() {
               <div className={`flex items-center gap-1.5 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
                 <Users size={14} strokeWidth={2} className="shrink-0" />
                 <span className="font-semibold text-[13px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
+                {creatorName && (
+                  <span className="text-[11px] font-medium opacity-70 truncate max-w-[120px]">
+                    • by {creatorName}
+                  </span>
+                )}
                 {isFull && <span className="text-[9px] text-red-500 font-black uppercase shrink-0">Full</span>}
                 {isJoined && (
                   <span className="text-[8px] bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/30 px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ml-1">

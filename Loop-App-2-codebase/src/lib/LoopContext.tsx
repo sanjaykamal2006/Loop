@@ -229,7 +229,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
     const { data, error } = await supabase
       .from("loops")
-      .select("*, loop_members(count)")
+      .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
       .in("status", ["open", "started", "active", "in_progress"])
       .gte("created_at", fiveHoursAgo)
       .order("created_at", { ascending: false });

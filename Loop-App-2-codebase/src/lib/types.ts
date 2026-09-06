@@ -16,6 +16,11 @@ export interface Loop {
   total_fare?: number;
   is_driver_offering?: boolean;
   vehicle_type?: "car" | "bike" | "scooter" | null;
+  creator?: {
+    display_name?: string;
+    avatar_url?: string;
+    reg_no?: string;
+  } | null;
 }
 
 export interface Profile {
