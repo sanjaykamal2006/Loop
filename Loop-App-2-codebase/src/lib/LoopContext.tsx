@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
@@ -102,6 +102,10 @@ export function LoopProvider({ session, children }: { session: Session; children
     return { display_name: "", theme: "dark" };
   });
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const profileRef = useRef(profile);
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   // Gender guard
   const [showGenderSelect, setShowGenderSelect] = useState(false);
@@ -216,17 +220,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Fetch loops ---
   const fetchLoops = useCallback(async () => {
-    try {
-      // Automatically trigger database expiration for old loops (> 5 hours)
-      await supabase.rpc("expire_old_loops");
-    } catch {
-      // Ignore background RPC errors
-    }
-
-    const { data: profileData } = await supabase
-      .from("profiles").select("gender").eq("id", session.user.id).single();
-    const userGender = profileData?.gender;
-
+    const userGender = profileRef.current.gender;
     const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
@@ -405,20 +399,156 @@ export function LoopProvider({ session, children }: { session: Session; children
 
     const globalRealtimeChannel = supabase
       .channel("global-app-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "loops" }, () => {
-        fetchLoops();
-        fetchUserMemberships();
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "loop_members" }, () => {
-        fetchLoops();
-        fetchUserMemberships();
-      })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "loops" },
+        async (payload) => {
+          const newLoopId = payload.new?.id;
+          if (!newLoopId) return;
+
+          if (payload.new.creator_id === session.user.id) {
+            setUserLoops((prev) => Array.from(new Set([...prev, newLoopId])));
+          }
+
+          const userGender = profileRef.current.gender;
+          if (
+            payload.new.is_female_only &&
+            userGender !== "female" &&
+            payload.new.creator_id !== session.user.id
+          ) {
+            return;
+          }
+
+          const { data: loopData, error } = await supabase
+            .from("loops")
+            .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
+            .eq("id", newLoopId)
+            .single();
+
+          if (!error && loopData) {
+            const formatted = {
+              ...loopData,
+              member_count: loopData.loop_members?.[0]?.count || 0,
+            };
+            setActiveLoops((prev) => {
+              if (prev.some((l) => l.id === formatted.id)) {
+                return prev.map((l) => (l.id === formatted.id ? formatted : l));
+              }
+              return [formatted, ...prev];
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "loops" },
+        (payload) => {
+          const updated = payload.new as any;
+          if (!updated?.id) return;
+
+          const inactiveStatuses = ["cancelled", "completed", "ended", "expired"];
+          if (inactiveStatuses.includes(updated.status)) {
+            setActiveLoops((prev) => prev.filter((l) => l.id !== updated.id));
+            setSelectedLoopState((prev) => {
+              if (prev?.id === updated.id) {
+                return { ...prev, ...updated };
+              }
+              return prev;
+            });
+          } else {
+            setActiveLoops((prev) =>
+              prev.map((l) =>
+                l.id === updated.id
+                  ? { ...l, ...updated, creator: l.creator, member_count: l.member_count }
+                  : l
+              )
+            );
+            setSelectedLoopState((prev) => {
+              if (prev && prev.id === updated.id) {
+                return { ...prev, ...updated, creator: prev.creator, member_count: prev.member_count };
+              }
+              return prev;
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "loops" },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (!deletedId) return;
+          setActiveLoops((prev) => prev.filter((l) => l.id !== deletedId));
+          setUserLoops((prev) => prev.filter((id) => id !== deletedId));
+          setUserJoinedLoops((prev) => prev.filter((id) => id !== deletedId));
+          setSelectedLoopState((prev) => (prev?.id === deletedId ? null : prev));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "loop_members" },
+        (payload) => {
+          const newMember = payload.new as { loop_id?: string; user_id?: string };
+          if (!newMember?.loop_id) return;
+
+          setActiveLoops((prev) =>
+            prev.map((l) =>
+              l.id === newMember.loop_id
+                ? { ...l, member_count: (l.member_count || 0) + 1 }
+                : l
+            )
+          );
+          setSelectedLoopState((prev) => {
+            if (prev && prev.id === newMember.loop_id) {
+              return { ...prev, member_count: (prev.member_count || 0) + 1 };
+            }
+            return prev;
+          });
+
+          if (newMember.user_id === session.user.id) {
+            setUserJoinedLoops((prev) =>
+              Array.from(new Set([...prev, newMember.loop_id!]))
+            );
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "loop_members" },
+        (payload) => {
+          const oldMember = payload.old as { loop_id?: string; user_id?: string };
+          if (!oldMember?.loop_id) return;
+
+          setActiveLoops((prev) =>
+            prev.map((l) =>
+              l.id === oldMember.loop_id
+                ? { ...l, member_count: Math.max(0, (l.member_count || 1) - 1) }
+                : l
+            )
+          );
+          setSelectedLoopState((prev) => {
+            if (prev && prev.id === oldMember.loop_id) {
+              return {
+                ...prev,
+                member_count: Math.max(0, (prev.member_count || 1) - 1),
+              };
+            }
+            return prev;
+          });
+
+          if (oldMember.user_id === session.user.id) {
+            setUserJoinedLoops((prev) =>
+              prev.filter((id) => id !== oldMember.loop_id)
+            );
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(globalRealtimeChannel);
     };
-  }, [fetchProfile, fetchLoops, fetchUserMemberships]);
+  }, [fetchProfile, fetchLoops, fetchUserMemberships, session.user.id]);
 
   const value: LoopContextValue = {
     session,

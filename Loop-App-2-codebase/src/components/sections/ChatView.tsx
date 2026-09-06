@@ -102,17 +102,39 @@ export default function ChatView() {
       })
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => {
-          fetchMessages(loopId);
+        { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (!newMsg?.id) return;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            fetchMessages(loopId);
+            return prev;
+          });
         }
       )
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "messages" },
+        { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
         (payload) => {
-          if (payload.new.loop_id !== loopId) return;
-          setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)));
+          const updated = payload.new as any;
+          if (!updated?.id) return;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === updated.id
+                ? { ...m, ...updated, profiles: m.profiles }
+                : m
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (!deletedId) return;
+          setMessages((prev) => prev.filter((m) => m.id !== deletedId));
         }
       )
       .subscribe(async (status) => {

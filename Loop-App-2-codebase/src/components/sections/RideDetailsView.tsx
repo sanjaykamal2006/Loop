@@ -65,7 +65,6 @@ export default function RideDetailsView() {
         },
         () => {
           fetchLoopMembers(selectedLoop.id);
-          fetchLoops();
         }
       )
       .subscribe();
