@@ -103,37 +103,7 @@ export default function HomeView() {
         )}
       </div>
 
-      {/* Quick Category / Hotspot Filter Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
-        {[
-          { label: "All", q: "" },
-          { label: "✈️ Airport", q: "airport" },
-          { label: "🚇 Metro", q: "metro" },
-          { label: "🏢 Tech Park", q: "tech park" },
-          { label: "🚆 Station", q: "station" },
-          { label: "🚗 Offering Ride", q: "offer" },
-          { label: "🔒 Women Only", q: "female" },
-        ].map((chip) => {
-          const isActive = chip.q === "" ? searchQuery === "" : searchQuery.toLowerCase() === chip.q;
-          return (
-            <button
-              key={chip.label}
-              type="button"
-              onClick={() => {
-                triggerHaptic(8);
-                setSearchQuery(chip.q);
-              }}
-              className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black border transition-all active:scale-95 ${
-                isActive
-                  ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
-                  : `${cardBg} ${border} ${mutedText} hover:text-white`
-              }`}
-            >
-              {chip.label}
-            </button>
-          );
-        })}
-      </div>
+
 
       {/* Empty State when Search has no matches */}
       {feedLoops.length === 0 && searchQuery && (
