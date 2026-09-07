@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, Languages } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, Languages, Bell, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 import TeluguGuideModal from "./TeluguGuideModal";
+import { getNotificationPermission, requestNotificationPermission, sendLocalNotification } from "@/lib/notifications";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -23,6 +24,31 @@ export default function ProfileView() {
   const [showTeluguGuide, setShowTeluguGuide] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+
+  React.useEffect(() => {
+    setNotifPermission(getNotificationPermission());
+  }, []);
+
+  const handleToggleNotifications = async () => {
+    if (notifPermission === "granted") {
+      toast.success("Notifications are already active!");
+      sendLocalNotification("LOOP Notifications Active 🔔", {
+        body: "You're all set to receive passenger join and message alerts.",
+      });
+      return;
+    }
+    const granted = await requestNotificationPermission();
+    setNotifPermission(granted ? "granted" : "denied");
+    if (granted) {
+      toast.success("Ride notifications enabled!");
+      sendLocalNotification("LOOP Notifications Enabled! 🔔", {
+        body: "You will be alerted when passengers join your rides or message you.",
+      });
+    } else {
+      toast.error("Notifications were not enabled. Check your browser permissions.");
+    }
+  };
 
   React.useEffect(() => {
     setTempName(profile.display_name);
@@ -307,6 +333,46 @@ export default function ProfileView() {
               <p className={`text-xs font-bold ${text}`}>Trusted Drivers</p>
             </div>
           </div>
+        </button>
+
+        {/* Notifications Setting */}
+        <button
+          onClick={handleToggleNotifications}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl ${notifPermission === "granted" ? "bg-emerald-500/10 text-emerald-500" : "bg-[#FFC554]/10 text-[#FFC554]"} flex items-center justify-center`}>
+              <Bell size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Alerts</p>
+              <p className={`text-xs font-bold ${text}`}>Ride Notifications</p>
+            </div>
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+            notifPermission === "granted"
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+              : "bg-white/5 text-zinc-400 border border-white/10"
+          }`}>
+            {notifPermission === "granted" ? "Active 🔔" : "Enable"}
+          </span>
+        </button>
+
+        {/* Legal & Safety Disclaimer */}
+        <button
+          onClick={() => setShowTerms(true)}
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+              <Shield size={16} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-0.5 text-left">
+              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Policy</p>
+              <p className={`text-xs font-bold ${text}`}>Safety & Legal Disclaimer</p>
+            </div>
+          </div>
+          <span className={`text-[9px] font-bold ${mutedText}`}>Non-Commercial</span>
         </button>
 
         {/* About Creator */}

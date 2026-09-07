@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
 import type { View, Loop, Profile, ThemeClasses } from "@/lib/types";
+import { registerServiceWorker, sendLocalNotification } from "./notifications";
 
 interface LoopContextValue {
   // Session
@@ -420,6 +421,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Initial data load + realtime subscription ---
   useEffect(() => {
+    registerServiceWorker();
     fetchProfile();
     fetchLoops();
     fetchUserMemberships();
@@ -541,6 +543,18 @@ export function LoopProvider({ session, children }: { session: Session; children
               setUserJoinedLoops((prev) =>
                 Array.from(new Set([...prev, newMember.loop_id!]))
               );
+            } else {
+              // Trigger notification if current user created this loop
+              setUserLoops((currentCreatorLoops) => {
+                if (currentCreatorLoops.includes(newMember.loop_id!)) {
+                  sendLocalNotification("LOOP: Passenger Joined! 🚗", {
+                    body: "A new passenger just joined your ride. Tap to view your loop.",
+                    data: { url: `/?loop=${newMember.loop_id}` },
+                    tag: `loop-join-${newMember.loop_id}`,
+                  });
+                }
+                return currentCreatorLoops;
+              });
             }
           }
         )

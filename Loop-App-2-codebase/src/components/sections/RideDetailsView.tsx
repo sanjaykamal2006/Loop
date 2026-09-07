@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2 } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
+import TermsModal from "./TermsModal";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -40,6 +41,7 @@ export default function RideDetailsView() {
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
 
@@ -277,6 +279,21 @@ export default function RideDetailsView() {
         </div>
       )}
 
+      {/* Peer-to-Peer Non-Commercial Safety Disclaimer */}
+      <div className="flex items-center justify-between px-2.5 py-0.5">
+        <div className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-500">
+          <Shield size={11} className="text-[#FFC554]/70 shrink-0" />
+          <span>Peer-to-peer non-commercial cost sharing</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowTerms(true)}
+          className="text-[9px] font-black text-[#FFC554] underline hover:opacity-80 active:scale-95 transition-all shrink-0"
+        >
+          Safety Policy
+        </button>
+      </div>
+
       {/* Passengers */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
         <div className="flex items-center justify-between">
@@ -474,6 +491,8 @@ export default function RideDetailsView() {
           }}
         />
       )}
+
+      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
     </div>
   );
 }

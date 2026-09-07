@@ -38,9 +38,9 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
         {/* Body Content - Scrollable with min-h-0 constraint */}
         <div className="flex-1 min-h-0 overflow-y-auto space-y-3.5 py-3 pr-1 text-xs leading-relaxed opacity-90 scrollbar-hide">
           <section className="space-y-1">
-            <h3 className="font-black text-xs uppercase tracking-wider text-[#FFC554]">1. Platform Nature</h3>
+            <h3 className="font-black text-xs uppercase tracking-wider text-[#FFC554]">1. Platform Nature & Non-Commercial Use</h3>
             <p className={mutedText}>
-              LOOP is a purpose-based, peer-to-peer coordination platform for university students. LOOP does not provide transportation services, employ drivers, or operate as a taxi company. All rides and interactions are voluntarily arranged between individual users.
+              LOOP is a purpose-based, peer-to-peer coordination platform for verified peers, students, and commuters. LOOP does not operate commercial taxi or transportation services, does not own vehicles, and does not employ drivers. All ride-pooling is strictly voluntary, peer-to-peer cost sharing for fuel/tolls, and is non-commercial in compliance with Motor Vehicles Act principles.
             </p>
           </section>
 
@@ -53,9 +53,9 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
               <li><strong>Email:</strong> Account creation and authentication</li>
               <li><strong>Display Name:</strong> Co-passenger identification</li>
               <li><strong>Password:</strong> Bcrypt encrypted by Supabase Auth (never stored in plaintext)</li>
-              <li><strong>Gender (Optional):</strong> Powers the "Girls Only" safety filter</li>
-              <li><strong>Reg. Number (Optional):</strong> Campus identity verification</li>
-              <li><strong>Ride Data:</strong> Destinations, times, and loop messages</li>
+              <li><strong>Gender (Optional):</strong> Powers the "Women Only" safety filter</li>
+              <li><strong>Org / Tag (Optional):</strong> Workplace or campus verification</li>
+              <li><strong>Ride Data:</strong> Destinations, times, and temporary loop messages</li>
             </ul>
           </section>
 

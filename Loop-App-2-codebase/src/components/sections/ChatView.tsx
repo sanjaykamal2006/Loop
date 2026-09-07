@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
+import { sendLocalNotification } from "@/lib/notifications";
 
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView } = useLoop();
@@ -99,6 +100,13 @@ export default function ChatView() {
           audio.volume = 0.5;
           audio.play();
         } catch (e) {}
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+          sendLocalNotification("LOOP Chat", {
+            body: msg.content || "New message received",
+            data: { url: `/?loop=${loopId}` },
+            tag: `chat-msg-${loopId}`,
+          });
+        }
       })
       .on(
         "postgres_changes",
