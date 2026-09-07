@@ -24,13 +24,13 @@ export default function GenderModal() {
 
   const handleSave = async () => {
     if (!name.trim()) return toast.error("Name is required");
-    if (!regNo.trim()) return toast.error("Registration Number is required");
+    if (!regNo.trim()) return toast.error("College, Workplace, or Tag is required");
     if (!gender) return toast.error("Gender is required");
 
     setIsSubmitting(true);
     const updates = {
       display_name: name.trim(),
-      reg_no: regNo.trim().toUpperCase(),
+      reg_no: regNo.trim(),
       gender: gender
     };
     const success = await updateProfile(updates);
@@ -76,13 +76,13 @@ export default function GenderModal() {
           </div>
 
           <div className="space-y-1">
-            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Registration Number</label>
+            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>College / Workplace / Role</label>
             <input
               type="text"
               value={regNo}
-              onChange={(e) => setRegNo(e.target.value.toUpperCase())}
-              placeholder="e.g. 21BCE1234"
-              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40 uppercase`}
+              onChange={(e) => setRegNo(e.target.value)}
+              placeholder="e.g. Google, VIT-AP, Designer"
+              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40`}
             />
           </div>
 

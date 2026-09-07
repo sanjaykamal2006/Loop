@@ -119,8 +119,35 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, []);
 
   useEffect(() => {
-    // Set initial history state
-    window.history.replaceState({ view: "home" }, "", "");
+    // Check for deep-linked loop (?loop=<id>)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const deepLoopId = params.get("loop");
+
+      if (deepLoopId) {
+        (async () => {
+          const { data, error } = await supabase
+            .from("loops")
+            .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
+            .eq("id", deepLoopId)
+            .single();
+
+          if (data && !error) {
+            const formatted = {
+              ...data,
+              member_count: data.loop_members?.[0]?.count || 0,
+            };
+            setSelectedLoop(formatted);
+            setViewState("ride-details");
+            window.history.replaceState({ view: "ride-details" }, "", window.location.pathname);
+            return;
+          }
+          window.history.replaceState({ view: "home" }, "", window.location.pathname);
+        })();
+      } else {
+        window.history.replaceState({ view: "home" }, "", "");
+      }
+    }
 
     const handlePopState = (e: PopStateEvent) => {
       if (e.state?.view) {
@@ -131,7 +158,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [setSelectedLoop]);
 
   // --- Theme ---
   const isDark = profile.theme === "dark";

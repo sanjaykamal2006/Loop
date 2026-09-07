@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { Users, Clock, MapPin, Search, X } from "lucide-react";
 import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function HomeView() {
   const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
@@ -12,6 +13,7 @@ export default function HomeView() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleCreateClick = () => {
+    triggerHaptic(12);
     const isProfileComplete = Boolean(
       profile.gender && 
       profile.display_name?.trim() && 
@@ -79,7 +81,7 @@ export default function HomeView() {
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search destination, pickup, or user..."
+          placeholder="Search destination, pickup, or tag..."
           className="flex-1 bg-transparent text-[13px] font-medium outline-none placeholder:text-zinc-500 placeholder:text-xs placeholder:font-normal"
         />
         {searchQuery.trim() && (
@@ -88,7 +90,10 @@ export default function HomeView() {
               {feedLoops.length} {feedLoops.length === 1 ? "loop" : "loops"}
             </span>
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                triggerHaptic(6);
+                setSearchQuery("");
+              }}
               aria-label="Clear search"
               className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white shrink-0 active:scale-90 transition-transform"
             >
@@ -96,6 +101,38 @@ export default function HomeView() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Quick Category / Hotspot Filter Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
+        {[
+          { label: "All", q: "" },
+          { label: "✈️ Airport", q: "airport" },
+          { label: "🚇 Metro", q: "metro" },
+          { label: "🏢 Tech Park", q: "tech park" },
+          { label: "🚆 Station", q: "station" },
+          { label: "🚗 Offering Ride", q: "offer" },
+          { label: "🔒 Women Only", q: "female" },
+        ].map((chip) => {
+          const isActive = chip.q === "" ? searchQuery === "" : searchQuery.toLowerCase() === chip.q;
+          return (
+            <button
+              key={chip.label}
+              type="button"
+              onClick={() => {
+                triggerHaptic(8);
+                setSearchQuery(chip.q);
+              }}
+              className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black border transition-all active:scale-95 ${
+                isActive
+                  ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
+                  : `${cardBg} ${border} ${mutedText} hover:text-white`
+              }`}
+            >
+              {chip.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Empty State when Search has no matches */}
@@ -128,6 +165,7 @@ export default function HomeView() {
           <div
             key={loop.id}
             onClick={() => {
+              triggerHaptic(10);
               setSelectedLoop(loop);
               setView("ride-details");
             }}
@@ -165,8 +203,13 @@ export default function HomeView() {
                 <Users size={14} strokeWidth={2} className="shrink-0" />
                 <span className="font-semibold text-[13px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
                 {creatorName && (
-                  <span className="text-[11px] font-medium opacity-70 truncate max-w-[120px]">
-                    • by {creatorName}
+                  <span className="text-[11px] font-medium opacity-70 truncate max-w-[100px]">
+                    • {creatorName}
+                  </span>
+                )}
+                {loop.creator?.reg_no && (
+                  <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[65px]">
+                    {loop.creator.reg_no}
                   </span>
                 )}
                 {isFull && <span className="text-[9px] text-red-500 font-black uppercase shrink-0">Full</span>}
@@ -178,7 +221,7 @@ export default function HomeView() {
               </div>
             </div>
 
-            {/* Steering Wheel Icon for Day Scholar / Student Driver */}
+            {/* Steering Wheel Icon for Driver Offering Ride */}
             {loop.is_driver_offering && (
               <div 
                 className="w-7 h-7 rounded-full bg-[#FFC554]/15 border border-[#FFC554]/30 flex items-center justify-center text-[#FFC554] shrink-0 mr-1"

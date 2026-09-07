@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3 } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function RideDetailsView() {
   const {
@@ -125,6 +126,51 @@ export default function RideDetailsView() {
     }
   };
 
+  const handleShareLoop = async () => {
+    triggerHaptic(12);
+    if (!selectedLoop) return;
+    const shareUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/?loop=${selectedLoop.id}`
+      : `https://loop-demo-app.vercel.app/?loop=${selectedLoop.id}`;
+
+    const text = `🚗 LOOP: ${selectedLoop.start_point || "Anywhere"} ➔ ${selectedLoop.destination}\n⏰ Time: ${formatTime(selectedLoop.departure_time)}\n👥 Seats left: ${Math.max(0, selectedLoop.participants_limit - (loopMembers.length || 1))}/${selectedLoop.participants_limit}${selectedLoop.is_female_only ? "\n🔒 Women Only" : ""}\n👉 Tap to view & join: ${shareUrl}`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `LOOP: ${selectedLoop.start_point || "Anywhere"} to ${selectedLoop.destination}`,
+          text: text,
+          url: shareUrl,
+        });
+        return;
+      } catch (e) {}
+    }
+
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
+  };
+
+  const handlePayUpi = () => {
+    triggerHaptic(10);
+    if (!selectedLoop || !selectedLoop.total_fare) return;
+    const splitAmount = Math.ceil(selectedLoop.total_fare / Math.max(1, loopMembers.length));
+
+    // Check if creator bio or tag contains a UPI ID (e.g. name@okhdfcbank or 9876543210@paytm)
+    const creatorMember = loopMembers.find(m => m.user_id === selectedLoop.creator_id);
+    const creatorBio = creatorMember?.profiles?.bio || "";
+    const upiMatch = creatorBio.match(/[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}/);
+
+    let targetUpi = upiMatch ? upiMatch[0] : "";
+    if (!targetUpi) {
+      const entered = window.prompt(`Enter Creator's UPI ID or phone number (e.g. name@okaxis) to pay ₹${splitAmount}:`);
+      if (!entered || !entered.trim()) return;
+      targetUpi = entered.trim();
+    }
+
+    const upiLink = `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=LOOP_Ride&am=${splitAmount}&cu=INR`;
+    window.location.href = upiLink;
+  };
+
   if (!selectedLoop) return null;
 
   const isCreator = Boolean(selectedLoop && (selectedLoop.creator_id === session?.user?.id || userLoops.includes(selectedLoop.id)));
@@ -233,20 +279,34 @@ export default function RideDetailsView() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center justify-between w-full">
-              <div>
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
-                <h3 className="font-black text-lg">
-                  {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
-                </h3>
+            <div className="space-y-2 w-full">
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
+                  <h3 className="font-black text-lg">
+                    {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
+                  </h3>
+                </div>
+                
+                <div className="text-right">
+                  <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
+                  <h3 className="font-black text-lg text-[#FFC554]">
+                    {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
+                  </h3>
+                </div>
               </div>
-              
-              <div className="text-right">
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
-                <h3 className="font-black text-lg text-[#FFC554]">
-                  {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
-                </h3>
-              </div>
+
+              {selectedLoop.total_fare && isJoined && !isCreator && !isPast && (
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                  <span className={`text-[10px] font-bold ${mutedText}`}>Your share: ₹{Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}</span>
+                  <button
+                    onClick={handlePayUpi}
+                    className="px-3 py-1.5 bg-[#FFC554]/15 hover:bg-[#FFC554]/25 border border-[#FFC554]/40 text-[#FFC554] rounded-xl font-black text-[9px] uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1"
+                  >
+                    Pay via GPay / UPI ➔
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -313,7 +373,14 @@ export default function RideDetailsView() {
                         </span>
                       </div>
                     )}
-                    <span className="text-sm font-bold truncate">{displayName}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-sm font-bold truncate">{displayName}</span>
+                      {regNo && (
+                        <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[65px]">
+                          {regNo}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className={`text-[10px] font-black ${mutedText} capitalize`}>
@@ -352,11 +419,24 @@ export default function RideDetailsView() {
         ) : (
           <>
             <button
-              onClick={() => (isJoined ? enterChat() : joinLoop(selectedLoop))}
+              onClick={() => {
+                triggerHaptic(12);
+                if (isJoined) enterChat();
+                else joinLoop(selectedLoop);
+              }}
               disabled={isJoining}
               className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
             >
               {isJoined ? "Open Chat" : "Join Loop"}
+            </button>
+
+            {/* WhatsApp / Social Share */}
+            <button
+              onClick={handleShareLoop}
+              className="w-full py-3 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-black text-[10px] uppercase tracking-[0.2em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-2 transition-all shadow-sm"
+            >
+              <Share2 size={13} strokeWidth={2.5} />
+              Share Loop (WhatsApp / Friends)
             </button>
 
             {isCreator && (

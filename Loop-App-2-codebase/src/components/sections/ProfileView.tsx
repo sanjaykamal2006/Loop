@@ -58,11 +58,11 @@ export default function ProfileView() {
 
   const handleSaveProfile = async () => {
     if (!tempName.trim()) return toast.error("Display name cannot be empty");
-    if (!tempRegNo.trim()) return toast.error("Reg. No cannot be empty");
+    if (!tempRegNo.trim()) return toast.error("Org / College / Tag cannot be empty");
 
     const success = await updateProfile({
       display_name: tempName.trim(),
-      reg_no: tempRegNo.trim().toUpperCase(),
+      reg_no: tempRegNo.trim(),
       bio: tempBio.trim(),
     });
 
@@ -181,14 +181,14 @@ export default function ProfileView() {
 
         {!isEditingProfile ? (
           <div className="space-y-3.5">
-            {/* 1. Display Name & Reg. No */}
+            {/* 1. Display Name & Org / Tag */}
             <div className="grid grid-cols-2 gap-3 pb-1 border-b border-white/5">
               <div>
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</p>
                 <p className="font-bold text-sm truncate mt-1">{profile.display_name || "Not Set"}</p>
               </div>
               <div>
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. No</p>
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Org / Tag</p>
                 <p className="font-bold text-sm truncate mt-1">{profile.reg_no || "Not Set"}</p>
               </div>
             </div>
@@ -221,12 +221,12 @@ export default function ProfileView() {
             </div>
 
             <div className="space-y-1">
-              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Reg. Number</label>
+              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Org / College / Role</label>
               <input
                 type="text"
                 value={tempRegNo}
                 onChange={(e) => setTempRegNo(e.target.value)}
-                placeholder="Registration Number"
+                placeholder="e.g. Google, VIT-AP, Designer"
                 className={`w-full h-10 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
               />
             </div>

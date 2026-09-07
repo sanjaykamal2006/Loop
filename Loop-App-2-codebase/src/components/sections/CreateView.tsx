@@ -6,6 +6,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Users } from "lucide-react";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function CreateView() {
   const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded } = useLoop();
@@ -58,6 +59,7 @@ export default function CreateView() {
   }, [isProfileLoaded, profile.gender, profile.display_name, profile.reg_no, setPendingAction, setShowGenderSelect]);
 
   const createLoop = async () => {
+    triggerHaptic(15);
     const isProfileComplete = Boolean(
       profile.gender && 
       profile.display_name?.trim() && 
@@ -145,13 +147,42 @@ export default function CreateView() {
 
       {/* Destination */}
       <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
+        <div className="flex items-center justify-between ml-1">
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>Destination</label>
+          <span className={`text-[9px] font-bold ${mutedText} opacity-70`}>Quick select</span>
+        </div>
         <input
           value={dest}
           onChange={(e) => setDest(e.target.value)}
           placeholder="Where to?"
           className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
+        {/* Quick Hotspot Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1">
+          {[
+            { label: "✈️ Airport", val: "Airport" },
+            { label: "🚇 Metro", val: "Metro Station" },
+            { label: "🏢 Tech Park", val: "Tech Park / Office" },
+            { label: "🚆 Station", val: "Railway Station" },
+            { label: "🎓 Campus", val: "Campus Main Gate" },
+          ].map((chip) => (
+            <button
+              key={chip.val}
+              type="button"
+              onClick={() => {
+                triggerHaptic(8);
+                setDest(chip.val);
+              }}
+              className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black border transition-all active:scale-95 ${
+                dest === chip.val
+                  ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
+                  : `${cardBg} ${border} ${mutedText} hover:text-white`
+              }`}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Starting Time */}
