@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search } from "lucide-react";
+import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, toggleTheme, fetchLoops, fetchUserMemberships, chatSource } = useLoop();
+  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -145,25 +145,6 @@ export default function AppHeader() {
 
             {showSettingsMenu && (
               <div className={`absolute right-0 top-12 w-56 p-2 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in`}>
-                <div className={`p-1 bg-white/5 border ${border} rounded-full flex items-center w-full my-1`}>
-                  <button
-                    onClick={() => !isDark && toggleTheme()}
-                    className={`flex-1 py-1.5 px-2 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all ${
-                      isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
-                    }`}
-                  >
-                    <Moon size={12} /> Dark
-                  </button>
-                  <button
-                    onClick={() => isDark && toggleTheme()}
-                    className={`flex-1 py-1.5 px-2 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all ${
-                      !isDark ? "bg-[#FFC554] text-black shadow-sm" : mutedText
-                    }`}
-                  >
-                    <Sun size={12} /> Light
-                  </button>
-                </div>
-                
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
