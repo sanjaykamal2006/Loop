@@ -133,7 +133,11 @@ export default function RideDetailsView() {
       ? `${window.location.origin}/?loop=${selectedLoop.id}`
       : `https://loop-demo-app.vercel.app/?loop=${selectedLoop.id}`;
 
-    const text = `🚗 LOOP: ${selectedLoop.start_point || "Anywhere"} ➔ ${selectedLoop.destination}\n⏰ Time: ${formatTime(selectedLoop.departure_time)}\n👥 Seats left: ${Math.max(0, selectedLoop.participants_limit - (loopMembers.length || 1))}/${selectedLoop.participants_limit}${selectedLoop.is_female_only ? "\n🔒 Women Only" : ""}\n👉 Tap to view & join: ${shareUrl}`;
+    const seatsLeft = Math.max(0, selectedLoop.participants_limit - (loopMembers.length || 1));
+    const femaleNote = selectedLoop.is_female_only ? "\nPreference: Female passengers only" : "";
+    const start = selectedLoop.start_point || "VIT-AP Campus";
+
+    const text = `LOOP — Ride to ${selectedLoop.destination}\nFrom: ${start}\nDeparture: ${formatTime(selectedLoop.departure_time)}\nSeats Available: ${seatsLeft} of ${selectedLoop.participants_limit}${femaleNote}\n\nJoin this ride:\n${shareUrl}`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -382,7 +386,7 @@ export default function RideDetailsView() {
                         {phone ? (
                           <>
                             <a
-                              href={`https://wa.me/91${phone}?text=${encodeURIComponent(`Hey ${displayName}! I'm in your LOOP ride to ${selectedLoop?.destination || "our destination"}. Coordinating our pickup!`)}`}
+                              href={`https://wa.me/91${phone}?text=${encodeURIComponent(`Hey ${displayName}, reaching out regarding our LOOP ride to ${selectedLoop?.destination || "our destination"}.`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}

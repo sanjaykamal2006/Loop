@@ -419,10 +419,13 @@ export default function ChatView() {
   const handleShare = async () => {
     const emptySeats = Math.max(0, (selectedLoop?.participants_limit || 4) - members.length);
     const timeStr = formatTime(selectedLoop?.departure_time);
-    const fromStr = selectedLoop?.start_point ? `from ${selectedLoop.start_point}` : "from Campus Main Gate";
-    const femaleTag = selectedLoop?.is_female_only ? " (Girls Only 🌸)" : "";
+    const fromStr = selectedLoop?.start_point || "VIT-AP Campus";
+    const femaleTag = selectedLoop?.is_female_only ? "\nPreference: Female passengers only" : "";
+    const shareUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/?loop=${selectedLoop?.id}`
+      : `https://loop-app-2.vercel.app/?loop=${selectedLoop?.id}`;
 
-    const rawShareMessage = `🚖 *LOOP: Ride to ${selectedLoop?.destination}*${femaleTag}\n⏰ Leaving at: ${timeStr} (${fromStr})\n👥 Seats free: ${emptySeats} of ${selectedLoop?.participants_limit}\n\n👉 Join this ride on LOOP: https://loop-demo-app.vercel.app`;
+    const rawShareMessage = `LOOP — Ride to ${selectedLoop?.destination}\nFrom: ${fromStr}\nDeparture: ${timeStr}\nSeats Available: ${emptySeats} of ${selectedLoop?.participants_limit}${femaleTag}\n\nJoin this ride:\n${shareUrl}`;
 
     if (navigator.share) {
       try {
@@ -435,8 +438,8 @@ export default function ChatView() {
         if (err.name === "AbortError") return;
       }
     }
-    const shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(rawShareMessage)}`;
-    window.open(shareUrl, "_blank");
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(rawShareMessage)}`;
+    window.open(waUrl, "_blank");
   };
 
   return (

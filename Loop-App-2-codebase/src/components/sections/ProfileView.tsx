@@ -158,11 +158,11 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="space-y-2.5 pt-0.5 pb-4">
+    <div className="space-y-3.5 pt-1 pb-6">
       {/* Profile Photo (Compact & Centered) */}
-      <div className="flex flex-col items-center justify-center pt-0.5">
+      <div className="flex flex-col items-center justify-center pt-1 pb-1">
         <div className="relative group">
-          <div className={`w-18 h-18 sm:w-20 sm:h-20 rounded-[22px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-md overflow-hidden`}>
+          <div className={`w-20 h-20 sm:w-22 sm:h-22 rounded-[26px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-md overflow-hidden`}>
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -178,7 +178,7 @@ export default function ProfileView() {
 
           <label
             htmlFor="avatar-upload"
-            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FFC554] text-black border-2 border-black flex items-center justify-center shadow-lg cursor-pointer active:scale-90 transition-transform"
+            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#FFC554] text-black border-2 border-black flex items-center justify-center shadow-lg cursor-pointer active:scale-90 transition-transform"
           >
             <Camera size={12} strokeWidth={2.5} />
             <input
@@ -194,7 +194,7 @@ export default function ProfileView() {
       </div>
 
       {/* Identity Card - Compact & Balanced */}
-      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[24px] space-y-2.5 shadow-sm`}>
+      <div className={`p-4 sm:p-4.5 ${cardBg} border ${border} rounded-[26px] space-y-3 shadow-sm`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
@@ -224,9 +224,9 @@ export default function ProfileView() {
         </div>
 
         {!isEditingProfile ? (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {/* 1. Display Name & Student Reg. No */}
-            <div className="grid grid-cols-2 gap-2 pb-1.5 border-b border-white/5">
+            <div className="grid grid-cols-2 gap-3 pb-2 border-b border-white/5">
               <div>
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</p>
                 <p className="font-bold text-xs truncate mt-0.5">{profile.display_name || "Not Set"}</p>
@@ -245,7 +245,7 @@ export default function ProfileView() {
             </div>
 
             {/* 2. Direct Contact (WhatsApp / Mobile) - NO BLINKING DOT */}
-            <div className="pb-1.5 border-b border-white/5">
+            <div className="pb-2 border-b border-white/5">
               <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Phone / WhatsApp (For Confirmed Rides)</p>
               <div className="mt-0.5">
                 {profile.phone_number ? (
@@ -348,7 +348,7 @@ export default function ProfileView() {
       </div>
 
       {/* Gender Safety Setting (Compact Row) */}
-      <div className={`p-2.5 px-4 ${cardBg} border ${border} rounded-[20px] flex items-center justify-between shadow-sm`}>
+      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] flex items-center justify-between shadow-sm`}>
         <div className="space-y-0.5">
           <p className={`text-[9px] font-black ${mutedText} uppercase tracking-wider`}>Gender</p>
           <p className="text-xs font-bold capitalize">{profile.gender || "Not set"}</p>
@@ -356,7 +356,7 @@ export default function ProfileView() {
         <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-xl border border-white/10">
           <button
             onClick={() => updateProfile({ gender: "male" })}
-            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
               profile.gender === "male"
                 ? "bg-[#FFC554] text-black shadow-sm"
                 : "text-zinc-400 hover:text-white"
@@ -382,7 +382,7 @@ export default function ProfileView() {
         {/* Past Loops */}
         <button
           onClick={() => setView("past-loops")}
-          className="w-full px-4 py-2 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+          className="w-full px-4 py-2.5 sm:py-3 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
@@ -408,7 +408,7 @@ export default function ProfileView() {
         </button>
 
         {/* Ride Notifications */}
-        <div className="w-full px-4 py-1.5 flex items-center justify-between">
+        <div className="w-full px-4 py-2 sm:py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
               className={`w-6 h-6 rounded-lg ${
@@ -473,7 +473,7 @@ export default function ProfileView() {
       <div className="flex gap-2 pt-0.5">
         <button
           onClick={handleSignOut}
-          className={`flex-1 py-2 ${cardBg} border ${border} rounded-[16px] text-red-500 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
+          className={`flex-1 py-2.5 ${cardBg} border ${border} rounded-[18px] text-red-500 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
         >
           Sign Out
         </button>
