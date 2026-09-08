@@ -30,6 +30,8 @@ export interface Profile {
   reg_no?: string;
   avatar_url?: string;
   bio?: string;
+  phone_number?: string;
+  is_student_verified?: boolean;
 }
 
 export interface Message {
@@ -40,7 +42,7 @@ export interface Message {
   created_at: string;
   edited_at?: string;
   reactions?: Record<string, string[]>;
-  profiles?: { display_name: string; avatar_url?: string; reg_no?: string; gender?: string; bio?: string };
+  profiles?: { display_name: string; avatar_url?: string; reg_no?: string; gender?: string; bio?: string; phone_number?: string; is_student_verified?: boolean };
 }
 
 export interface LoopMember {
@@ -51,6 +53,8 @@ export interface LoopMember {
     avatar_url?: string;
     reg_no?: string;
     bio?: string;
+    phone_number?: string;
+    is_student_verified?: boolean;
   } | null;
 }
 

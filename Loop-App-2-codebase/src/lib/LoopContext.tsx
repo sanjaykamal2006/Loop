@@ -6,6 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
 import type { View, Loop, Profile, ThemeClasses } from "@/lib/types";
 import { registerServiceWorker, sendLocalNotification } from "./notifications";
+import { parseStudentEmail } from "./studentParser";
 
 interface LoopContextValue {
   // Session
@@ -183,19 +184,34 @@ export function LoopProvider({ session, children }: { session: Session; children
   const fetchProfile = useCallback(async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("display_name, theme, gender, reg_no, avatar_url, bio")
+      .select("display_name, theme, gender, reg_no, avatar_url, bio, phone_number, is_student_verified")
       .eq("id", session.user.id)
       .single();
 
     if (error && error.code === "PGRST116") {
-      const defaultName = session.user.email?.split("@")[0] || "User";
+      const parsed = parseStudentEmail(session.user.email || "");
+      const defaultName = parsed.displayName || session.user.email?.split("@")[0] || "User";
+      const defaultRegNo = parsed.regNo || "";
+      const isStudent = parsed.isStudentDomain;
+
       await supabase.from("profiles").upsert({
         id: session.user.id,
         display_name: defaultName,
+        reg_no: defaultRegNo,
+        is_student_verified: isStudent,
         theme: "dark",
         updated_at: new Date().toISOString(),
       });
-      const newProf: Profile = { display_name: defaultName, theme: "dark", gender: undefined, reg_no: "", avatar_url: undefined, bio: "" };
+      const newProf: Profile = {
+        display_name: defaultName,
+        theme: "dark",
+        gender: undefined,
+        reg_no: defaultRegNo,
+        avatar_url: undefined,
+        bio: "",
+        phone_number: "",
+        is_student_verified: isStudent,
+      };
       setProfile(newProf);
       try {
         localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
@@ -205,14 +221,34 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
 
     if (!error && data) {
-      const name = data.display_name || session.user.email?.split("@")[0] || "User";
+      let name = data.display_name;
+      let regNo = data.reg_no || "";
+      let isStudent = data.is_student_verified;
+
+      // If user signed up with college email but reg_no or clean name isn't set yet, auto-populate it
+      if ((!regNo || !name || name.includes("@")) && session.user.email) {
+        const parsed = parseStudentEmail(session.user.email);
+        if (!regNo && parsed.regNo) regNo = parsed.regNo;
+        if ((!name || name.includes("@")) && parsed.displayName) name = parsed.displayName;
+        if (isStudent === undefined || isStudent === null) isStudent = parsed.isStudentDomain;
+
+        supabase.from("profiles").update({
+          display_name: name,
+          reg_no: regNo,
+          is_student_verified: isStudent,
+          updated_at: new Date().toISOString(),
+        }).eq("id", session.user.id).then();
+      }
+
       const newProf: Profile = {
-        display_name: name,
+        display_name: name || session.user.email?.split("@")[0] || "User",
         theme: (data.theme as "dark" | "light") || "dark",
         gender: data.gender,
-        reg_no: data.reg_no || "",
+        reg_no: regNo,
         avatar_url: data.avatar_url,
         bio: data.bio || "",
+        phone_number: data.phone_number || "",
+        is_student_verified: Boolean(isStudent),
       };
       setProfile(newProf);
       try {
@@ -239,7 +275,12 @@ export function LoopProvider({ session, children }: { session: Session; children
         } catch {}
         return next;
       });
-      if (updates.display_name !== undefined || updates.reg_no !== undefined || updates.bio !== undefined) {
+      if (
+        updates.display_name !== undefined ||
+        updates.reg_no !== undefined ||
+        updates.bio !== undefined ||
+        updates.phone_number !== undefined
+      ) {
         toast.success("Profile updated!");
       }
       return true;

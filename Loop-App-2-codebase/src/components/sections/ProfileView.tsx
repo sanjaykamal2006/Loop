@@ -15,6 +15,7 @@ export default function ProfileView() {
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
   const [tempBio, setTempBio] = useState(profile.bio || "");
+  const [tempPhone, setTempPhone] = useState(profile.phone_number || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
@@ -81,7 +82,8 @@ export default function ProfileView() {
     setTempName(profile.display_name);
     setTempRegNo(profile.reg_no || "");
     setTempBio(profile.bio || "");
-  }, [profile.display_name, profile.reg_no, profile.bio]);
+    setTempPhone(profile.phone_number || "");
+  }, [profile.display_name, profile.reg_no, profile.bio, profile.phone_number]);
 
   React.useEffect(() => {
     const handlePastLoops = () => {
@@ -103,10 +105,17 @@ export default function ProfileView() {
     if (!tempName.trim()) return toast.error("Display name cannot be empty");
     if (!tempRegNo.trim()) return toast.error("Org / College / Tag cannot be empty");
 
+    let cleanPhone = tempPhone.trim().replace(/[^\d+]/g, "");
+    if (cleanPhone.startsWith("+91")) cleanPhone = cleanPhone.slice(3);
+    if (cleanPhone && cleanPhone.length !== 10) {
+      return toast.error("Please enter a valid 10-digit mobile/WhatsApp number");
+    }
+
     const success = await updateProfile({
       display_name: tempName.trim(),
       reg_no: tempRegNo.trim(),
       bio: tempBio.trim(),
+      phone_number: cleanPhone,
     });
 
     if (success) {
@@ -224,19 +233,43 @@ export default function ProfileView() {
 
         {!isEditingProfile ? (
           <div className="space-y-3.5">
-            {/* 1. Display Name & Org / Tag */}
+            {/* 1. Display Name & Student Reg. No */}
             <div className="grid grid-cols-2 gap-3 pb-1 border-b border-white/5">
               <div>
                 <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Display Name</p>
                 <p className="font-bold text-sm truncate mt-1">{profile.display_name || "Not Set"}</p>
               </div>
               <div>
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Org / Tag</p>
+                <div className="flex items-center gap-1.5">
+                  <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Student Reg. No</p>
+                  {profile.is_student_verified && (
+                    <span className="text-[8px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-black uppercase tracking-wider">
+                      Verified 🎓
+                    </span>
+                  )}
+                </div>
                 <p className="font-bold text-sm truncate mt-1">{profile.reg_no || "Not Set"}</p>
               </div>
             </div>
 
-            {/* 2. Bio */}
+            {/* 2. Direct Contact (WhatsApp / Mobile) */}
+            <div className="pb-1 border-b border-white/5">
+              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Phone / WhatsApp (For Confirmed Rides)</p>
+              <div className="flex items-center gap-2 mt-1">
+                {profile.phone_number ? (
+                  <span className="font-bold text-xs text-emerald-400 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    +91 {profile.phone_number}
+                  </span>
+                ) : (
+                  <span className={`text-xs ${mutedText} italic opacity-60`}>
+                    Not added yet — tap Edit to add WhatsApp for easy pickup coordination
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 3. Bio */}
             <div className="pb-1 border-b border-white/5">
               <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Bio</p>
               <p className={`text-xs font-medium mt-1 leading-relaxed ${profile.bio?.trim() ? "opacity-80" : `${mutedText} opacity-40 italic`}`}>
@@ -244,10 +277,17 @@ export default function ProfileView() {
               </p>
             </div>
 
-            {/* 3. Account (Email) at the very LAST */}
-            <div>
-              <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Account (Email)</p>
-              <p className="font-bold text-xs truncate mt-1 opacity-90">{session.user.email}</p>
+            {/* 4. Account (Email) at the very LAST */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>College Email</p>
+                <p className="font-bold text-xs truncate mt-1 opacity-90">{session.user.email}</p>
+              </div>
+              {profile.is_student_verified && (
+                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                  Campus ID Verified
+                </span>
+              )}
             </div>
           </div>
         ) : (
@@ -264,14 +304,45 @@ export default function ProfileView() {
             </div>
 
             <div className="space-y-1">
-              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Org / College / Role</label>
+              <div className="flex items-center justify-between">
+                <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>
+                  {profile.is_student_verified ? "Student Roll No. (Locked for Safety 🔒)" : "Org / College / Roll No."}
+                </label>
+              </div>
               <input
                 type="text"
                 value={tempRegNo}
+                disabled={Boolean(profile.is_student_verified && profile.reg_no)}
                 onChange={(e) => setTempRegNo(e.target.value)}
-                placeholder="e.g. Google, VIT-AP, Designer"
-                className={`w-full h-10 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+                placeholder="e.g. 24MIC7119, 21BCE1234"
+                className={`w-full h-10 px-3.5 rounded-xl ${
+                  profile.is_student_verified && profile.reg_no
+                    ? "bg-white/5 opacity-60 cursor-not-allowed"
+                    : isDark ? "bg-white/5" : "bg-black/5"
+                } border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>
+                WhatsApp / Mobile No. (10 Digits)
+              </label>
+              <div className="flex items-center gap-2">
+                <span className={`h-10 px-3 flex items-center justify-center rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold text-zinc-400`}>
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={tempPhone}
+                  onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ""))}
+                  placeholder="9876543210"
+                  className={`flex-1 h-10 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-bold outline-none focus:border-[#FFC554]`}
+                />
+              </div>
+              <p className={`text-[9px] font-medium ${mutedText} opacity-70`}>
+                Only shared with confirmed co-passengers in your rides for pickups.
+              </p>
             </div>
 
             <div className="space-y-1">

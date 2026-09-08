@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -78,7 +78,7 @@ export default function RideDetailsView() {
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
       .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio)")
+      .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio, phone_number, is_student_verified)")
       .eq("loop_id", loopId);
 
     if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
@@ -327,6 +327,9 @@ export default function RideDetailsView() {
               const regNo = (isMe && profile.reg_no) ? profile.reg_no : member.profiles?.reg_no;
               const gender = (isMe && profile.gender) ? profile.gender : member.profiles?.gender;
               const bio = (isMe && profile.bio) ? profile.bio : member.profiles?.bio;
+              const phone = (isMe && profile.phone_number) ? profile.phone_number : member.profiles?.phone_number;
+              const isStudentVerified = (isMe && profile.is_student_verified) ? profile.is_student_verified : member.profiles?.is_student_verified;
+              const canDirectContact = (isJoined || isCreator) && !isMe;
 
               return (
                 <div
@@ -342,6 +345,8 @@ export default function RideDetailsView() {
                       reg_no: regNo,
                       gender: gender,
                       bio: bio,
+                      phone_number: phone,
+                      is_student_verified: isStudentVerified,
                     })}
                   >
                     {avatar ? (
@@ -353,19 +358,68 @@ export default function RideDetailsView() {
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-sm font-bold truncate">{displayName}</span>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-sm font-bold truncate">{displayName}</span>
+                        {isStudentVerified && (
+                          <span title="Campus Verified Student" className="shrink-0 text-emerald-400">
+                            <ShieldCheck size={13} strokeWidth={2.5} />
+                          </span>
+                        )}
+                      </div>
                       {regNo && (
-                        <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[65px]">
+                        <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[90px]">
                           {regNo}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Direct Contact Actions for Confirmed Ride Participants */}
+                    {canDirectContact && !isPast && (
+                      <div className="flex items-center gap-1.5 mr-0.5">
+                        {phone ? (
+                          <>
+                            <a
+                              href={`https://wa.me/91${phone}?text=${encodeURIComponent(`Hey ${displayName}! I'm in your LOOP ride to ${selectedLoop?.destination || "our destination"}. Coordinating our pickup!`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="Message on WhatsApp"
+                              className="w-7 h-7 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
+                            >
+                              <MessageCircle size={13} strokeWidth={2.5} />
+                            </a>
+                            <a
+                              href={`tel:+91${phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="Call passenger"
+                              className="w-7 h-7 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
+                            >
+                              <Phone size={13} strokeWidth={2.5} />
+                            </a>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toast.info("Phone not shared. Coordinate via in-app chat!");
+                            }}
+                            title="Phone not shared"
+                            className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-zinc-500 flex items-center justify-center active:scale-90 opacity-60"
+                          >
+                            <Phone size={12} strokeWidth={2} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <span className={`text-[10px] font-black ${mutedText} capitalize`}>
                       {gender || "—"}
                     </span>
+
                     {isCreator && !isPast && !isMe && (
                       <button 
                         onClick={(e) => {
