@@ -19,9 +19,7 @@ export default function TrustedVehiclesView() {
   const [isAdding, setIsAdding] = useState(false);
   const [showFaresModal, setShowFaresModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [revealedPhones, setRevealedPhones] = useState<Set<string>>(new Set());
 
-  const maskPhone = (phone: string) => phone.length > 4 ? phone.substring(0, 2) + 'XXX XXX' + phone.slice(-2) : '****';
 
   // Form State
   const [name, setName] = useState("");
@@ -155,53 +153,73 @@ export default function TrustedVehiclesView() {
             </button>
           </div>
         ) : (
-          vehicles.map(v => (
-            <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] flex items-center gap-4 shadow-sm hover:border-[#FFC554]/30 transition-colors`}>
-              <div className="w-12 h-12 shrink-0 bg-[#FFC554]/10 rounded-2xl flex items-center justify-center text-[#FFC554]">
-                {renderIcon(v.vehicle_type, "w-7 h-7")}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <a href={`tel:${v.phone_number}`} className={`flex items-center gap-1.5 text-xs font-bold ${mutedText} hover:text-[#FFC554]`}>
-                    <Phone size={10} /> 
-                    {revealedPhones.has(v.id) ? v.phone_number : maskPhone(v.phone_number)}
-                  </a>
-                  <button 
-                    onClick={() => {
-                      const next = new Set(revealedPhones);
-                      if (next.has(v.id)) next.delete(v.id);
-                      else next.add(v.id);
-                      setRevealedPhones(next);
-                    }}
-                    className="text-[10px] text-[#FFC554] font-black uppercase tracking-wider"
+          vehicles.map(v => {
+            const rawDigits = (v.phone_number || "").replace(/\D/g, "");
+            const phoneDigits = rawDigits.length >= 10 ? rawDigits.slice(-10) : rawDigits;
+            const displayPhone = phoneDigits.length === 10
+              ? `+91 ${phoneDigits.slice(0, 5)} ${phoneDigits.slice(5)}`
+              : v.phone_number;
+            const isOwner = v.user_id === session.user.id;
+
+            return (
+              <div key={v.id} className={`p-4 ${cardBg} border ${border} rounded-[24px] flex items-center gap-3.5 shadow-sm hover:border-[#FFC554]/30 transition-colors`}>
+                {/* Vehicle Icon */}
+                <div className="w-12 h-12 shrink-0 bg-[#FFC554]/10 rounded-2xl flex items-center justify-center text-[#FFC554]">
+                  {renderIcon(v.vehicle_type, "w-7 h-7")}
+                </div>
+
+                {/* Driver Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-md shrink-0">
+                      {v.vehicle_type === "share_auto" ? "Share Auto" : v.vehicle_type || "Auto"}
+                    </span>
+                  </div>
+
+                  <p className={`text-xs font-bold ${mutedText} mt-0.5 flex items-center gap-1.5`}>
+                    <Phone size={11} className="text-[#FFC554] shrink-0" />
+                    <span>{displayPhone}</span>
+                  </p>
+
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {v.profiles?.avatar_url ? (
+                      <img src={v.profiles.avatar_url} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex items-center justify-center text-[7px] font-bold">
+                        {v.profiles?.display_name?.substring(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                    <p className="text-[9px] uppercase tracking-wider font-bold opacity-60 truncate">
+                      Added by {isOwner ? "You" : v.profiles?.display_name || "Student"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direct Dialer Call Action Button + Delete (if added by user) */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={`tel:+91${phoneDigits}`}
+                    aria-label={`Call ${v.driver_name}`}
+                    className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md hover:brightness-105 transition-all"
                   >
-                    {revealedPhones.has(v.id) ? "Hide" : "Show"}
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 mt-2">
-                  {v.profiles?.avatar_url ? (
-                    <img src={v.profiles.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[8px] font-bold">
-                      {v.profiles?.display_name?.substring(0, 1).toUpperCase()}
-                    </div>
+                    <Phone size={13} strokeWidth={2.5} />
+                    <span>Call</span>
+                  </a>
+
+                  {isOwner && (
+                    <button 
+                      onClick={() => handleDelete(v.id)}
+                      aria-label="Delete trusted vehicle"
+                      className={`w-8 h-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} text-zinc-400 hover:text-red-400 flex items-center justify-center active:scale-90 transition-colors`}
+                    >
+                      <X size={14} strokeWidth={2.5} />
+                    </button>
                   )}
-                  <p className={`text-[9px] uppercase tracking-wider font-bold opacity-60`}>Added by {v.user_id === session.user.id ? "You" : v.profiles?.display_name || "Student"}</p>
                 </div>
               </div>
-              
-              {v.user_id === session.user.id && (
-                <button 
-                  onClick={() => handleDelete(v.id)}
-                  aria-label="Delete trusted vehicle"
-                  className={`w-8 h-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} text-zinc-400 hover:text-red-400 flex items-center justify-center shrink-0 active:scale-90 transition-colors`}
-                >
-                  <X size={14} strokeWidth={2.5} />
-                </button>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
