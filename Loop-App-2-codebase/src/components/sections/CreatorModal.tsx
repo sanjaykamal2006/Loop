@@ -9,7 +9,7 @@ import { toast } from "@/components/ui/NativeToast";
 export const CREATOR_LINKS = {
   instagram: {
     title: "Instagram",
-    handle: "@sanjaykamal_",
+    handle: "@_an_droid_here_",
     url: "https://insta.openinapp.co/uekq6",
     color: "text-pink-400",
     bg: "bg-pink-500/15",
