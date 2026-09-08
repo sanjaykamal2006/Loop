@@ -59,12 +59,10 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
       return;
     }
 
-    if (!isLogin) {
-      const allowedCheck = isAllowedStudentEmail(email);
-      if (!allowedCheck.allowed) {
-        toast.error(allowedCheck.reason || "Please use your official college student email.");
-        return;
-      }
+    const allowedCheck = isAllowedStudentEmail(email);
+    if (!allowedCheck.allowed) {
+      toast.error(allowedCheck.reason || "Please use your official VIT-AP student email (name.rollno@vitapstudent.ac.in).");
+      return;
     }
 
     setIsLoading(true);
@@ -331,14 +329,14 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2.5">
               <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
-                {isLogin ? "Email Address" : "VIT-AP Student Email"}
+                {isLogin ? "VIT-AP Student / Dev Email" : "VIT-AP Student Email"}
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={isLogin ? "name@email.com" : "name.rollno@vitapstudent.ac.in"}
+                placeholder="name.rollno@vitapstudent.ac.in"
                 className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-base font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
               />
               {!isLogin && (
@@ -375,6 +373,11 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                     onClick={async () => {
                       if (!email?.trim()) {
                         toast.error("Please enter your email first");
+                        return;
+                      }
+                      const allowedCheck = isAllowedStudentEmail(email);
+                      if (!allowedCheck.allowed) {
+                        toast.error("Please enter your official VIT-AP student email.");
                         return;
                       }
                       setIsLoading(true);
