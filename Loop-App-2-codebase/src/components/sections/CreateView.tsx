@@ -195,7 +195,7 @@ export default function CreateView() {
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <Calendar size={16} className={travelDate ? "text-[#FFC554]" : mutedText} />
-            <span className={`text-xs font-bold truncate ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
+            <span className={`text-xs font-bold ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
               {travelDate ? formatDDMMYYYY(travelDate) : "Pick a Date (DD/MM/YYYY)"}
             </span>
           </div>

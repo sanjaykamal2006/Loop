@@ -156,33 +156,41 @@ export default function HomeView() {
               )}
             </div>
 
-            {/* Route Center Block (Minimal, Clean, Easy to understand) */}
-            <div className="ml-3.5 flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
-              <span className={`font-bold text-[14px] sm:text-[15px] ${isDark ? "text-white" : "text-zinc-900"} truncate`}>
-                {loop.start_point || "Campus"}
-              </span>
-              <span className="text-zinc-400 font-bold text-xs shrink-0 mx-0.5">→</span>
-              <span className={`font-bold text-[14px] sm:text-[15px] ${isDark ? "text-white" : "text-zinc-900"} truncate`}>
-                {loop.destination}
-              </span>
-              {loop.is_female_only && (
-                <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0 ml-0.5">
-                  Female
+            {/* Route & Info Block (Zero truncation, no dots, full text wraps cleanly) */}
+            <div className="ml-3 sm:ml-3.5 flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
+                  {loop.start_point || "Campus"}
                 </span>
-              )}
-              {isJoined && (
-                <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-full shrink-0 ml-0.5">
-                  Joined
+                <span className="text-[#FFC554] font-bold text-xs shrink-0 mx-0.5">→</span>
+                <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
+                  {loop.destination}
                 </span>
+              </div>
+
+              {/* Badges sub-row: Never steals horizontal width from route text */}
+              {(isJoined || loop.is_female_only) && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  {isJoined && (
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-full shrink-0">
+                      Joined
+                    </span>
+                  )}
+                  {loop.is_female_only && (
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0">
+                      Female
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 
             {/* Subtle Vertical Divider */}
-            <div className={`w-px h-6 ${isDark ? "bg-white/10" : "bg-black/10"} shrink-0 mx-3`} />
+            <div className={`w-px h-7 ${isDark ? "bg-white/10" : "bg-black/10"} shrink-0 mx-2.5 sm:mx-3`} />
 
             {/* Time Block */}
             <div className="shrink-0 flex items-center">
-              <span className={`font-bold text-[14px] sm:text-[15px] tracking-tight ${isDark ? "text-white" : "text-zinc-900"} whitespace-nowrap`}>
+              <span className={`font-bold text-[13px] sm:text-[14px] tracking-tight ${isDark ? "text-white" : "text-zinc-900"} whitespace-nowrap`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>

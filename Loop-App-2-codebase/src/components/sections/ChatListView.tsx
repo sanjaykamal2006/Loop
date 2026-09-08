@@ -303,7 +303,7 @@ export default function ChatListView() {
                 {/* Destination & Time */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-black text-xs sm:text-[13px] uppercase tracking-tight truncate">
+                    <h3 className="font-black text-xs sm:text-[13px] uppercase tracking-tight leading-snug break-words">
                       {loop.destination}
                     </h3>
                     {isUnread && (

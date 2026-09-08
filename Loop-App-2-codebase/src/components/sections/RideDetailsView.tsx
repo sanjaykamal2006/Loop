@@ -367,7 +367,7 @@ export default function RideDetailsView() {
                     )}
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-sm font-bold truncate">{displayName}</span>
+                        <span className="text-sm font-bold leading-tight break-words">{displayName}</span>
                         {isStudentVerified && (
                           <span title="Campus Verified Student" className="shrink-0 text-emerald-400">
                             <ShieldCheck size={13} strokeWidth={2.5} />
