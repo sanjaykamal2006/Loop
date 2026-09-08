@@ -385,7 +385,7 @@ export default function RideDetailsView() {
                   <div className="flex items-center gap-2 shrink-0">
                     {/* Direct Contact Actions for Confirmed Ride Participants */}
                     {canDirectContact && !isPast && (
-                      <div className="flex items-center gap-1.5 mr-0.5">
+                      <div className="flex items-center gap-2 mr-3">
                         {phone ? (
                           <>
                             <a
@@ -394,17 +394,17 @@ export default function RideDetailsView() {
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               aria-label="Message on WhatsApp"
-                              className="w-7 h-7 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
+                              className="w-8 h-8 rounded-full bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
                             >
-                              <MessageCircle size={13} strokeWidth={2.5} />
+                              <MessageCircle size={15} strokeWidth={2.5} />
                             </a>
                             <a
                               href={`tel:+91${phone}`}
                               onClick={(e) => e.stopPropagation()}
                               aria-label="Call passenger"
-                              className="w-7 h-7 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
+                              className="w-8 h-8 rounded-full bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
                             >
-                              <Phone size={13} strokeWidth={2.5} />
+                              <Phone size={15} strokeWidth={2.5} />
                             </a>
                           </>
                         ) : (
@@ -415,9 +415,9 @@ export default function RideDetailsView() {
                               toast.info("Phone not shared. Coordinate via in-app chat!");
                             }}
                             title="Phone not shared"
-                            className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-zinc-500 flex items-center justify-center active:scale-90 opacity-60"
+                            className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-zinc-500 flex items-center justify-center active:scale-90 opacity-60"
                           >
-                            <Phone size={12} strokeWidth={2} />
+                            <Phone size={14} strokeWidth={2} />
                           </button>
                         )}
                       </div>
@@ -434,9 +434,9 @@ export default function RideDetailsView() {
                           removeMember(member.user_id);
                         }}
                         aria-label="Remove member"
-                        className="w-6 h-6 rounded-md bg-red-500/10 text-red-500 flex items-center justify-center active:scale-90"
+                        className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center active:scale-90 ml-1 transition-colors"
                       >
-                        <UserMinus size={12} strokeWidth={3} />
+                        <UserMinus size={13} strokeWidth={2.5} />
                       </button>
                     )}
                   </div>

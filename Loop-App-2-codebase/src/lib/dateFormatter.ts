@@ -92,31 +92,16 @@ export function formatDepartureFull(isoString?: string | null): string {
   if (!isoString) return "";
   try {
     const d = new Date(isoString);
-    const now = new Date();
-    const isToday =
-      d.getDate() === now.getDate() &&
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear();
-
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isTomorrow =
-      d.getDate() === tomorrow.getDate() &&
-      d.getMonth() === tomorrow.getMonth() &&
-      d.getFullYear() === tomorrow.getFullYear();
-
     const timeStr = d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
 
-    if (isToday) return `Today • ${timeStr}`;
-    if (isTomorrow) return `Tomorrow • ${timeStr}`;
-
     const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
     const monthDay = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    return `${dayName}, ${monthDay} • ${timeStr}`;
+    // MONTH DATE, DAY, TIME FORMAT (e.g. "Sep 10, Thu • 12:30 PM")
+    return `${monthDay}, ${dayName} • ${timeStr}`;
   } catch {
     return "";
   }
