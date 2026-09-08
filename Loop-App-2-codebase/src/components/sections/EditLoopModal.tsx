@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { Loop } from "@/lib/types";
 import { formatLocation } from "@/lib/locationFormatter";
 import { X, Clock, MapPin, Edit3, Calendar } from "lucide-react";
-import { getLocalTodayStr, getLocalTomorrowStr, formatShortDate, buildDepartureDate, formatDepartureFull } from "@/lib/dateFormatter";
+import { getLocalTodayStr, buildDepartureDate, formatDepartureFull, formatDDMMYYYY } from "@/lib/dateFormatter";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -33,8 +33,7 @@ export default function EditLoopModal({
   const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
-  const tomorrowStr = getLocalTomorrowStr();
-  const [travelDate, setTravelDate] = useState(todayStr);
+  const [travelDate, setTravelDate] = useState("");
   const [limit, setLimit] = useState(loop.participants_limit || 4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(Boolean(loop.is_female_only));
   const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">(loop.vehicle_type || "bike");
@@ -251,53 +250,32 @@ export default function EditLoopModal({
           <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
             <Calendar size={11} className="text-[#FFC554]" /> Date of Travel
           </label>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => setTravelDate(todayStr)}
-              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
-                travelDate === todayStr
-                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                  : `${bg} ${border} ${mutedText}`
-              }`}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => setTravelDate(tomorrowStr)}
-              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
-                travelDate === tomorrowStr
-                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                  : `${bg} ${border} ${mutedText}`
-              }`}
-            >
-              Tomorrow
-            </button>
-            <label
-              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 relative overflow-hidden ${
-                travelDate !== todayStr && travelDate !== tomorrowStr
-                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                  : `${bg} ${border} ${mutedText}`
-              }`}
-            >
-              <Calendar size={12} strokeWidth={2.5} />
-              <span className="truncate">
-                {travelDate !== todayStr && travelDate !== tomorrowStr
-                  ? formatShortDate(travelDate)
-                  : "Pick Date"}
+          <label
+            className={`w-full h-11 ${bg} border ${
+              travelDate ? "border-[#FFC554]" : border
+            } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Calendar size={15} className={travelDate ? "text-[#FFC554]" : mutedText} />
+              <span className={`text-xs font-bold truncate ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
+                {travelDate ? formatDDMMYYYY(travelDate) : "Pick a Date (DD/MM/YYYY)"}
               </span>
-              <input
-                type="date"
-                min={todayStr}
-                value={travelDate}
-                onChange={(e) => {
-                  if (e.target.value) setTravelDate(e.target.value);
-                }}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              />
-            </label>
-          </div>
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+              travelDate
+                ? "bg-[#FFC554] text-black shadow-sm"
+                : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+            }`}>
+              {travelDate ? "Change" : "Select"}
+            </span>
+            <input
+              type="date"
+              min={todayStr}
+              value={travelDate}
+              onChange={(e) => setTravelDate(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </label>
         </div>
 
         {/* Departure Time */}

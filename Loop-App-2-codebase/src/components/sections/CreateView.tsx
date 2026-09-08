@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Users, Calendar } from "lucide-react";
-import { getLocalTodayStr, getLocalTomorrowStr, formatShortDate, buildDepartureDate } from "@/lib/dateFormatter";
+import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
@@ -20,8 +20,7 @@ export default function CreateView() {
   const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
-  const tomorrowStr = getLocalTomorrowStr();
-  const [travelDate, setTravelDate] = useState(todayStr);
+  const [travelDate, setTravelDate] = useState("");
   const [limit, setLimit] = useState(4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
@@ -84,12 +83,17 @@ export default function CreateView() {
     if (isCreatingLoop) return;
 
     setIsCreatingLoop(true);
+    if (!travelDate) {
+      setIsCreatingLoop(false);
+      return toast.error("Date of Travel is required");
+    }
+
     const departure = buildDepartureDate(travelDate, hour, minute, ampm);
 
     // If user selected Today and the time has already passed
     if (travelDate === todayStr && departure.getTime() < Date.now() - 5 * 60 * 1000) {
       setIsCreatingLoop(false);
-      return toast.error("Departure time has already passed for today. Select Tomorrow or a future date.");
+      return toast.error("Departure time has already passed for today. Please pick a future time or date.");
     }
 
     const expiresAt = new Date(departure);
@@ -125,7 +129,7 @@ export default function CreateView() {
         setDest("");
         setHour("");
         setMinute("");
-        setTravelDate(todayStr);
+        setTravelDate("");
         setIsDriver(false);
         setView("home");
         fetchLoops();
@@ -167,53 +171,32 @@ export default function CreateView() {
       {/* Date of Travel */}
       <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Date of Travel</label>
-        <div className="grid grid-cols-3 gap-1.5">
-          <button
-            type="button"
-            onClick={() => setTravelDate(todayStr)}
-            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
-              travelDate === todayStr
-                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                : `${cardBg} ${border} ${mutedText}`
-            }`}
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            onClick={() => setTravelDate(tomorrowStr)}
-            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
-              travelDate === tomorrowStr
-                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                : `${cardBg} ${border} ${mutedText}`
-            }`}
-          >
-            Tomorrow
-          </button>
-          <label
-            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 relative overflow-hidden ${
-              travelDate !== todayStr && travelDate !== tomorrowStr
-                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                : `${cardBg} ${border} ${mutedText}`
-            }`}
-          >
-            <Calendar size={13} strokeWidth={2.5} />
-            <span className="truncate">
-              {travelDate !== todayStr && travelDate !== tomorrowStr
-                ? formatShortDate(travelDate)
-                : "Pick Date"}
+        <label
+          className={`w-full h-11 ${cardBg} border ${
+            travelDate ? "border-[#FFC554] text-white" : `${border} ${mutedText}`
+          } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Calendar size={16} className={travelDate ? "text-[#FFC554]" : mutedText} />
+            <span className={`text-xs font-bold truncate ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
+              {travelDate ? formatDDMMYYYY(travelDate) : "Pick a Date (DD/MM/YYYY)"}
             </span>
-            <input
-              type="date"
-              min={todayStr}
-              value={travelDate}
-              onChange={(e) => {
-                if (e.target.value) setTravelDate(e.target.value);
-              }}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-          </label>
-        </div>
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+            travelDate
+              ? "bg-[#FFC554] text-black shadow-sm"
+              : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+          }`}>
+            {travelDate ? "Change" : "Select"}
+          </span>
+          <input
+            type="date"
+            min={todayStr}
+            value={travelDate}
+            onChange={(e) => setTravelDate(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          />
+        </label>
       </div>
 
       {/* Starting Time */}

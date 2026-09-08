@@ -121,3 +121,24 @@ export function formatDepartureFull(isoString?: string | null): string {
     return "";
   }
 }
+
+/**
+ * Formats YYYY-MM-DD or ISO string to DD/MM/YYYY
+ */
+export function formatDDMMYYYY(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  try {
+    const parts = dateStr.split("-");
+    if (parts.length === 3 && parts[0].length === 4) {
+      const [y, m, d] = parts;
+      return `${d.slice(0, 2).padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
+    }
+    const date = new Date(dateStr);
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  } catch {
+    return dateStr || "";
+  }
+}
