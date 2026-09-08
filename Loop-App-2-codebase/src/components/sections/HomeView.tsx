@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
 import { getDepartureDateBadge } from "@/lib/dateFormatter";
-import { Users, Clock, MapPin, Search, X } from "lucide-react";
+import { Users, Clock, MapPin, Search, X, CarFront } from "lucide-react";
 import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -131,9 +131,7 @@ export default function HomeView() {
       )}
 
       {feedLoops.map((loop) => {
-        const isFull = (loop.member_count || 0) >= loop.participants_limit;
         const isJoined = userJoinedLoops.includes(loop.id);
-        const creatorName = userLoops.includes(loop.id) ? "You" : loop.creator?.display_name;
 
         return (
           <div
@@ -143,79 +141,48 @@ export default function HomeView() {
               setSelectedLoop(loop);
               setView("ride-details");
             }}
-            className={`p-2.5 pl-3 pr-4 flex items-center ${isDark ? "bg-[#1C1C1E]" : "bg-[#FFFFFF]"} rounded-[28px] shadow-[0px_2px_8px_rgba(0,0,0,0.08)] cursor-pointer active:scale-[0.98] border ${isDark ? "border-white/5" : "border-black/5"} relative overflow-hidden`}
+            className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30`}
           >
-            {loop.is_female_only && (
-              <div className="absolute top-0 right-0 bg-pink-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-widest z-10">
-                Female Only
-              </div>
-            )}
-
-            {/* Icon Block with dynamic vehicle icon */}
-            <div className="w-[48px] h-[48px] bg-[#FFC53D] rounded-[16px] flex items-center justify-center shrink-0">
+            {/* Left Squircle Icon Container */}
+            <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
+              isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
+            }`}>
               {loop.is_driver_offering && loop.vehicle_type === "bike" ? (
-                <MotorcycleIcon size={24} className="text-[#000000]" />
+                <MotorcycleIcon size={22} className="text-[#FFC554]" />
               ) : loop.is_driver_offering && loop.vehicle_type === "scooter" ? (
-                <ScooterIcon size={24} className="text-[#000000]" />
+                <ScooterIcon size={22} className="text-[#FFC554]" />
               ) : (
-                <SolidCarIcon size={24} className="text-[#000000]" />
+                <CarFront size={22} className="text-[#FFC554]" strokeWidth={2} />
               )}
             </div>
 
-            {/* Text Block */}
-            <div className="ml-3 flex-1 min-w-0 flex flex-col justify-center">
-              <div className="flex items-center mb-0.5">
-                <span className={`font-bold text-[14px] ${isDark ? "text-white" : "text-black"} shrink-0`}>
-                  {loop.start_point || "Anywhere"}
+            {/* Route Center Block (Minimal, Clean, Easy to understand) */}
+            <div className="ml-3.5 flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
+              <span className={`font-bold text-[14px] sm:text-[15px] ${isDark ? "text-white" : "text-zinc-900"} truncate`}>
+                {loop.start_point || "Campus"}
+              </span>
+              <span className="text-zinc-400 font-bold text-xs shrink-0 mx-0.5">→</span>
+              <span className={`font-bold text-[14px] sm:text-[15px] ${isDark ? "text-white" : "text-zinc-900"} truncate`}>
+                {loop.destination}
+              </span>
+              {loop.is_female_only && (
+                <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0 ml-0.5">
+                  Female
                 </span>
-                <span className="text-[#FFC53D] font-bold text-[13px] shrink-0 mx-1.5">&rarr;</span>
-                <span className={`font-bold text-[14px] ${isDark ? "text-white" : "text-black"} truncate`}>
-                  {loop.destination}
+              )}
+              {isJoined && (
+                <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-full shrink-0 ml-0.5">
+                  Joined
                 </span>
-              </div>
-              <div className={`flex items-center gap-1.5 ${isDark ? "text-[#8E8E93]" : "text-[#6E6E73]"}`}>
-                <Users size={14} strokeWidth={2} className="shrink-0" />
-                <span className="font-semibold text-[13px] leading-none">{loop.member_count}/{loop.participants_limit}</span>
-                {creatorName && (
-                  <span className="text-[11px] font-medium opacity-70 truncate max-w-[100px]">
-                    • {creatorName}
-                  </span>
-                )}
-                {loop.creator?.reg_no && (
-                  <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[65px]">
-                    {loop.creator.reg_no}
-                  </span>
-                )}
-                {isFull && <span className="text-[9px] text-red-500 font-black uppercase shrink-0">Full</span>}
-                {isJoined && (
-                  <span className="text-[8px] bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/30 px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ml-1">
-                    Joined
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Steering Wheel Icon for Driver Offering Ride */}
-            {loop.is_driver_offering && (
-              <div 
-                className="w-7 h-7 rounded-full bg-[#FFC554]/15 border border-[#FFC554]/30 flex items-center justify-center text-[#FFC554] shrink-0 mr-1"
-                title="Student Driver offering ride"
-              >
-                <SteeringWheelIcon size={15} />
-              </div>
-            )}
+            {/* Subtle Vertical Divider */}
+            <div className={`w-px h-6 ${isDark ? "bg-white/10" : "bg-black/10"} shrink-0 mx-3`} />
 
-            {/* Divider */}
-            <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
-
-            {/* Time & Date Block */}
-            <div className="flex flex-col items-center justify-center shrink-0 min-w-[54px]">
-              <span className={`text-[8.5px] font-black uppercase tracking-wider mb-1 px-1.5 py-0.5 rounded-md ${
-                isDark ? "bg-[#FFC53D]/15 text-[#FFC53D] border border-[#FFC53D]/25" : "bg-[#FFF0CE] text-[#8B5A10] border border-[#FDE68A]"
-              }`}>
-                {getDepartureDateBadge(loop.departure_time)}
-              </span>
-              <span className={`font-bold text-[10.5px] leading-none whitespace-nowrap tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+            {/* Time Block */}
+            <div className="shrink-0 flex items-center">
+              <span className={`font-bold text-[14px] sm:text-[15px] tracking-tight ${isDark ? "text-white" : "text-zinc-900"} whitespace-nowrap`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>
