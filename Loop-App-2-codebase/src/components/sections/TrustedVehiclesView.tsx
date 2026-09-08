@@ -168,19 +168,21 @@ export default function TrustedVehiclesView() {
                   {renderIcon(v.vehicle_type, "w-7 h-7")}
                 </div>
 
-                {/* Driver Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-black text-sm truncate uppercase tracking-tight">{v.driver_name}</h3>
+                {/* Driver Info (Zero truncation, full name visible on dedicated row) */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <h3 className="font-black text-sm uppercase tracking-tight break-words leading-snug">
+                    {v.driver_name}
+                  </h3>
+
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-md shrink-0">
                       {v.vehicle_type === "share_auto" ? "Share Auto" : v.vehicle_type || "Auto"}
                     </span>
+                    <p className={`text-xs font-bold ${mutedText} flex items-center gap-1.5`}>
+                      <Phone size={11} className="text-[#FFC554] shrink-0" />
+                      <span>{displayPhone}</span>
+                    </p>
                   </div>
-
-                  <p className={`text-xs font-bold ${mutedText} mt-0.5 flex items-center gap-1.5`}>
-                    <Phone size={11} className="text-[#FFC554] shrink-0" />
-                    <span>{displayPhone}</span>
-                  </p>
 
                   <div className="flex items-center gap-1.5 mt-2">
                     {v.profiles?.avatar_url ? (
