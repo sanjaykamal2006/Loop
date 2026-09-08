@@ -1,19 +1,23 @@
 /**
  * Smart Location & Campus Destination Formatter
- * Automatically corrects typos, abbreviations, and formatting
- * e.g. "vit ap" -> "VIT-AP", "bza" -> "Vijayawada Railway Station", "rgia" -> "RGIA Hyderabad Airport"
+ * Automatically cleans punctuation, casing, and standardizes key destinations:
+ * - "pnbs" / "bus stand" -> "Vijayawada Bus Stand"
+ * - "gannavaram" / "vga" / "airport" -> "Airport"
+ * - "vit ap" / "vitap" -> "VIT-AP"
+ * - "bza" -> "Vijayawada Railway Station"
+ * - "gnt" -> "Guntur Railway Station"
  */
 
 export function formatLocation(input: string): string {
   if (!input) return "";
 
   let cleaned = input.trim();
-  // Collapse multiple spaces, tabs, dashes
+  // Collapse multiple punctuation, dashes, spaces
   cleaned = cleaned.replace(/[-_]{2,}/g, "-").replace(/\s+/g, " ");
 
   const lower = cleaned.toLowerCase();
 
-  // 1. Direct and composite pattern matches for VIT-AP and campus
+  // 1. VIT-AP and Campus
   if (/^vit[\s\-_.]*ap[\s\-_.]*campus$/i.test(lower) || /^vit[\s\-_.]*campus$/i.test(lower)) {
     return "VIT-AP Campus";
   }
@@ -21,24 +25,22 @@ export function formatLocation(input: string): string {
     return "VIT-AP";
   }
 
-  // 2. Airport checks
-  if (lower === "rgia" || lower.includes("hyderabad airport") || lower.includes("hyd airport")) {
-    return "RGIA Hyderabad Airport";
-  }
+  // 2. Airport (kept simple as "Airport", no Gannavaram)
   if (
+    lower === "airport" ||
     lower === "vga" ||
     lower === "gannavaram" ||
-    lower.includes("gannavaram airport") ||
+    lower.includes("gannavaram") ||
     lower.includes("vga airport") ||
     lower === "vijayawada airport"
   ) {
-    return "Vijayawada Airport (Gannavaram)";
-  }
-  if (lower === "airport") {
     return "Airport";
   }
+  if (lower === "rgia" || lower.includes("hyderabad airport") || lower.includes("hyd airport")) {
+    return "RGIA Hyderabad Airport";
+  }
 
-  // 3. Railway Station checks
+  // 3. Railway Stations
   if (
     lower === "bza" ||
     lower === "bza station" ||
@@ -61,7 +63,7 @@ export function formatLocation(input: string): string {
     return "Guntur Railway Station";
   }
 
-  // 4. Bus Station checks
+  // 4. Bus Stand (simply Vijayawada Bus Stand, no PNBS)
   if (
     lower === "pnbs" ||
     lower.includes("pandit nehru") ||
@@ -70,21 +72,10 @@ export function formatLocation(input: string): string {
     lower === "vja bus stand" ||
     lower === "vijayawada bus stand"
   ) {
-    return "Pandit Nehru Bus Station (PNBS)";
+    return "Vijayawada Bus Stand";
   }
 
-  // 5. Major Malls / Hubs
-  if (lower === "pvp" || lower === "pvp mall" || lower === "pvp square") {
-    return "PVP Square";
-  }
-  if (lower === "trendset" || lower === "trendset mall") {
-    return "Trendset Mall";
-  }
-  if (lower === "inorbit" || lower === "inorbit mall") {
-    return "Inorbit Mall";
-  }
-
-  // 6. Cities
+  // 5. Cities
   if (lower === "vja" || lower === "vijayawada") {
     return "Vijayawada";
   }
@@ -104,18 +95,15 @@ export function formatLocation(input: string): string {
     return "Hyderabad";
   }
 
-  // 7. Inline replacement for compound descriptions (e.g. "vit ap gate 2" -> "VIT-AP Gate 2")
+  // 6. Compound inline cleanup
   cleaned = cleaned.replace(/\bvit[\s\-_.]*ap\b/gi, "VIT-AP");
-  cleaned = cleaned.replace(/\brgia\b/gi, "RGIA");
-  cleaned = cleaned.replace(/\bpnbs\b/gi, "PNBS");
-  cleaned = cleaned.replace(/\bbza\b/gi, "BZA");
-  cleaned = cleaned.replace(/\bvga\b/gi, "VGA");
-  cleaned = cleaned.replace(/\bpvp\b/gi, "PVP");
   cleaned = cleaned.replace(/\bvit\b/gi, "VIT");
   cleaned = cleaned.replace(/\brly\b/gi, "Railway");
   cleaned = cleaned.replace(/\bstn\b/gi, "Station");
+  cleaned = cleaned.replace(/\bpnbs\b/gi, "Vijayawada Bus Stand");
+  cleaned = cleaned.replace(/\bbza\b/gi, "Vijayawada Railway Station");
 
-  // Title case words, preserving acronyms
+  // 7. Title-case words and format punctuation properly
   const words = cleaned.split(" ").map((w) => {
     if (w === "VIT-AP" || /^[A-Z0-9&-]{2,}$/.test(w)) {
       return w;

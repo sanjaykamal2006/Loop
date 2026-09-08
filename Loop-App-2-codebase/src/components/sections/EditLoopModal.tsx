@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
@@ -34,6 +34,21 @@ export default function EditLoopModal({
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenDatePicker = () => {
+    if (dateInputRef.current) {
+      try {
+        if ('showPicker' in HTMLInputElement.prototype) {
+          dateInputRef.current.showPicker();
+        } else {
+          dateInputRef.current.focus();
+        }
+      } catch {
+        dateInputRef.current.focus();
+      }
+    }
+  };
   const [limit, setLimit] = useState(loop.participants_limit || 4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(Boolean(loop.is_female_only));
   const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">(loop.vehicle_type || "bike");
@@ -250,7 +265,8 @@ export default function EditLoopModal({
           <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
             <Calendar size={11} className="text-[#FFC554]" /> Date of Travel
           </label>
-          <label
+          <div
+            onClick={handleOpenDatePicker}
             className={`w-full h-11 ${bg} border ${
               travelDate ? "border-[#FFC554]" : border
             } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
@@ -269,13 +285,22 @@ export default function EditLoopModal({
               {travelDate ? "Change" : "Select"}
             </span>
             <input
+              ref={dateInputRef}
               type="date"
               min={todayStr}
               value={travelDate}
               onChange={(e) => setTravelDate(e.target.value)}
+              onClick={(e) => {
+                e.stopPropagation();
+                try {
+                  if ('showPicker' in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                } catch {}
+              }}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
-          </label>
+          </div>
         </div>
 
         {/* Departure Time */}

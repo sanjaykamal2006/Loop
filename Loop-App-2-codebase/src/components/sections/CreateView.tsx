@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
@@ -21,6 +21,22 @@ export default function CreateView() {
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenDatePicker = () => {
+    triggerHaptic(8);
+    if (dateInputRef.current) {
+      try {
+        if ('showPicker' in HTMLInputElement.prototype) {
+          dateInputRef.current.showPicker();
+        } else {
+          dateInputRef.current.focus();
+        }
+      } catch {
+        dateInputRef.current.focus();
+      }
+    }
+  };
   const [limit, setLimit] = useState(4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
@@ -171,7 +187,8 @@ export default function CreateView() {
       {/* Date of Travel */}
       <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Date of Travel</label>
-        <label
+        <div
+          onClick={handleOpenDatePicker}
           className={`w-full h-11 ${cardBg} border ${
             travelDate ? `border-[#FFC554] ${isDark ? "text-white" : "text-zinc-900"}` : `${border} ${mutedText}`
           } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
@@ -190,13 +207,22 @@ export default function CreateView() {
             {travelDate ? "Change" : "Select"}
           </span>
           <input
+            ref={dateInputRef}
             type="date"
             min={todayStr}
             value={travelDate}
             onChange={(e) => setTravelDate(e.target.value)}
+            onClick={(e) => {
+              e.stopPropagation();
+              try {
+                if ('showPicker' in HTMLInputElement.prototype) {
+                  e.currentTarget.showPicker();
+                }
+              } catch {}
+            }}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />
-        </label>
+        </div>
       </div>
 
       {/* Starting Time */}
