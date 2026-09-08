@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
+import { getDepartureDateBadge } from "@/lib/dateFormatter";
 import { Users, Clock, MapPin, Search, X } from "lucide-react";
 import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -207,10 +208,14 @@ export default function HomeView() {
             {/* Divider */}
             <div className={`w-px h-[32px] ${isDark ? "bg-[#333338]" : "bg-[#E5E5EA]"} shrink-0 mx-2.5`} />
 
-            {/* Time Block */}
-            <div className="flex flex-col items-center justify-center shrink-0 min-w-[52px]">
-              <Clock size={16} className="text-[#FFC53D] mb-1.5" strokeWidth={2} />
-              <span className={`font-bold text-[10px] leading-none whitespace-nowrap tracking-wide ${isDark ? "text-[#FFC53D]" : "text-black"}`}>
+            {/* Time & Date Block */}
+            <div className="flex flex-col items-center justify-center shrink-0 min-w-[54px]">
+              <span className={`text-[8.5px] font-black uppercase tracking-wider mb-1 px-1.5 py-0.5 rounded-md ${
+                isDark ? "bg-[#FFC53D]/15 text-[#FFC53D] border border-[#FFC53D]/25" : "bg-[#FFF0CE] text-[#8B5A10] border border-[#FDE68A]"
+              }`}>
+                {getDepartureDateBadge(loop.departure_time)}
+              </span>
+              <span className={`font-bold text-[10.5px] leading-none whitespace-nowrap tracking-tight ${isDark ? "text-white" : "text-black"}`}>
                 {formatTime(loop.departure_time)}
               </span>
             </div>

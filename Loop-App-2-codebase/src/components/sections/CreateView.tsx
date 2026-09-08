@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
+import { getLocalTodayStr, getLocalTomorrowStr, formatShortDate, buildDepartureDate } from "@/lib/dateFormatter";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
@@ -18,6 +19,9 @@ export default function CreateView() {
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
+  const todayStr = getLocalTodayStr();
+  const tomorrowStr = getLocalTomorrowStr();
+  const [travelDate, setTravelDate] = useState(todayStr);
   const [limit, setLimit] = useState(4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(false);
   const [isDriver, setIsDriver] = useState(false);
@@ -80,17 +84,14 @@ export default function CreateView() {
     if (isCreatingLoop) return;
 
     setIsCreatingLoop(true);
-    const departure = new Date();
-    let h = parseInt(hour);
-    if (ampm === "PM" && h < 12) h += 12;
-    if (ampm === "AM" && h === 12) h = 0;
-    departure.setHours(h, parseInt(minute), 0, 0);
-    
-    // If selected time is in the past for today, it must be for tomorrow
-    if (departure < new Date()) {
-      departure.setDate(departure.getDate() + 1);
+    const departure = buildDepartureDate(travelDate, hour, minute, ampm);
+
+    // If user selected Today and the time has already passed
+    if (travelDate === todayStr && departure.getTime() < Date.now() - 5 * 60 * 1000) {
+      setIsCreatingLoop(false);
+      return toast.error("Departure time has already passed for today. Select Tomorrow or a future date.");
     }
-    
+
     const expiresAt = new Date(departure);
     expiresAt.setHours(expiresAt.getHours() + 5);
 
@@ -124,6 +125,7 @@ export default function CreateView() {
         setDest("");
         setHour("");
         setMinute("");
+        setTravelDate(todayStr);
         setIsDriver(false);
         setView("home");
         fetchLoops();
@@ -160,6 +162,58 @@ export default function CreateView() {
           placeholder="Where to?"
           className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
+      </div>
+
+      {/* Date of Travel */}
+      <div className="space-y-1">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Date of Travel</label>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setTravelDate(todayStr)}
+            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+              travelDate === todayStr
+                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                : `${cardBg} ${border} ${mutedText}`
+            }`}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            onClick={() => setTravelDate(tomorrowStr)}
+            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+              travelDate === tomorrowStr
+                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                : `${cardBg} ${border} ${mutedText}`
+            }`}
+          >
+            Tomorrow
+          </button>
+          <label
+            className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 relative overflow-hidden ${
+              travelDate !== todayStr && travelDate !== tomorrowStr
+                ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                : `${cardBg} ${border} ${mutedText}`
+            }`}
+          >
+            <Calendar size={13} strokeWidth={2.5} />
+            <span className="truncate">
+              {travelDate !== todayStr && travelDate !== tomorrowStr
+                ? formatShortDate(travelDate)
+                : "Pick Date"}
+            </span>
+            <input
+              type="date"
+              min={todayStr}
+              value={travelDate}
+              onChange={(e) => {
+                if (e.target.value) setTravelDate(e.target.value);
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </label>
+        </div>
       </div>
 
       {/* Starting Time */}

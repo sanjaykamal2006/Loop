@@ -6,7 +6,8 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Loop } from "@/lib/types";
 import { formatLocation } from "@/lib/locationFormatter";
-import { X, Clock, MapPin, Edit3 } from "lucide-react";
+import { X, Clock, MapPin, Edit3, Calendar } from "lucide-react";
+import { getLocalTodayStr, getLocalTomorrowStr, formatShortDate, buildDepartureDate, formatDepartureFull } from "@/lib/dateFormatter";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -31,6 +32,9 @@ export default function EditLoopModal({
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
+  const todayStr = getLocalTodayStr();
+  const tomorrowStr = getLocalTomorrowStr();
+  const [travelDate, setTravelDate] = useState(todayStr);
   const [limit, setLimit] = useState(loop.participants_limit || 4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(Boolean(loop.is_female_only));
   const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">(loop.vehicle_type || "bike");
@@ -48,6 +52,11 @@ export default function EditLoopModal({
 
     if (loop.departure_time) {
       const d = new Date(loop.departure_time);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      setTravelDate(`${year}-${month}-${day}`);
+
       let h = d.getHours();
       const ap: "AM" | "PM" = h >= 12 ? "PM" : "AM";
       h = h % 12;
@@ -89,15 +98,11 @@ export default function EditLoopModal({
     setIsSaving(true);
 
     try {
-      const departure = new Date();
-      let h = parseInt(hour);
-      if (ampm === "PM" && h < 12) h += 12;
-      if (ampm === "AM" && h === 12) h = 0;
-      departure.setHours(h, parseInt(minute), 0, 0);
+      const departure = buildDepartureDate(travelDate, hour, minute, ampm);
 
-      // If selected time is earlier than current time today, assume next day
-      if (departure < new Date()) {
-        departure.setDate(departure.getDate() + 1);
+      if (travelDate === todayStr && departure.getTime() < Date.now() - 5 * 60 * 1000) {
+        setIsSaving(false);
+        return toast.error("Departure time has already passed for today.");
       }
 
       const expiresAt = new Date(departure);
@@ -118,7 +123,7 @@ export default function EditLoopModal({
         changes.push(`Destination: ${dest.trim()}`);
       }
       if (departure.toISOString() !== new Date(loop.departure_time).toISOString()) {
-        changes.push(`Departure: ${formatTime(departure.toISOString())}`);
+        changes.push(`Schedule: ${formatDepartureFull(departure.toISOString())}`);
       }
       if (finalLimit !== loop.participants_limit) {
         changes.push(`Seats: ${finalLimit}`);
@@ -238,6 +243,60 @@ export default function EditLoopModal({
               placeholder="e.g., Airport, Vijayawada, PVP Mall..."
               className={`w-full h-11 ${bg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] placeholder:opacity-30 transition-colors`}
             />
+          </div>
+        </div>
+
+        {/* Date of Travel */}
+        <div className="space-y-1">
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
+            <Calendar size={11} className="text-[#FFC554]" /> Date of Travel
+          </label>
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setTravelDate(todayStr)}
+              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                travelDate === todayStr
+                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                  : `${bg} ${border} ${mutedText}`
+              }`}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={() => setTravelDate(tomorrowStr)}
+              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${
+                travelDate === tomorrowStr
+                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                  : `${bg} ${border} ${mutedText}`
+              }`}
+            >
+              Tomorrow
+            </button>
+            <label
+              className={`h-9 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 relative overflow-hidden ${
+                travelDate !== todayStr && travelDate !== tomorrowStr
+                  ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                  : `${bg} ${border} ${mutedText}`
+              }`}
+            >
+              <Calendar size={12} strokeWidth={2.5} />
+              <span className="truncate">
+                {travelDate !== todayStr && travelDate !== tomorrowStr
+                  ? formatShortDate(travelDate)
+                  : "Pick Date"}
+              </span>
+              <input
+                type="date"
+                min={todayStr}
+                value={travelDate}
+                onChange={(e) => {
+                  if (e.target.value) setTravelDate(e.target.value);
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              />
+            </label>
           </div>
         </div>
 

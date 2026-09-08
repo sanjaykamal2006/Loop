@@ -323,24 +323,24 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
   }, [session.user.id]);
 
-  // --- Fetch loops ---
+  // --- Fetch loops (supports advance rides; keeps rides active until 2 hrs after departure) ---
   const fetchLoops = useCallback(async () => {
     const userGender = profileRef.current.gender;
-    const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
       .from("loops")
       .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
       .in("status", ["open", "started", "active", "in_progress"])
-      .gte("created_at", fiveHoursAgo)
-      .order("created_at", { ascending: false });
+      .gte("departure_time", twoHoursAgo)
+      .order("departure_time", { ascending: true });
 
     if (!error && data) {
       const now = new Date();
       const filtered = data.filter((l: any) => {
-        // Enforce 5-hour cutoff on created_at and departure_time
-        const createdAt = new Date(l.created_at);
-        if (now.getTime() - createdAt.getTime() > 5 * 60 * 60 * 1000) return false;
+        // Keep rides active until 2 hours after their departure time
+        const depTime = new Date(l.departure_time);
+        if (now.getTime() - depTime.getTime() > 2 * 60 * 60 * 1000) return false;
 
         if (l.expires_at && new Date(l.expires_at) < now) return false;
 
@@ -542,10 +542,12 @@ export function LoopProvider({ session, children }: { session: Session; children
                 member_count: loopData.loop_members?.[0]?.count || 0,
               };
               setActiveLoops((prev) => {
-                if (prev.some((l) => l.id === formatted.id)) {
-                  return prev.map((l) => (l.id === formatted.id ? formatted : l));
-                }
-                return [formatted, ...prev];
+                const list = prev.some((l) => l.id === formatted.id)
+                  ? prev.map((l) => (l.id === formatted.id ? formatted : l))
+                  : [...prev, formatted];
+                return list.sort(
+                  (a, b) => new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime()
+                );
               });
             }
           }

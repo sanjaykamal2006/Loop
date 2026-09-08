@@ -8,6 +8,7 @@ import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight } 
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
+import { formatDepartureFull } from "@/lib/dateFormatter";
 
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead } = useLoop();
@@ -418,14 +419,14 @@ export default function ChatView() {
 
   const handleShare = async () => {
     const emptySeats = Math.max(0, (selectedLoop?.participants_limit || 4) - members.length);
-    const timeStr = formatTime(selectedLoop?.departure_time);
+    const timeStr = formatDepartureFull(selectedLoop?.departure_time);
     const fromStr = selectedLoop?.start_point || "VIT-AP Campus";
     const femaleTag = selectedLoop?.is_female_only ? "\nPreference: Female passengers only" : "";
     const shareUrl = typeof window !== "undefined"
       ? `${window.location.origin}/?loop=${selectedLoop?.id}`
       : `https://loop-app-2.vercel.app/?loop=${selectedLoop?.id}`;
 
-    const rawShareMessage = `LOOP — Ride to ${selectedLoop?.destination}\nFrom: ${fromStr}\nDeparture: ${timeStr}\nSeats Available: ${emptySeats} of ${selectedLoop?.participants_limit}${femaleTag}\n\nJoin this ride:\n${shareUrl}`;
+    const rawShareMessage = `LOOP — Ride to ${selectedLoop?.destination}\nFrom: ${fromStr}\nSchedule: ${timeStr}\nSeats Available: ${emptySeats} of ${selectedLoop?.participants_limit}${femaleTag}\n\nJoin this ride:\n${shareUrl}`;
 
     if (navigator.share) {
       try {

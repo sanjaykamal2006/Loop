@@ -11,6 +11,7 @@ import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
+import { formatDepartureFull } from "@/lib/dateFormatter";
 
 export default function RideDetailsView() {
   const {
@@ -137,7 +138,7 @@ export default function RideDetailsView() {
     const femaleNote = selectedLoop.is_female_only ? "\nPreference: Female passengers only" : "";
     const start = selectedLoop.start_point || "VIT-AP Campus";
 
-    const text = `LOOP — Ride to ${selectedLoop.destination}\nFrom: ${start}\nDeparture: ${formatTime(selectedLoop.departure_time)}\nSeats Available: ${seatsLeft} of ${selectedLoop.participants_limit}${femaleNote}\n\nJoin this ride:\n${shareUrl}`;
+    const text = `LOOP — Ride to ${selectedLoop.destination}\nFrom: ${start}\nSchedule: ${formatDepartureFull(selectedLoop.departure_time)}\nSeats Available: ${seatsLeft} of ${selectedLoop.participants_limit}${femaleNote}\n\nJoin this ride:\n${shareUrl}`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -198,14 +199,16 @@ export default function RideDetailsView() {
         </div>
       </div>
 
-      {/* Starting Time */}
+      {/* Starting Time / Schedule */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
           <Clock size={18} strokeWidth={2.5} />
         </div>
         <div>
-          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Starting Time</p>
-          <h3 className="font-black text-xl text-[#FFC554]">{formatTime(selectedLoop.departure_time)}</h3>
+          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Schedule</p>
+          <h3 className="font-black text-base sm:text-lg text-[#FFC554]">
+            {formatDepartureFull(selectedLoop.departure_time)}
+          </h3>
         </div>
       </div>
 

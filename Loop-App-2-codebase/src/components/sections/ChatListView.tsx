@@ -67,13 +67,40 @@ function getDestinationIcon(dest: string, vehicleType?: string | null) {
   return <Car size={18} strokeWidth={2.2} />;
 }
 
+interface RecentMsgData {
+  content: string;
+  created_at: string;
+  user_id?: string;
+  sender_name?: string;
+}
+
+function formatRecentMessagePreview(msg?: RecentMsgData, currentUserId?: string): string {
+  if (!msg?.content) return "";
+  const content = msg.content;
+  const isLocation =
+    content.includes("maps.google.com") ||
+    content.includes("maps.apple.com") ||
+    content.startsWith("📍") ||
+    content.includes("My Spot:");
+
+  if (isLocation) {
+    if (msg.user_id && currentUserId && msg.user_id === currentUserId) {
+      return "📍 Location shared by You";
+    }
+    const name = msg.sender_name?.trim();
+    return name ? `📍 Location shared by ${name}` : "📍 Location shared";
+  }
+
+  return content;
+}
+
 export default function ChatListView() {
-  const { activeLoops, userJoinedLoops, setSelectedLoop, setView, theme, setChatSource, unreadLoopIds, markLoopAsRead } = useLoop();
+  const { session, profile, activeLoops, userJoinedLoops, setSelectedLoop, setView, theme, setChatSource, unreadLoopIds, markLoopAsRead } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [recentMessages, setRecentMessages] = useState<Record<string, { content: string; created_at: string }>>({});
+  const [recentMessages, setRecentMessages] = useState<Record<string, RecentMsgData>>({});
 
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
 
@@ -84,7 +111,7 @@ export default function ChatListView() {
     return () => window.removeEventListener("toggle-chat-search", toggle);
   }, []);
 
-  // Fetch the latest real message for joined loops
+  // Fetch the latest real message for joined loops with sender profile
   const fetchRecentMessages = useCallback(async () => {
     if (joinedLoops.length === 0) return;
     const loopIds = joinedLoops.map((l) => l.id);
@@ -92,15 +119,52 @@ export default function ChatListView() {
     try {
       const { data, error } = await supabase
         .from("messages")
-        .select("loop_id, content, created_at")
+        .select("loop_id, content, created_at, user_id, profiles:user_id(display_name)")
         .in("loop_id", loopIds)
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        const msgMap: Record<string, { content: string; created_at: string }> = {};
-        for (const m of data) {
+      let list = data;
+      if (error || !data) {
+        const fallback = await supabase
+          .from("messages")
+          .select("loop_id, content, created_at, user_id")
+          .in("loop_id", loopIds)
+          .order("created_at", { ascending: false });
+        list = fallback.data as any;
+      }
+
+      if (list && list.length > 0) {
+        const missingUserIds = list
+          .filter((m: any) => !m.profiles?.display_name && m.user_id)
+          .map((m: any) => m.user_id);
+
+        const profileNameMap: Record<string, string> = {};
+        if (missingUserIds.length > 0) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, display_name")
+            .in("id", Array.from(new Set(missingUserIds)));
+          if (profs) {
+            profs.forEach((p: any) => {
+              if (p.id && p.display_name) profileNameMap[p.id] = p.display_name;
+            });
+          }
+        }
+
+        const msgMap: Record<string, RecentMsgData> = {};
+        for (const m of list) {
           if (!msgMap[m.loop_id]) {
-            msgMap[m.loop_id] = { content: m.content, created_at: m.created_at };
+            const joinedProfiles = (m as any).profiles;
+            const joinedName = Array.isArray(joinedProfiles)
+              ? joinedProfiles[0]?.display_name
+              : joinedProfiles?.display_name;
+            const senderName = joinedName || profileNameMap[m.user_id] || "";
+            msgMap[m.loop_id] = {
+              content: m.content,
+              created_at: m.created_at,
+              user_id: m.user_id,
+              sender_name: senderName,
+            };
           }
         }
         setRecentMessages(msgMap);
@@ -117,13 +181,39 @@ export default function ChatListView() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
+        async (payload) => {
           const msg = payload.new as any;
           if (!msg?.loop_id || !msg.content) return;
+
+          const isMe = msg.user_id === session?.user?.id;
+          let senderName = isMe ? (profile?.display_name || "You") : "";
+
           setRecentMessages((prev) => ({
             ...prev,
-            [msg.loop_id]: { content: msg.content, created_at: msg.created_at },
+            [msg.loop_id]: {
+              content: msg.content,
+              created_at: msg.created_at,
+              user_id: msg.user_id,
+              sender_name: senderName,
+            },
           }));
+
+          if (!isMe && msg.user_id) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("display_name")
+              .eq("id", msg.user_id)
+              .single();
+            if (data?.display_name) {
+              setRecentMessages((prev) => {
+                const cur = prev[msg.loop_id];
+                if (cur && cur.created_at === msg.created_at) {
+                  return { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
+                }
+                return prev;
+              });
+            }
+          }
         }
       )
       .subscribe();
@@ -136,8 +226,9 @@ export default function ChatListView() {
   const filteredLoops = joinedLoops.filter((loop) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    const recent = recentMessages[loop.id]?.content?.toLowerCase() || "";
-    return loop.destination.toLowerCase().includes(q) || recent.includes(q);
+    const recent = recentMessages[loop.id];
+    const previewText = recent ? formatRecentMessagePreview(recent, session?.user?.id).toLowerCase() : "";
+    return loop.destination.toLowerCase().includes(q) || previewText.includes(q);
   });
 
   if (joinedLoops.length === 0) {
@@ -246,7 +337,7 @@ export default function ChatListView() {
                   </span>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-[11px] font-bold truncate opacity-90">
-                      {latestMsg.content}
+                      {formatRecentMessagePreview(latestMsg, session?.user?.id)}
                     </p>
                     <span className={`text-[10px] font-medium ${mutedText} shrink-0 ml-2`}>
                       {formatMessageTime(latestMsg.created_at)}
