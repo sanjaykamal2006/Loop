@@ -42,8 +42,8 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           {/* Name & Title */}
           <div className="space-y-0.5">
             <h3 className="text-lg font-black uppercase tracking-tight">Sanjay Kamal</h3>
-            <p className="text-[11px] font-black text-[#FFC554] tracking-widest uppercase">
-              Creator & Lead Developer
+            <p className="text-xs font-black text-[#FFC554] tracking-widest uppercase">
+              "The One."
             </p>
           </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages } from "lucide-react";
+import { ChevronLeft, Plus, Sun, Moon, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
@@ -115,9 +115,20 @@ export default function AppHeader() {
         </div>
       )}
       {view === "chat-list" && (
-        <div className="pt-2">
-          <h1 className="text-3xl font-bold tracking-tight">Chats</h1>
-          <p className="text-xs font-medium opacity-50 mt-1">Your active conversations</p>
+        <div className="flex items-center justify-between w-full pt-2">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight">Chats</h1>
+            <p className="text-xs font-medium opacity-60 mt-0.5">
+              Stay in the <span className="text-[#FFC554] font-bold">loop</span>
+            </p>
+          </div>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-chat-search"))}
+            aria-label="Search chats"
+            className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm`}
+          >
+            <Search size={18} className="opacity-80" />
+          </button>
         </div>
       )}
       {view === "profile" && (
