@@ -158,9 +158,9 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="space-y-3.5 pt-1 pb-6">
+    <div className="flex-1 flex flex-col justify-between py-1 min-h-0">
       {/* Profile Photo (Compact & Centered) */}
-      <div className="flex flex-col items-center justify-center pt-1 pb-1">
+      <div className="flex flex-col items-center justify-center pt-0.5 pb-1 shrink-0">
         <div className="relative group">
           <div className={`w-20 h-20 sm:w-22 sm:h-22 rounded-[26px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-md overflow-hidden`}>
             {profile.avatar_url ? (
@@ -193,8 +193,10 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {/* Identity Card - Compact & Balanced */}
-      <div className={`p-4 sm:p-4.5 ${cardBg} border ${border} rounded-[26px] space-y-3 shadow-sm`}>
+      {/* Middle Cards Section */}
+      <div className="space-y-3 my-auto">
+        {/* Identity Card - Compact & Balanced */}
+        <div className={`p-3.5 sm:p-4 ${cardBg} border ${border} rounded-[26px] space-y-3 shadow-sm`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
@@ -454,38 +456,26 @@ export default function ProfileView() {
           </div>
         </div>
 
-        {/* About Creator */}
-        <button
-          onClick={() => setShowCreator(true)}
-          className="w-full px-4 py-2 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554] shrink-0">
-              <Sparkles size={13} strokeWidth={2.5} />
-            </div>
-            <span className={`text-xs font-bold ${text}`}>About Creator</span>
-          </div>
-          <ChevronRight size={13} className="opacity-40" />
-        </button>
+      </div>
       </div>
 
       {/* Compact 2-Button Row: Sign Out & Delete Account */}
-      <div className="flex gap-2 pt-0.5">
+      <div className="flex gap-2 pt-2 shrink-0">
         <button
           onClick={handleSignOut}
-          className={`flex-1 py-2.5 ${cardBg} border ${border} rounded-[18px] text-red-500 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
+          className={`flex-1 py-2.5 sm:py-3 ${cardBg} border ${border} rounded-[18px] text-red-500 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
         >
           Sign Out
         </button>
         <button
           onClick={() => setShowDeleteConfirm(true)}
-          className={`flex-1 py-2 ${cardBg} border border-red-500/20 rounded-[16px] text-red-400/80 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
+          className={`flex-1 py-2.5 sm:py-3 ${cardBg} border border-red-500/20 rounded-[18px] text-red-400/80 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
         >
           Delete Account
         </button>
       </div>
 
-      <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
+      
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (

@@ -189,6 +189,17 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
+                    window.dispatchEvent(new CustomEvent("open-creator-modal"));
+                  }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                >
+                  <Sparkles size={15} className="text-[#FFC554]" />
+                  <span>About Creator</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-terms-modal"));
                   }}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"

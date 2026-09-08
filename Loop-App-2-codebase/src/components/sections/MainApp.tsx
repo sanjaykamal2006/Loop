@@ -16,6 +16,7 @@ import PastLoopsView from "./PastLoopsView";
 import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 import TermsModal from "./TermsModal";
+import CreatorModal from "./CreatorModal";
 import TeluguGuideModal from "./TeluguGuideModal";
 
 function AppContent() {
@@ -24,15 +25,19 @@ function AppContent() {
 
   const [showTerms, setShowTerms] = React.useState(false);
   const [showTeluguGuide, setShowTeluguGuide] = React.useState(false);
+  const [showCreator, setShowCreator] = React.useState(false);
 
   React.useEffect(() => {
     const handleTerms = () => setShowTerms(true);
     const handleTelugu = () => setShowTeluguGuide(true);
+    const handleCreator = () => setShowCreator(true);
     window.addEventListener("open-terms-modal", handleTerms);
     window.addEventListener("open-telugu-guide-modal", handleTelugu);
+    window.addEventListener("open-creator-modal", handleCreator);
     return () => {
       window.removeEventListener("open-terms-modal", handleTerms);
       window.removeEventListener("open-telugu-guide-modal", handleTelugu);
+      window.removeEventListener("open-creator-modal", handleCreator);
     };
   }, []);
 
@@ -47,7 +52,9 @@ function AppContent() {
       {view === "chat" ? (
         selectedLoop ? <ChatView /> : <ChatListView />
       ) : (
-        <main className={`flex-1 overflow-y-auto relative z-0 px-5 scrollbar-hide pb-28 ${view === "past-loops" ? "pt-5" : ""}`}>
+        <main className={`flex-1 overflow-y-auto relative z-0 px-5 scrollbar-hide ${
+          view === "profile" ? "pb-24 flex flex-col" : "pb-28"
+        } ${view === "past-loops" ? "pt-5" : ""}`}>
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
           {view === "chat-list" && <ChatListView />}
@@ -62,6 +69,7 @@ function AppContent() {
       <GenderModal />
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
+      <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
     </div>
   );
 }
