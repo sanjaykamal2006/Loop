@@ -143,7 +143,7 @@ export default function PastLoopsView() {
                       <span className="truncate">{loop.start_point || "Campus"}</span>
                       <ArrowRight size={12} className="shrink-0 opacity-40" />
                     </div>
-                    <h3 className="text-base font-black uppercase tracking-tight text-white line-clamp-1">
+                    <h3 className={`text-base font-black uppercase tracking-tight line-clamp-1 ${isDark ? "text-white" : "text-zinc-900"}`}>
                       {loop.destination}
                     </h3>
                   </div>
@@ -163,7 +163,7 @@ export default function PastLoopsView() {
                 </div>
 
                 {/* Details Footer */}
-                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[11px] font-bold opacity-70">
+                <div className={`flex items-center justify-between pt-2 border-t ${isDark ? "border-white/5" : "border-black/5"} text-[11px] font-bold opacity-70`}>
                   <div className="flex items-center gap-1.5">
                     <Clock size={13} className="text-[#FFC554]" />
                     <span>{dateStr}</span>

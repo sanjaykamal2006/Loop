@@ -533,7 +533,7 @@ export default function ChatView() {
           <button
             onClick={() => setView("ride-details")}
             aria-label="View ride details"
-            className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/15 border border-white/10 rounded-full active:scale-90 transition-all shrink-0 ml-1 text-white shadow-sm"
+            className={`w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-all shrink-0 ml-1 shadow-sm ${isDark ? "bg-white/10 hover:bg-white/15 border border-white/10 text-white" : "bg-black/5 hover:bg-black/10 border border-black/10 text-black"}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           </button>

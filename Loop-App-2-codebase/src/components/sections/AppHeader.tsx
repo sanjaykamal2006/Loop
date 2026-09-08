@@ -108,7 +108,7 @@ export default function AppHeader() {
             </h1>
           </div>
           {view === "create" && (
-            <button onClick={() => setView("home")} aria-label="Cancel creation" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center active:scale-90 ">
+            <button onClick={() => setView("home")} aria-label="Cancel creation" className={`w-10 h-10 rounded-full flex items-center justify-center active:scale-90 ${isDark ? "bg-white/5 text-white" : "bg-black/5 text-black"}`}>
               <Plus size={20} className="rotate-45" />
             </button>
           )}
@@ -169,7 +169,7 @@ export default function AppHeader() {
                     setShowSettingsMenu(false);
                     setView("past-loops");
                   }}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
                   <History size={15} className="text-purple-400" />
                   <span>Past Loops (History)</span>
@@ -180,7 +180,7 @@ export default function AppHeader() {
                     setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-telugu-guide-modal"));
                   }}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
                   <Languages size={15} className="text-amber-400" />
                   <span>Telugu Auto Phrases</span>
@@ -191,7 +191,7 @@ export default function AppHeader() {
                     setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-creator-modal"));
                   }}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
                   <Sparkles size={15} className="text-[#FFC554]" />
                   <span>About Creator</span>
@@ -202,7 +202,7 @@ export default function AppHeader() {
                     setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-terms-modal"));
                   }}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-xs font-bold w-full text-left transition-colors"
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
                   <ShieldCheck size={15} className="text-[#FFC554]" />
                   <span>Terms & Privacy Policy</span>

@@ -173,7 +173,7 @@ export default function CreateView() {
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Date of Travel</label>
         <label
           className={`w-full h-11 ${cardBg} border ${
-            travelDate ? "border-[#FFC554] text-white" : `${border} ${mutedText}`
+            travelDate ? `border-[#FFC554] ${isDark ? "text-white" : "text-zinc-900"}` : `${border} ${mutedText}`
           } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
@@ -241,7 +241,7 @@ export default function CreateView() {
       <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] space-y-2.5 transition-all ${isDriver ? "border-[#FFC554]/50 shadow-sm" : ""}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : "bg-white/5 text-white/40"}`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
               <SteeringWheelIcon size={18} />
             </div>
             <div className="space-y-0.5">
@@ -289,7 +289,7 @@ export default function CreateView() {
                 className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all text-xs ${
                   vehicleType === v.type
                     ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
-                    : `${bg} ${border} ${mutedText} font-bold hover:text-white`
+                    : `${bg} ${border} ${mutedText} font-bold isDark ? "hover:text-white" : "hover:text-black"`
                 }`}
               >
                 <span className="text-sm leading-none">{v.icon}</span>

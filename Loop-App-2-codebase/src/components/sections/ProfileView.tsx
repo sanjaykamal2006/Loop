@@ -195,7 +195,7 @@ export default function ProfileView() {
 
       {/* Identity Card (Substantial, Rich & High Presence) */}
       <div className={`p-5 sm:p-6 ${cardBg} border ${border} rounded-[28px] space-y-4 shadow-md`}>
-        <div className="flex items-center justify-between pb-2 border-b border-white/10">
+        <div className={`flex items-center justify-between pb-2 border-b ${isDark ? "border-white/10" : "border-black/[0.08]"}`}>
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-xl bg-white/10 flex items-center justify-center">
               <Users size={14} className="text-[#FFC554]" />
@@ -226,10 +226,10 @@ export default function ProfileView() {
         {!isEditingProfile ? (
           <div className="space-y-3.5">
             {/* 1. Display Name & Student Reg. No */}
-            <div className="grid grid-cols-2 gap-4 pb-3 border-b border-white/10">
+            <div className={`grid grid-cols-2 gap-4 pb-3 border-b ${isDark ? "border-white/10" : "border-black/[0.08]"}`}>
               <div>
                 <p className={`text-[11px] font-black ${mutedText} uppercase tracking-wider`}>Display Name</p>
-                <p className="font-black text-base truncate mt-1 text-white">{profile.display_name || "Not Set"}</p>
+                <p className={`font-black text-base truncate mt-1 ${isDark ? "text-white" : "text-zinc-900"}`}>{profile.display_name || "Not Set"}</p>
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
@@ -240,12 +240,12 @@ export default function ProfileView() {
                     </span>
                   )}
                 </div>
-                <p className="font-black text-base truncate mt-1 text-white">{profile.reg_no || "Not Set"}</p>
+                <p className={`font-black text-base truncate mt-1 ${isDark ? "text-white" : "text-zinc-900"}`}>{profile.reg_no || "Not Set"}</p>
               </div>
             </div>
 
             {/* 2. Direct Contact (WhatsApp / Mobile) */}
-            <div className="pb-3 border-b border-white/10">
+            <div className={`pb-3 border-b ${isDark ? "border-white/10" : "border-black/[0.08]"}`}>
               <p className={`text-[11px] font-black ${mutedText} uppercase tracking-wider`}>Phone / WhatsApp (For Confirmed Rides)</p>
               <div className="mt-1">
                 {profile.phone_number ? (
@@ -261,9 +261,9 @@ export default function ProfileView() {
             </div>
 
             {/* 3. Bio */}
-            <div className="pb-3 border-b border-white/10">
+            <div className={`pb-3 border-b ${isDark ? "border-white/10" : "border-black/[0.08]"}`}>
               <p className={`text-[11px] font-black ${mutedText} uppercase tracking-wider`}>Bio</p>
-              <p className={`text-sm font-semibold mt-1 leading-snug ${profile.bio?.trim() ? "text-zinc-200" : `${mutedText} opacity-50 italic`}`}>
+              <p className={`text-sm font-semibold mt-1 leading-snug ${profile.bio?.trim() ? (isDark ? "text-zinc-200" : "text-zinc-800") : `${mutedText} opacity-50 italic`}`}>
                 {profile.bio?.trim() ? profile.bio : "No bio added yet."}
               </p>
             </div>
@@ -272,7 +272,7 @@ export default function ProfileView() {
             <div className="flex items-center justify-between">
               <div className="min-w-0">
                 <p className={`text-[11px] font-black ${mutedText} uppercase tracking-wider`}>College Email</p>
-                <p className="font-bold text-sm truncate mt-1 text-zinc-300">{session.user.email}</p>
+                <p className={`font-bold text-sm truncate mt-1 ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>{session.user.email}</p>
               </div>
               {profile.is_student_verified && (
                 <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 ml-2">
@@ -290,7 +290,7 @@ export default function ProfileView() {
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
                 placeholder="Display Name"
-                className={`w-full h-11 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-sm font-bold outline-none focus:border-[#FFC554]`}
+                className={`w-full h-11 px-3.5 rounded-xl ${isDark ? "bg-white/5 text-white" : "bg-black/[0.04] text-zinc-900"} border ${border} text-sm font-bold outline-none focus:border-[#FFC554]`}
               />
             </div>
 
@@ -328,7 +328,7 @@ export default function ProfileView() {
                   value={tempPhone}
                   onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ""))}
                   placeholder="9876543210"
-                  className={`flex-1 h-11 px-3.5 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-sm font-bold outline-none focus:border-[#FFC554]`}
+                  className={`flex-1 h-11 px-3.5 rounded-xl ${isDark ? "bg-white/5 text-white" : "bg-black/[0.04] text-zinc-900"} border ${border} text-sm font-bold outline-none focus:border-[#FFC554]`}
                 />
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function ProfileView() {
                 onChange={(e) => setTempBio(e.target.value)}
                 placeholder="Short bio..."
                 rows={2}
-                className={`w-full p-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-sm font-medium outline-none focus:border-[#FFC554] resize-none`}
+                className={`w-full p-3 rounded-xl ${isDark ? "bg-white/5 text-white" : "bg-black/[0.04] text-zinc-900"} border ${border} text-sm font-medium outline-none focus:border-[#FFC554] resize-none`}
               />
             </div>
           </div>
@@ -351,7 +351,7 @@ export default function ProfileView() {
       <div className={`p-4 sm:p-5 px-5 ${cardBg} border ${border} rounded-[26px] flex items-center justify-between shadow-md`}>
         <div className="space-y-0.5">
           <p className={`text-[11px] font-black ${mutedText} uppercase tracking-wider`}>Gender</p>
-          <p className="text-base font-black capitalize text-white">{profile.gender || "Not set"}</p>
+          <p className={`text-base font-black capitalize ${isDark ? "text-white" : "text-zinc-900"}`}>{profile.gender || "Not set"}</p>
         </div>
         <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10">
           <button
@@ -359,7 +359,7 @@ export default function ProfileView() {
             className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
               profile.gender === "male"
                 ? "bg-[#FFC554] text-black shadow-md"
-                : "text-zinc-400 hover:text-white"
+                : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
             Male
@@ -369,7 +369,7 @@ export default function ProfileView() {
             className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
               profile.gender === "female"
                 ? "bg-[#FFC554] text-black shadow-md"
-                : "text-zinc-400 hover:text-white"
+                : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
             Female
@@ -378,7 +378,7 @@ export default function ProfileView() {
       </div>
 
       {/* Unified Actions Card (Bold & High Touch Targets) */}
-      <div className={`${cardBg} border ${border} rounded-[28px] overflow-hidden shadow-md divide-y ${isDark ? "divide-white/10" : "divide-black/10"}`}>
+      <div className={`${cardBg} border ${border} rounded-[28px] overflow-hidden shadow-md divide-y ${isDark ? "divide-white/10" : "divide-black/[0.08]"}`}>
         {/* Past Loops */}
         <button
           onClick={() => setView("past-loops")}
@@ -388,7 +388,7 @@ export default function ProfileView() {
             <div className="w-8 h-8 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400 shrink-0">
               <History size={16} strokeWidth={2.5} />
             </div>
-            <span className={`text-sm font-bold ${text}`}>Past Loops (History)</span>
+            <span className={`text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Past Loops (History)</span>
           </div>
           <ChevronRight size={16} className="opacity-40" />
         </button>
@@ -402,7 +402,7 @@ export default function ProfileView() {
             <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400 shrink-0">
               <ShieldCheck size={16} strokeWidth={2.5} />
             </div>
-            <span className={`text-sm font-bold ${text}`}>Trusted Drivers</span>
+            <span className={`text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Trusted Drivers</span>
           </div>
           <ChevronRight size={16} className="opacity-40" />
         </button>
@@ -419,7 +419,7 @@ export default function ProfileView() {
             >
               <Bell size={16} strokeWidth={2.5} />
             </div>
-            <span className={`text-sm font-bold ${text}`}>Ride Notifications</span>
+            <span className={`text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Ride Notifications</span>
           </div>
 
           <div className="flex items-center gap-2">
