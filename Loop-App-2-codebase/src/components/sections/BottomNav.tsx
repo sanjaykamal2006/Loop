@@ -3,15 +3,17 @@
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { MapPin, Plus, MessageSquare, Users } from "lucide-react";
+import { triggerHaptic } from "@/lib/haptics";
 import type { View } from "@/lib/types";
 
 export default function BottomNav() {
   const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds } = useLoop();
-  const { bg, border, mutedText } = theme;
+  const { isDark, mutedText } = theme;
 
   if (view === "chat" || view === "ride-details") return null;
 
   const handleNavClick = (v: View) => {
+    triggerHaptic(10);
     if (v === "create") {
       const isProfileComplete = Boolean(
         profile.gender && 
@@ -27,50 +29,137 @@ export default function BottomNav() {
     setView(v);
   };
 
-  const items: { v: View; icon: React.ReactNode; label: string }[] = [
+  const activeIndex =
+    view === "home"
+      ? 0
+      : view === "create"
+      ? 1
+      : view === "chat-list"
+      ? 2
+      : view === "profile" || view === "trusted-vehicles" || view === "past-loops"
+      ? 3
+      : -1;
+
+  const items: { v: View; icon: (isActive: boolean) => React.ReactNode; label: string }[] = [
     {
       v: "home",
-      icon: <MapPin size={24} className={view === "home" ? "fill-[#FFC554]/20" : ""} strokeWidth={view === "home" ? 3 : 2} />,
+      icon: (isActive) => (
+        <MapPin
+          size={20}
+          className={isActive ? "fill-[#FFC554]/25 text-[#FFC554]" : "text-current"}
+          strokeWidth={isActive ? 2.8 : 2}
+        />
+      ),
       label: "Home",
     },
     {
       v: "create",
-      icon: <Plus size={24} strokeWidth={view === "create" ? 4 : 2.5} />,
+      icon: (isActive) => (
+        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+          isActive
+            ? "bg-[#FFC554] text-black shadow-[0_2px_10px_rgba(255,197,84,0.5)] scale-105"
+            : isDark
+            ? "bg-white/10 text-white"
+            : "bg-black/5 text-black"
+        }`}>
+          <Plus size={16} strokeWidth={isActive ? 3.5 : 2.5} />
+        </div>
+      ),
       label: "Create",
     },
     {
       v: "chat-list",
-      icon: <MessageSquare size={24} className={view === "chat-list" ? "fill-[#FFC554]/20" : ""} strokeWidth={view === "chat-list" ? 3 : 2} />,
+      icon: (isActive) => (
+        <MessageSquare
+          size={19}
+          className={isActive ? "fill-[#FFC554]/25 text-[#FFC554]" : "text-current"}
+          strokeWidth={isActive ? 2.8 : 2}
+        />
+      ),
       label: "Chat",
     },
     {
       v: "profile",
-      icon: <Users size={24} className={view === "profile" ? "fill-[#FFC554]/20" : ""} strokeWidth={view === "profile" ? 3 : 2} />,
+      icon: (isActive) => (
+        <Users
+          size={20}
+          className={isActive ? "fill-[#FFC554]/25 text-[#FFC554]" : "text-current"}
+          strokeWidth={isActive ? 2.8 : 2}
+        />
+      ),
       label: "Profile",
     },
   ];
 
   return (
-    <nav className={`absolute bottom-0 left-0 right-0 ${bg} border-t ${border} flex items-center justify-around px-2 z-20 pb-5 pt-3`}>
-      {items.map(({ v, icon, label }) => (
-        <button
-          key={v}
-          onClick={() => handleNavClick(v)}
-          aria-label={`${label} navigation tab`}
-          className={`flex flex-col items-center gap-1.5 active:scale-90 flex-1 py-1 relative ${view === v ? "text-[#FFC554]" : mutedText}`}
-        >
-          <div className="relative">
-            {icon}
-            {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
-              <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC554] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]"></span>
-              </span>
-            )}
+    <div className="absolute bottom-3 left-3.5 right-3.5 z-30 pointer-events-none flex justify-center">
+      <nav
+        aria-label="Main Navigation"
+        className={`w-full max-w-[420px] pointer-events-auto h-[62px] rounded-[28px] p-1.5 flex items-center justify-between relative transition-all duration-300 ${
+          isDark
+            ? "bg-black/85 backdrop-blur-2xl border border-white/[0.14] shadow-[0_16px_36px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.6),inset_0_1px_1px_0_rgba(255,255,255,0.22),inset_0_-1px_1px_0_rgba(0,0,0,0.6)]"
+            : "bg-white/90 backdrop-blur-2xl border border-black/[0.08] shadow-[0_16px_36px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_1px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(0,0,0,0.05)]"
+        }`}
+      >
+        {/* Interactive 3D Sliding Active Pill (Spring Glide) */}
+        {activeIndex >= 0 && (
+          <div
+            className="absolute top-1.5 bottom-1.5 rounded-[22px] pointer-events-none transition-all duration-350 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            style={{
+              left: `calc(${activeIndex * 25}% + 3px)`,
+              width: "calc(25% - 6px)",
+            }}
+          >
+            <div
+              className={`w-full h-full rounded-[22px] ${
+                isDark
+                  ? "bg-gradient-to-b from-[#FFC554]/25 to-[#FFC554]/10 border border-[#FFC554]/40 shadow-[0_0_20px_rgba(255,197,84,0.35),inset_0_1px_1px_rgba(255,255,255,0.3)]"
+                  : "bg-gradient-to-b from-[#FFC554]/30 to-[#FFC554]/15 border border-[#FFC554]/50 shadow-[0_4px_16px_rgba(255,197,84,0.35),inset_0_1px_1px_rgba(255,255,255,0.8)]"
+              }`}
+            />
           </div>
-          <span className={`text-[11px] font-bold tracking-tight ${view === v ? "opacity-100" : "opacity-50"}`}>{label}</span>
-        </button>
-      ))}
-    </nav>
+        )}
+
+        {/* Tab Buttons */}
+        {items.map(({ v, icon, label }, index) => {
+          const isActive = activeIndex === index;
+
+          return (
+            <button
+              key={v}
+              onClick={() => handleNavClick(v)}
+              aria-label={`${label} navigation tab`}
+              className={`flex flex-col items-center justify-center flex-1 h-full py-1 relative z-10 select-none cursor-pointer transition-transform duration-200 active:scale-90 active:translate-y-0.5 ${
+                isActive ? "text-[#FFC554]" : mutedText
+              }`}
+            >
+              {/* Icon with 3D elevation */}
+              <div className={`relative flex items-center justify-center transition-transform duration-300 ${
+                isActive ? "-translate-y-0.5 scale-105" : "opacity-70 hover:opacity-100"
+              }`}>
+                {icon(isActive)}
+
+                {/* Unread Chat Badge */}
+                {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
+                  <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC554] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]"></span>
+                  </span>
+                )}
+              </div>
+
+              {/* Text Label */}
+              <span
+                className={`text-[9px] font-black uppercase tracking-wider mt-1 transition-all duration-200 ${
+                  isActive ? "opacity-100 text-[#FFC554]" : "opacity-50"
+                }`}
+              >
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
