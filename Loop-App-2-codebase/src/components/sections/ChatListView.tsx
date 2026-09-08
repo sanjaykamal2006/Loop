@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
-import { MessageSquare, ChevronRight, Bus, Car, Plane, Train, Bike, Search, X } from "lucide-react";
+import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X } from "lucide-react";
+import { AutoRickshawIcon, ScooterIcon, MotorcycleIcon, CarIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
 
 function formatDepartureDate(departureIso: string): string {
   try {
@@ -51,6 +52,18 @@ function formatMessageTime(iso?: string): string {
 }
 
 function getDestinationIcon(dest: string, vehicleType?: string | null) {
+  if (vehicleType === "auto") {
+    return <AutoRickshawIcon size={18} strokeWidth={2.2} />;
+  }
+  if (vehicleType === "share_auto") {
+    return <ShareAutoIcon size={18} strokeWidth={2.2} />;
+  }
+  if (vehicleType === "scooter") {
+    return <ScooterIcon size={18} strokeWidth={2.2} />;
+  }
+  if (vehicleType === "bike") {
+    return <MotorcycleIcon size={18} strokeWidth={2.2} />;
+  }
   const lower = (dest || "").toLowerCase();
   if (lower.includes("bus") || lower.includes("pnbs") || lower.includes("stand")) {
     return <Bus size={18} strokeWidth={2.2} />;
@@ -61,10 +74,7 @@ function getDestinationIcon(dest: string, vehicleType?: string | null) {
   if (lower.includes("station") || lower.includes("railway") || lower.includes("train") || lower.includes("bza") || lower.includes("gnt")) {
     return <Train size={18} strokeWidth={2.2} />;
   }
-  if (vehicleType === "bike" || vehicleType === "scooter") {
-    return <Bike size={18} strokeWidth={2.2} />;
-  }
-  return <Car size={18} strokeWidth={2.2} />;
+  return <CarIcon size={18} strokeWidth={2.2} />;
 }
 
 interface RecentMsgData {

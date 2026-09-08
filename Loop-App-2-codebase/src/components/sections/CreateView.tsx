@@ -6,7 +6,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Users, Calendar } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
-import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
+import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
 
@@ -297,31 +297,34 @@ export default function CreateView() {
         {isDriver && (
           <div className="pt-1.5 border-t border-white/5 flex gap-1.5 animate-fade-in">
             {[
-              { type: "scooter", label: "Scooter (1)", icon: "🛵" },
-              { type: "bike", label: "Bike (1)", icon: "🏍️" },
-              { type: "car", label: "Car (1-4)", icon: "🚗" }
-            ].map(v => (
-              <button
-                key={v.type}
-                type="button"
-                onClick={() => {
-                  setVehicleType(v.type as any);
-                  if (v.type === "scooter" || v.type === "bike") {
-                    setLimit(1);
-                  } else if (limit === 1) {
-                    setLimit(3);
-                  }
-                }}
-                className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all text-xs ${
-                  vehicleType === v.type
-                    ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
-                    : `${bg} ${border} ${mutedText} font-bold isDark ? "hover:text-white" : "hover:text-black"`
-                }`}
-              >
-                <span className="text-sm leading-none">{v.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-wider">{v.label}</span>
-              </button>
-            ))}
+              { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
+              { type: "bike", label: "Bike (1)", Icon: MotorcycleIcon },
+              { type: "car", label: "Car (1-4)", Icon: CarIcon }
+            ].map(v => {
+              const isSelected = vehicleType === v.type;
+              return (
+                <button
+                  key={v.type}
+                  type="button"
+                  onClick={() => {
+                    setVehicleType(v.type as any);
+                    if (v.type === "scooter" || v.type === "bike") {
+                      setLimit(1);
+                    } else if (limit === 1) {
+                      setLimit(3);
+                    }
+                  }}
+                  className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
+                    isSelected
+                      ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
+                      : `${bg} ${border} ${mutedText} font-bold`
+                  }`}
+                >
+                  <v.Icon size={14} strokeWidth={2.2} className={isSelected ? "text-black" : "text-[#FFC554]"} />
+                  <span className="text-[10px] font-black uppercase tracking-wider">{v.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

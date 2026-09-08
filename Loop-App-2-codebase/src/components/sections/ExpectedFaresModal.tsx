@@ -6,24 +6,9 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, Sparkles, ArrowLeft, Search, Car } from "lucide-react";
 import type { ExpectedFare } from "@/lib/types";
+import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon, CarIcon } from "@/components/ui/VehicleIcons";
 
-const AutoIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M19.5,9.5L18,6h-4.5L12,2H7C6.4,2,6,2.4,6,3v8H4v3h2v3c0,1.1,0.9,2,2,2s2-0.9,2-2h4c0,1.1,0.9,2,2,2s2-0.9,2-2h2v-6.5C20,10.2,19.8,9.8,19.5,9.5z M8,17c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S8.6,17,8,17z M16,17c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S16.6,17,16,17z M8,11V4h3.5l1.5,4H17l1,3H8z" />
-  </svg>
-);
 
-const BikeIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M15.5,5.5c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S14.4,5.5,15.5,5.5z M5,12c-2.8,0-5,2.2-5,5s2.2,5,5,5s5-2.2,5-5S7.8,12,5,12z M5,20c-1.7,0-3-1.3-3-3s1.3-3,3-3s3,1.3,3,3S6.7,20,5,20z M19,12c-2.8,0-5,2.2-5,5s2.2,5,5,5s5-2.2,5-5S21.8,12,19,12z M19,20c-1.7,0-3-1.3-3-3s1.3-3,3-3s3,1.3,3,3S20.7,20,19,20z M11.2,7l-2-2H4v2h4l2,2l-2.9,3.1c-0.6-0.3-1.3-0.5-2.1-0.5v2c1,0,1.8,0.4,2.5,1.1L8.7,17h2.2l2.6-3.8L15,14v6h2v-7.3l-4.7-4.4l0.9-1.2C15.8,7.7,16.8,8,18,8V6C16.3,6,14.8,5.3,13.8,4.2L11.2,7z" />
-  </svg>
-);
-
-const ShareAutoIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M20.5,9.5L19,5H5L3.5,9.5C3.2,9.8,3,10.2,3,10.5V17h2v3c0,1.1,0.9,2,2,2s2-0.9,2-2h6c0,1.1,0.9,2,2,2s2-0.9,2-2h2v-3h2V10.5C21,10.2,20.8,9.8,20.5,9.5z M7,19c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S7.6,19,7,19z M17,19c-0.6,0-1-0.4-1-1s0.4-1,1-1s1,0.4,1,1S17.6,19,17,19z M19,15H5v-4h14V15z M5.5,9l1-3h11l1,3H5.5z" />
-  </svg>
-);
 
 export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { session, theme } = useLoop();
@@ -117,12 +102,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
   };
 
   const renderVehicleIcon = (type?: string, className = "w-4 h-4") => {
-    switch (type) {
-      case "bike": return <BikeIcon className={className} />;
-      case "auto": return <AutoIcon className={className} />;
-      case "share_auto": return <ShareAutoIcon className={className} />;
-      default: return <Car className={className} />;
-    }
+    return <VehicleTypeIcon vehicleType={type} size={14} className={className} strokeWidth={2.2} />;
   };
 
   if (!isOpen) return null;
@@ -298,7 +278,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
                   { id: "auto", label: "Auto", icon: AutoIcon },
                   { id: "bike", label: "Bike", icon: BikeIcon },
                   { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon },
-                  { id: "cab", label: "Cab", icon: Car }
+                  { id: "cab", label: "Cab", icon: CarIcon }
                 ].map(t => (
                   <button
                     key={t.id}

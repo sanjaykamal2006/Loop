@@ -5,7 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
 import { getDepartureDateBadge } from "@/lib/dateFormatter";
 import { Users, Clock, MapPin, Search, X, CarFront } from "lucide-react";
-import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
+import { SteeringWheelIcon, VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
 export default function HomeView() {
@@ -147,13 +147,7 @@ export default function HomeView() {
             <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
               isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
             }`}>
-              {loop.is_driver_offering && loop.vehicle_type === "bike" ? (
-                <MotorcycleIcon size={22} className="text-[#FFC554]" />
-              ) : loop.is_driver_offering && loop.vehicle_type === "scooter" ? (
-                <ScooterIcon size={22} className="text-[#FFC554]" />
-              ) : (
-                <CarFront size={22} className="text-[#FFC554]" strokeWidth={2} />
-              )}
+              <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className="text-[#FFC554]" strokeWidth={2} />
             </div>
 
             {/* Route & Info Block (Zero truncation, no dots, full text wraps cleanly) */}

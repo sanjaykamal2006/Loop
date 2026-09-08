@@ -8,6 +8,7 @@ import { Loop } from "@/lib/types";
 import { formatLocation } from "@/lib/locationFormatter";
 import { X, Clock, MapPin, Edit3, Calendar } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDepartureFull, formatDDMMYYYY } from "@/lib/dateFormatter";
+import { ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -361,31 +362,34 @@ export default function EditLoopModal({
             </label>
             <div className="flex gap-1.5">
               {[
-                { type: "scooter", label: "Scooter", icon: "🛵" },
-                { type: "bike", label: "Bike", icon: "🏍️" },
-                { type: "car", label: "Car", icon: "🚗" },
-              ].map((v) => (
-                <button
-                  key={v.type}
-                  type="button"
-                  onClick={() => {
-                    setVehicleType(v.type as any);
-                    if (v.type === "scooter" || v.type === "bike") {
-                      setLimit(1);
-                    } else if (limit === 1) {
-                      setLimit(3);
-                    }
-                  }}
-                  className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all text-xs ${
-                    vehicleType === v.type
-                      ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm"
-                      : `${bg} ${border} ${mutedText} font-bold`
-                  }`}
-                >
-                  <span>{v.icon}</span>
-                  <span className="text-[10px] font-black uppercase">{v.label}</span>
-                </button>
-              ))}
+                { type: "scooter", label: "Scooter", Icon: ScooterIcon },
+                { type: "bike", label: "Bike", Icon: MotorcycleIcon },
+                { type: "car", label: "Car", Icon: CarIcon },
+              ].map((v) => {
+                const isSelected = vehicleType === v.type;
+                return (
+                  <button
+                    key={v.type}
+                    type="button"
+                    onClick={() => {
+                      setVehicleType(v.type as any);
+                      if (v.type === "scooter" || v.type === "bike") {
+                        setLimit(1);
+                      } else if (limit === 1) {
+                        setLimit(3);
+                      }
+                    }}
+                    className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
+                      isSelected
+                        ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm"
+                        : `${bg} ${border} ${mutedText} font-bold`
+                    }`}
+                  >
+                    <v.Icon size={14} strokeWidth={2.2} className={isSelected ? "text-black" : "text-[#FFC554]"} />
+                    <span className="text-[10px] font-black uppercase">{v.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
