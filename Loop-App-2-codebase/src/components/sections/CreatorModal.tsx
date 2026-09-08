@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Sparkles, ShieldCheck, PhoneCall, Zap } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 
 export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme } = useLoop();
@@ -20,7 +20,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-[#FFC554]" />
             <h2 className="text-xs font-black uppercase tracking-widest text-[#FFC554]">
-              VIT-AP Campus Edition
+              About Creator
             </h2>
           </div>
           <button
@@ -33,15 +33,10 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         </div>
 
         {/* Body */}
-        <div className="py-4 flex flex-col items-center text-center space-y-3.5">
-          {/* Creator Avatar with Golden Ring */}
-          <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-[24px] overflow-hidden border-2 border-[#FFC554] shadow-xl p-0.5 bg-[#FFC554]/20">
-              <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover rounded-[20px]" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FFC554] text-black flex items-center justify-center font-black text-[10px] shadow-md">
-              ⚡
-            </div>
+        <div className="py-4 flex flex-col items-center text-center space-y-4">
+          {/* Creator Avatar (Clean, no yellow accent, no emoji badge) */}
+          <div className="w-20 h-20 rounded-[24px] overflow-hidden border border-white/15 shadow-xl shrink-0">
+            <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover" />
           </div>
 
           {/* Name & Title */}
@@ -52,30 +47,14 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
             </p>
           </div>
 
-          {/* Vision / Mission Box */}
-          <div className={`p-3.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-[11px] font-medium leading-relaxed opacity-90 text-left space-y-1.5`}>
+          {/* Middle Content Box */}
+          <div className={`p-4 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-[11px] font-medium leading-relaxed opacity-90 text-left space-y-2`}>
             <p>
-              "LOOP was built to end the endless chaos of WhatsApp cab groups, ghosted rides, and unverified contacts.
+              "LOOP was built to eliminate the everyday struggle students face when coordinating campus travel.
             </p>
-            <p className="text-[#FFC554] font-bold">
-              Crafted exclusively for the VIT-AP University campus — giving you instant, trusted cab-pooling with verified student IDs and 1-tap pickup contact."
+            <p>
+              Instead of relying on chaotic WhatsApp groups and unverified contacts, LOOP provides VIT-AP students with a fast, dedicated platform to find rides, share cabs, and connect directly with verified peers in seconds."
             </p>
-          </div>
-
-          {/* Campus Highlights */}
-          <div className="w-full grid grid-cols-3 gap-1.5 pt-1">
-            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
-              <ShieldCheck size={14} className="text-[#FFC554] mb-1" />
-              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">Verified Students</span>
-            </div>
-            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
-              <PhoneCall size={14} className="text-[#FFC554] mb-1" />
-              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">1-Tap Direct Contact</span>
-            </div>
-            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
-              <Zap size={14} className="text-[#FFC554] mb-1" />
-              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">Zero Group Spam</span>
-            </div>
           </div>
 
           {/* Signature */}
