@@ -73,7 +73,7 @@ export default function UserProfileModal({
             {user.is_student_verified && (
               <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
                 <ShieldCheck size={12} strokeWidth={2.5} />
-                <span>Verified Student</span>
+                <span>VIT-AP Verified Student</span>
               </span>
             )}
             {user.reg_no && (

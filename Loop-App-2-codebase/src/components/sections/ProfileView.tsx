@@ -244,7 +244,7 @@ export default function ProfileView() {
                   <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Student Reg. No</p>
                   {profile.is_student_verified && (
                     <span className="text-[8px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-black uppercase tracking-wider">
-                      Verified 🎓
+                      {session.user.email?.includes("vitap") ? "VIT-AP 🎓" : "Verified 🎓"}
                     </span>
                   )}
                 </div>
@@ -285,7 +285,7 @@ export default function ProfileView() {
               </div>
               {profile.is_student_verified && (
                 <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                  Campus ID Verified
+                  {session.user.email?.includes("vitap") ? "VIT-AP ID Verified" : "Campus ID Verified"}
                 </span>
               )}
             </div>
@@ -306,7 +306,9 @@ export default function ProfileView() {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>
-                  {profile.is_student_verified ? "Student Roll No. (Locked for Safety 🔒)" : "Org / College / Roll No."}
+                  {profile.is_student_verified
+                    ? (session.user.email?.includes("vitap") ? "VIT-AP Reg. No (Locked 🔒)" : "Student Roll No. (Locked 🔒)")
+                    : "Org / College / Roll No."}
                 </label>
               </div>
               <input

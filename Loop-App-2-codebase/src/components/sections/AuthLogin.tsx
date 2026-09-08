@@ -331,20 +331,20 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2.5">
               <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
-                {isLogin ? "Email Address" : "College Student Email"}
+                {isLogin ? "Email Address" : "VIT-AP Student Email"}
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={isLogin ? "name@email.com" : "student.roll@college.ac.in"}
+                placeholder={isLogin ? "name@email.com" : "name.rollno@vitapstudent.ac.in"}
                 className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-base font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
               />
               {!isLogin && (
                 <p className="text-[10px] font-bold text-[#FFC554] ml-4 flex items-center gap-1.5 opacity-90">
                   <span>🎓</span>
-                  <span>Verified Campus: Use your student email (.ac.in / .edu)</span>
+                  <span>VIT-AP Campus: Use name.rollno@vitapstudent.ac.in</span>
                 </p>
               )}
             </div>
