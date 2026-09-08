@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Loop } from "@/lib/types";
+import { formatLocation } from "@/lib/locationFormatter";
 import { X, Clock, MapPin, Edit3 } from "lucide-react";
 
 interface EditLoopModalProps {
@@ -78,8 +79,10 @@ export default function EditLoopModal({
   };
 
   const handleSave = async () => {
-    if (!startPoint.trim()) return toast.error("Starting Point is required");
-    if (!dest.trim()) return toast.error("Destination is required");
+    const formattedStart = formatLocation(startPoint);
+    const formattedDest = formatLocation(dest);
+    if (!formattedStart.trim()) return toast.error("Starting Point is required");
+    if (!formattedDest.trim()) return toast.error("Destination is required");
     if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
     if (isSaving) return;
 
@@ -218,6 +221,7 @@ export default function EditLoopModal({
             <input
               value={startPoint}
               onChange={(e) => setStartPoint(e.target.value)}
+              onBlur={() => setStartPoint(formatLocation(startPoint))}
               placeholder="e.g., Campus Gate 2, Hostel D..."
               className={`w-full h-11 ${bg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] placeholder:opacity-30 transition-colors`}
             />
@@ -230,6 +234,7 @@ export default function EditLoopModal({
             <input
               value={dest}
               onChange={(e) => setDest(e.target.value)}
+              onBlur={() => setDest(formatLocation(dest))}
               placeholder="e.g., Airport, Vijayawada, PVP Mall..."
               className={`w-full h-11 ${bg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] placeholder:opacity-30 transition-colors`}
             />

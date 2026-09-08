@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, ShieldCheck, PhoneCall, Zap } from "lucide-react";
 
 export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme } = useLoop();
@@ -13,14 +13,14 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div 
-        className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide`}
+        className={`w-full max-w-sm max-h-[90vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-5 sm:p-6 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide`}
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-[#FFC554]" />
             <h2 className="text-xs font-black uppercase tracking-widest text-[#FFC554]">
-              The Mind Behind LOOP
+              VIT-AP Campus Edition
             </h2>
           </div>
           <button
@@ -34,27 +34,53 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
 
         {/* Body */}
         <div className="py-4 flex flex-col items-center text-center space-y-3.5">
-          {/* Photo */}
-          <div className="w-20 h-20 rounded-[24px] overflow-hidden border border-white/10 shadow-xl shrink-0">
-            <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover" />
+          {/* Creator Avatar with Golden Ring */}
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 rounded-[24px] overflow-hidden border-2 border-[#FFC554] shadow-xl p-0.5 bg-[#FFC554]/20">
+              <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover rounded-[20px]" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FFC554] text-black flex items-center justify-center font-black text-[10px] shadow-md">
+              ⚡
+            </div>
           </div>
 
-          {/* Name & Subtitle */}
+          {/* Name & Title */}
           <div className="space-y-0.5">
-            <h3 className="text-lg font-black uppercase tracking-tight">{profileName || "Sanjay Kamal"}</h3>
-            <p className="text-xs font-medium opacity-60 tracking-wide">
-              Crafted by one builder, for every rider.
+            <h3 className="text-lg font-black uppercase tracking-tight">Sanjay Kamal</h3>
+            <p className="text-[11px] font-black text-[#FFC554] tracking-widest uppercase">
+              Creator & Lead Developer
             </p>
           </div>
 
-          {/* Core Statement */}
-          <div className={`p-3.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-medium leading-relaxed opacity-90 text-left`}>
-            "LOOP wasn't created to reinvent ride sharing—it was created to remove everything that slows it down. A fast, purpose-built platform where finding a ride takes seconds, not conversations."
+          {/* Vision / Mission Box */}
+          <div className={`p-3.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-[11px] font-medium leading-relaxed opacity-90 text-left space-y-1.5`}>
+            <p>
+              "LOOP was built to end the endless chaos of WhatsApp cab groups, ghosted rides, and unverified contacts.
+            </p>
+            <p className="text-[#FFC554] font-bold">
+              Crafted exclusively for the VIT-AP University campus — giving you instant, trusted cab-pooling with verified student IDs and 1-tap pickup contact."
+            </p>
           </div>
 
-          {/* Tagline */}
-          <p className="text-[10px] font-black uppercase tracking-wider text-[#FFC554]">
-            Designed for campuses. Built for communities.
+          {/* Campus Highlights */}
+          <div className="w-full grid grid-cols-3 gap-1.5 pt-1">
+            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
+              <ShieldCheck size={14} className="text-[#FFC554] mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">Verified Students</span>
+            </div>
+            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
+              <PhoneCall size={14} className="text-[#FFC554] mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">1-Tap Direct Contact</span>
+            </div>
+            <div className={`p-2 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} flex flex-col items-center text-center`}>
+              <Zap size={14} className="text-[#FFC554] mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-tight leading-tight">Zero Group Spam</span>
+            </div>
+          </div>
+
+          {/* Signature */}
+          <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-wider`}>
+            Built by a student, for every student.
           </p>
         </div>
 
@@ -64,12 +90,10 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
             onClick={onClose}
             className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
           >
-            Close
+            Got It
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-const profileName = "Sanjay Kamal";

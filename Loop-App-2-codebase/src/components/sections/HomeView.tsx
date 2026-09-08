@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
+import { formatLocation } from "@/lib/locationFormatter";
 import { Users, Clock, MapPin, Search, X } from "lucide-react";
 import { SteeringWheelIcon, MotorcycleIcon, ScooterIcon, SolidCarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -33,12 +34,14 @@ export default function HomeView() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     const qClean = q.replace(/[-_\s]+/g, "");
+    const formattedQuery = formatLocation(searchQuery).toLowerCase();
 
     const checkMatch = (val?: string | null) => {
       if (!val) return false;
       const lower = val.toLowerCase();
       if (lower.includes(q)) return true;
       if (qClean && lower.replace(/[-_\s]+/g, "").includes(qClean)) return true;
+      if (formattedQuery && lower.includes(formattedQuery)) return true;
       return false;
     };
 

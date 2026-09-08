@@ -53,6 +53,10 @@ interface LoopContextValue {
   formatTime: (iso: string) => string;
   chatSource: "ride-details" | "chat-list";
   setChatSource: (s: "ride-details" | "chat-list") => void;
+
+  // Messages & notifications
+  unreadLoopIds: string[];
+  markLoopAsRead: (loopId: string) => void;
 }
 
 const LoopContext = createContext<LoopContextValue | null>(null);
@@ -78,6 +82,9 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   const setSelectedLoop = useCallback((loop: Loop | null) => {
     setSelectedLoopState(loop);
+    if (loop?.id) {
+      setUnreadLoopIds((prev) => prev.filter((id) => id !== loop.id));
+    }
     if (typeof window !== "undefined") {
       try {
         if (loop) {
@@ -113,6 +120,35 @@ export function LoopProvider({ session, children }: { session: Session; children
   const [showGenderSelect, setShowGenderSelect] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop } | null>(null);
   const [chatSource, setChatSource] = useState<"ride-details" | "chat-list">("ride-details");
+  const [unreadLoopIds, setUnreadLoopIds] = useState<string[]>([]);
+  const markLoopAsRead = useCallback((loopId: string) => {
+    setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
+  }, []);
+
+  const userJoinedLoopsRef = useRef(userJoinedLoops);
+  useEffect(() => {
+    userJoinedLoopsRef.current = userJoinedLoops;
+  }, [userJoinedLoops]);
+
+  const userLoopsRef = useRef(userLoops);
+  useEffect(() => {
+    userLoopsRef.current = userLoops;
+  }, [userLoops]);
+
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
+  const selectedLoopRef = useRef(selectedLoop);
+  useEffect(() => {
+    selectedLoopRef.current = selectedLoop;
+  }, [selectedLoop]);
+
+  const activeLoopsRef = useRef(activeLoops);
+  useEffect(() => {
+    activeLoopsRef.current = activeLoops;
+  }, [activeLoops]);
 
   // --- Browser back button support ---
   const setView = useCallback((v: View) => {
@@ -631,6 +667,51 @@ export function LoopProvider({ session, children }: { session: Session; children
             }
           }
         )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          (payload) => {
+            const newMsg = payload.new as any;
+            if (!newMsg?.id || !newMsg.loop_id) return;
+            if (newMsg.user_id === session.user.id) return;
+
+            const isUserInLoop =
+              userJoinedLoopsRef.current.includes(newMsg.loop_id) ||
+              userLoopsRef.current.includes(newMsg.loop_id);
+
+            if (!isUserInLoop) return;
+
+            const isCurrentlyInThisChat =
+              viewRef.current === "chat" &&
+              selectedLoopRef.current?.id === newMsg.loop_id;
+
+            if (!isCurrentlyInThisChat) {
+              setUnreadLoopIds((prev) => Array.from(new Set([...prev, newMsg.loop_id])));
+
+              try {
+                const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
+                audio.volume = 0.6;
+                audio.play().catch(() => {});
+              } catch (e) {}
+
+              if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+                try {
+                  navigator.vibrate([100, 50, 100]);
+                } catch (e) {}
+              }
+
+              const targetLoop = activeLoopsRef.current.find((l) => l.id === newMsg.loop_id);
+              const destName = targetLoop ? targetLoop.destination : "Ride Chat";
+              toast.info(`💬 ${destName}: ${newMsg.content?.slice(0, 45) || "New message"}`);
+
+              sendLocalNotification(`LOOP: ${destName}`, {
+                body: newMsg.content || "New message in your ride",
+                data: { url: `/?loop=${newMsg.loop_id}` },
+                tag: `loop-chat-${newMsg.loop_id}`,
+              });
+            }
+          }
+        )
         .subscribe();
     };
 
@@ -714,6 +795,8 @@ export function LoopProvider({ session, children }: { session: Session; children
     formatTime,
     chatSource,
     setChatSource,
+    unreadLoopIds,
+    markLoopAsRead,
   };
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;

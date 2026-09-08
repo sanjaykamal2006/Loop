@@ -10,7 +10,7 @@ import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [messages, setMessages] = useState<Message[]>([]);

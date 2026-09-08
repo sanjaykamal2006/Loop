@@ -6,7 +6,7 @@ import { MapPin, Plus, MessageSquare, Users } from "lucide-react";
 import type { View } from "@/lib/types";
 
 export default function BottomNav() {
-  const { view, setView, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
+  const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds } = useLoop();
   const { bg, border, mutedText } = theme;
 
   if (view === "chat" || view === "ride-details") return null;
@@ -57,9 +57,17 @@ export default function BottomNav() {
           key={v}
           onClick={() => handleNavClick(v)}
           aria-label={`${label} navigation tab`}
-          className={`flex flex-col items-center gap-1.5 active:scale-90 flex-1 py-1 ${view === v ? "text-[#FFC554]" : mutedText}`}
+          className={`flex flex-col items-center gap-1.5 active:scale-90 flex-1 py-1 relative ${view === v ? "text-[#FFC554]" : mutedText}`}
         >
-          {icon}
+          <div className="relative">
+            {icon}
+            {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
+              <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC554] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]"></span>
+              </span>
+            )}
+          </div>
           <span className={`text-[11px] font-bold tracking-tight ${view === v ? "opacity-100" : "opacity-50"}`}>{label}</span>
         </button>
       ))}
