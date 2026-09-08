@@ -114,6 +114,13 @@ export default function ChatView() {
         (payload) => {
           const newMsg = payload.new as any;
           if (!newMsg?.id) return;
+          if (newMsg.user_id !== session.user.id && typeof document !== "undefined" && document.visibilityState === "hidden") {
+            sendLocalNotification("LOOP Chat", {
+              body: newMsg.content || "New message received",
+              data: { url: `/?loop=${loopId}` },
+              tag: `chat-msg-${loopId}`,
+            });
+          }
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             fetchMessages(loopId);

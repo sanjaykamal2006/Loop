@@ -547,6 +547,7 @@ export function LoopProvider({ session, children }: { session: Session; children
               // Trigger notification if current user created this loop
               setUserLoops((currentCreatorLoops) => {
                 if (currentCreatorLoops.includes(newMember.loop_id!)) {
+                  toast.success("A passenger just joined your loop! 🚗");
                   sendLocalNotification("LOOP: Passenger Joined! 🚗", {
                     body: "A new passenger just joined your ride. Tap to view your loop.",
                     data: { url: `/?loop=${newMember.loop_id}` },

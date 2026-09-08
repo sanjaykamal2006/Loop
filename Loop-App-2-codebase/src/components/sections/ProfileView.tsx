@@ -2,12 +2,10 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, Languages, Bell, Shield } from "lucide-react";
+import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriangle, History, Languages, Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
-import TeluguGuideModal from "./TeluguGuideModal";
 import { getNotificationPermission, requestNotificationPermission, sendLocalNotification } from "@/lib/notifications";
 
 export default function ProfileView() {
@@ -19,9 +17,7 @@ export default function ProfileView() {
   const [tempBio, setTempBio] = useState(profile.bio || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
-  const [showTeluguGuide, setShowTeluguGuide] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
@@ -32,21 +28,25 @@ export default function ProfileView() {
 
   const handleToggleNotifications = async () => {
     if (notifPermission === "granted") {
-      toast.success("Notifications are already active!");
-      sendLocalNotification("LOOP Notifications Active 🔔", {
-        body: "You're all set to receive passenger join and message alerts.",
+      toast.success("Notifications active! Sending test alert 🔔");
+      await sendLocalNotification("LOOP Test Notification 🔔", {
+        body: "Awesome! You will receive alerts when passengers join your rides.",
       });
       return;
     }
-    const granted = await requestNotificationPermission();
-    setNotifPermission(granted ? "granted" : "denied");
-    if (granted) {
-      toast.success("Ride notifications enabled!");
-      sendLocalNotification("LOOP Notifications Enabled! 🔔", {
-        body: "You will be alerted when passengers join your rides or message you.",
+    const res = await requestNotificationPermission();
+    if (res.granted) {
+      setNotifPermission("granted");
+      toast.success("Ride notifications enabled! Sending test alert 🔔");
+      await sendLocalNotification("LOOP Notifications Enabled! 🚗", {
+        body: "You'll now receive alerts when passengers join your rides.",
       });
+    } else if (res.reason === "ios_not_pwa") {
+      toast.info("📱 On iPhone, notifications require adding LOOP to your Home Screen: Tap Share (⎋) ➔ 'Add to Home Screen'.");
+    } else if (res.reason === "blocked") {
+      toast.error("🔒 Notifications are blocked in your browser. Tap the lock/tune icon in your address bar to allow.");
     } else {
-      toast.error("Notifications were not enabled. Check your browser permissions.");
+      toast.error("Notifications were not enabled. Please check your device settings.");
     }
   };
 
@@ -60,25 +60,15 @@ export default function ProfileView() {
     const handlePastLoops = () => {
       setView("past-loops");
     };
-    const handleTerms = () => {
-      setShowTerms(true);
-    };
     const handleCreator = () => {
       setShowCreator(true);
     };
-    const handleTeluguGuide = () => {
-      setShowTeluguGuide(true);
-    };
 
     window.addEventListener("open-past-loops", handlePastLoops);
-    window.addEventListener("open-terms-modal", handleTerms);
     window.addEventListener("open-creator-modal", handleCreator);
-    window.addEventListener("open-telugu-guide-modal", handleTeluguGuide);
     return () => {
       window.removeEventListener("open-past-loops", handlePastLoops);
-      window.removeEventListener("open-terms-modal", handleTerms);
       window.removeEventListener("open-creator-modal", handleCreator);
-      window.removeEventListener("open-telugu-guide-modal", handleTeluguGuide);
     };
   }, [setView]);
 
@@ -354,25 +344,8 @@ export default function ProfileView() {
               ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
               : "bg-white/5 text-zinc-400 border border-white/10"
           }`}>
-            {notifPermission === "granted" ? "Active 🔔" : "Enable"}
+            {notifPermission === "granted" ? "Test Alert 🔔" : "Enable"}
           </span>
-        </button>
-
-        {/* Legal & Safety Disclaimer */}
-        <button
-          onClick={() => setShowTerms(true)}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-              <Shield size={16} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-0.5 text-left">
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Policy</p>
-              <p className={`text-xs font-bold ${text}`}>Safety & Legal Disclaimer</p>
-            </div>
-          </div>
-          <span className={`text-[9px] font-bold ${mutedText}`}>Non-Commercial</span>
         </button>
 
         {/* About Creator */}
@@ -408,8 +381,6 @@ export default function ProfileView() {
         </button>
       </div>
 
-      <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
-      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
 
       {/* Delete Account Confirmation Modal */}

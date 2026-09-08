@@ -9,7 +9,6 @@ import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
-import TermsModal from "./TermsModal";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -41,7 +40,6 @@ export default function RideDetailsView() {
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
 
   const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
 
@@ -287,7 +285,7 @@ export default function RideDetailsView() {
         </div>
         <button
           type="button"
-          onClick={() => setShowTerms(true)}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-terms-modal"))}
           className="text-[9px] font-black text-[#FFC554] underline hover:opacity-80 active:scale-95 transition-all shrink-0"
         >
           Safety Policy
@@ -491,8 +489,6 @@ export default function RideDetailsView() {
           }}
         />
       )}
-
-      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
     </div>
   );
 }
