@@ -140,64 +140,26 @@ export default function CreateView() {
     <div className="space-y-2.5 pt-1 pb-4">
       {/* Starting Point */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between ml-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>Starting Point</label>
-          {startPoint !== "VIT-AP" && (
-            <button
-              type="button"
-              onClick={() => setStartPoint("VIT-AP")}
-              className="text-[9px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95 transition-transform"
-            >
-              + From VIT-AP
-            </button>
-          )}
-        </div>
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
         <input
           value={startPoint}
           onChange={(e) => setStartPoint(e.target.value)}
           onBlur={() => setStartPoint(formatLocation(startPoint))}
-          placeholder="Where from? (e.g. VIT-AP Campus)"
+          placeholder="Where from?"
           className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
       </div>
 
       {/* Destination */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between ml-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>Destination</label>
-          <span className="text-[9px] font-bold text-[#FFC554]/80">Auto-Formatted</span>
-        </div>
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
         <input
           value={dest}
           onChange={(e) => setDest(e.target.value)}
           onBlur={() => setDest(formatLocation(dest))}
-          placeholder="Where to? (e.g. VIT-AP, BZA Station, RGIA)"
+          placeholder="Where to?"
           className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
         />
-        {/* Quick Destination Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pt-1 pb-0.5">
-          {[
-            { label: "VIT-AP", value: "VIT-AP" },
-            { label: "BZA Station", value: "Vijayawada Railway Station" },
-            { label: "RGIA Airport", value: "RGIA Hyderabad Airport" },
-            { label: "PNBS Bus Stand", value: "Pandit Nehru Bus Station (PNBS)" },
-            { label: "Gannavaram", value: "Vijayawada Airport (Gannavaram)" },
-            { label: "Guntur", value: "Guntur Railway Station" },
-          ].map((chip) => (
-            <button
-              key={chip.label}
-              type="button"
-              onClick={() => setDest(chip.value)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tight shrink-0 transition-all active:scale-95 ${
-                dest === chip.value
-                  ? "bg-[#FFC554] text-black shadow-sm"
-                  : `${bg} border ${border} ${mutedText} hover:text-white`
-              }`}
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Starting Time */}
