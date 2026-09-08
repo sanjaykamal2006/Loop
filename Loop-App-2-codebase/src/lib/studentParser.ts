@@ -89,17 +89,9 @@ export function isAllowedStudentEmail(email: string): { allowed: boolean; reason
     return { allowed: false, reason: "Please enter a valid email address." };
   }
 
-  // Developer & Core Team whitelist - never lock out existing admins & testers
+  // Developer whitelist - only lead developer
   const developerWhitelist = [
     "sanjaykamal2006@gmail.com",
-    "ngommalove69@gmail.com",
-    "sanjaykamal1908@gmail.com",
-    "sanjaykamal001@gmail.com",
-    "sanjaykamal480@gmail.com",
-    "dsmokshith2006@gmail.com",
-    "loop.developer8@gmail.com",
-    "adityapraharaj6@gmail.com",
-    "nithya.polavarapu@gmail.com",
   ];
 
   if (developerWhitelist.includes(trimmed)) {
