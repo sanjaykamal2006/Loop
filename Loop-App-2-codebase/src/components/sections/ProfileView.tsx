@@ -6,7 +6,7 @@ import { LogOut, Users, Edit2, Check, Camera, ShieldCheck, Sparkles, AlertTriang
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import CreatorModal from "./CreatorModal";
-import { getNotificationPermission, requestNotificationPermission, sendLocalNotification } from "@/lib/notifications";
+import { getNotificationPermission, isNotificationEnabled, setNotificationEnabled, requestNotificationPermission, sendLocalNotification } from "@/lib/notifications";
 
 export default function ProfileView() {
   const { session, profile, updateProfile, handleSignOut, theme, setView } = useLoop();
@@ -21,23 +21,38 @@ export default function ProfileView() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  const [notifEnabled, setNotifEnabled] = useState(false);
 
   React.useEffect(() => {
     setNotifPermission(getNotificationPermission());
+    setNotifEnabled(isNotificationEnabled());
   }, []);
 
   const handleToggleNotifications = async () => {
-    if (notifPermission === "granted") {
-      toast.success("Notifications active! Sending test alert 🔔");
-      await sendLocalNotification("LOOP Test Notification 🔔", {
-        body: "Awesome! You will receive alerts when passengers join your rides.",
+    if (notifEnabled) {
+      setNotificationEnabled(false);
+      setNotifEnabled(false);
+      toast.info("Notifications turned off");
+      return;
+    }
+
+    const currentPerm = getNotificationPermission();
+    if (currentPerm === "granted") {
+      setNotificationEnabled(true);
+      setNotifEnabled(true);
+      toast.success("Ride notifications enabled! 🔔");
+      await sendLocalNotification("LOOP Notifications Enabled! 🚗", {
+        body: "You'll now receive alerts when passengers join your rides.",
       });
       return;
     }
+
     const res = await requestNotificationPermission();
     if (res.granted) {
       setNotifPermission("granted");
-      toast.success("Ride notifications enabled! Sending test alert 🔔");
+      setNotificationEnabled(true);
+      setNotifEnabled(true);
+      toast.success("Ride notifications enabled! 🔔");
       await sendLocalNotification("LOOP Notifications Enabled! 🚗", {
         body: "You'll now receive alerts when passengers join your rides.",
       });
@@ -48,6 +63,18 @@ export default function ProfileView() {
     } else {
       toast.error("Notifications were not enabled. Please check your device settings.");
     }
+  };
+
+  const handleTestAlert = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!notifEnabled) {
+      toast.info("Turn notifications ON first to test.");
+      return;
+    }
+    toast.success("Sending test alert... 🔔");
+    await sendLocalNotification("LOOP Test Notification 🔔", {
+      body: "Awesome! You will receive alerts when passengers join your rides.",
+    });
   };
 
   React.useEffect(() => {
@@ -326,12 +353,17 @@ export default function ProfileView() {
         </button>
 
         {/* Notifications Setting */}
-        <button
-          onClick={handleToggleNotifications}
-          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full active:scale-[0.98] transition-transform`}
+        <div
+          className={`p-3.5 ${cardBg} border ${border} rounded-[24px] flex items-center justify-between w-full shadow-sm`}
         >
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl ${notifPermission === "granted" ? "bg-emerald-500/10 text-emerald-500" : "bg-[#FFC554]/10 text-[#FFC554]"} flex items-center justify-center`}>
+            <div
+              className={`w-8 h-8 rounded-xl ${
+                notifEnabled
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-white/5 text-zinc-400"
+              } flex items-center justify-center transition-colors`}
+            >
               <Bell size={16} strokeWidth={2.5} />
             </div>
             <div className="space-y-0.5 text-left">
@@ -339,14 +371,42 @@ export default function ProfileView() {
               <p className={`text-xs font-bold ${text}`}>Ride Notifications</p>
             </div>
           </div>
-          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-            notifPermission === "granted"
-              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-              : "bg-white/5 text-zinc-400 border border-white/10"
-          }`}>
-            {notifPermission === "granted" ? "Test Alert 🔔" : "Enable"}
-          </span>
-        </button>
+
+          <div className="flex items-center gap-2">
+            {notifEnabled && (
+              <button
+                type="button"
+                onClick={handleTestAlert}
+                aria-label="Test Notification"
+                className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-white/5 hover:bg-white/10 text-[#FFC554] border border-white/10 active:scale-95 transition-all cursor-pointer"
+              >
+                Test 🔔
+              </button>
+            )}
+
+            {/* iOS/Android Style Pill Toggle Switch */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={notifEnabled}
+              aria-label="Toggle Ride Notifications"
+              onClick={handleToggleNotifications}
+              className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center cursor-pointer ${
+                notifEnabled
+                  ? "bg-[#FFC554] justify-end"
+                  : isDark
+                  ? "bg-white/15 justify-start"
+                  : "bg-black/15 justify-start"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full transition-all shadow-sm ${
+                  notifEnabled ? "bg-black" : "bg-zinc-400"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
 
         {/* About Creator */}
         <button

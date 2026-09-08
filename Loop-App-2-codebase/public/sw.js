@@ -14,6 +14,24 @@ self.addEventListener('message', (event) => {
   }
 });
 
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  const title = data.title || "LOOP Ride Alert 🚗";
+  const options = {
+    body: data.body || "A passenger joined your ride or sent a message.",
+    icon: "/logo.png",
+    badge: "/icon.png",
+    vibrate: [100, 50, 100],
+    data: { url: data.url || "/" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || '/';

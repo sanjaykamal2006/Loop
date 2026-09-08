@@ -26,6 +26,19 @@ export function getNotificationPermission(): NotificationPermission {
   return Notification.permission;
 }
 
+export function isNotificationEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = localStorage.getItem("loop_notifications_enabled");
+  if (stored === "false") return false;
+  if (!isNotificationSupported()) return false;
+  return Notification.permission === "granted";
+}
+
+export function setNotificationEnabled(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("loop_notifications_enabled", enabled ? "true" : "false");
+}
+
 export function playNotificationSound() {
   if (typeof window === "undefined") return;
   try {
@@ -75,6 +88,7 @@ export async function requestNotificationPermission(): Promise<{
   try {
     const result = await Notification.requestPermission();
     if (result === "granted") {
+      setNotificationEnabled(true);
       triggerHaptic(20);
       playNotificationSound();
       registerServiceWorker();
@@ -91,6 +105,10 @@ export async function sendLocalNotification(
   title: string,
   options?: NotificationOptions & { url?: string }
 ): Promise<boolean> {
+  if (!isNotificationEnabled()) {
+    return false;
+  }
+
   // Always trigger sound and tactile haptic feedback
   playNotificationSound();
   triggerHaptic(25);
