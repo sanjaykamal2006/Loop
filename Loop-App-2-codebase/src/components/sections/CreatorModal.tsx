@@ -2,11 +2,11 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Github, Linkedin, Instagram, Mail } from "lucide-react";
 
 export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme } = useLoop();
-  const { isDark, border } = theme;
+  const { isDark, border, mutedText } = theme;
 
   if (!isOpen) return null;
 
@@ -32,24 +32,90 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           </button>
         </div>
 
-        {/* Body: Minimal - Image, Name, and Content */}
-        <div className="py-5 flex flex-col items-center text-center space-y-4">
+        {/* Body: Creator Photo + Name + Socials */}
+        <div className="py-4 flex flex-col items-center text-center space-y-4">
           {/* Creator Avatar */}
-          <div className="w-20 h-20 rounded-[24px] overflow-hidden border border-white/15 shadow-xl shrink-0">
+          <div className="w-24 h-24 rounded-[28px] overflow-hidden border-2 border-white/20 shadow-2xl shrink-0">
             <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover" />
           </div>
 
-          {/* Name Only (Removed "The One." tag) */}
-          <h3 className="text-lg font-black uppercase tracking-tight">Sanjay Kamal</h3>
+          {/* Name */}
+          <div>
+            <h3 className="text-xl font-black uppercase tracking-tight">Sanjay Kamal</h3>
+            <p className={`text-[11px] font-bold ${mutedText} mt-0.5 uppercase tracking-wider`}>
+              Builder of LOOP
+            </p>
+          </div>
 
-          {/* Minimal Content Box */}
-          <div className={`p-4 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-xs font-medium leading-relaxed opacity-90 text-left space-y-2`}>
-            <p>
-              LOOP was built to eliminate the everyday struggle students face when coordinating campus travel.
-            </p>
-            <p>
-              Instead of relying on chaotic WhatsApp groups and unverified contacts, LOOP provides a fast, dedicated platform to find rides, share cabs, and connect directly with verified peers in seconds.
-            </p>
+          {/* Social Links Grid (Instead of lines of text) */}
+          <div className="w-full space-y-2 pt-1">
+            <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${mutedText} block text-left px-1`}>
+              Connect with me
+            </span>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Instagram */}
+              <a
+                href="https://instagram.com/sanjaykamal_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-3 rounded-2xl ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} border ${border} flex items-center gap-2.5 active:scale-95 transition-all text-left group`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-pink-500/15 flex items-center justify-center shrink-0 text-pink-400">
+                  <Instagram size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">Instagram</p>
+                  <p className={`text-[9px] font-medium ${mutedText} truncate`}>@sanjaykamal_</p>
+                </div>
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href="https://linkedin.com/in/sanjaykamal2006"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-3 rounded-2xl ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} border ${border} flex items-center gap-2.5 active:scale-95 transition-all text-left group`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-400">
+                  <Linkedin size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">LinkedIn</p>
+                  <p className={`text-[9px] font-medium ${mutedText} truncate`}>Sanjay Kamal</p>
+                </div>
+              </a>
+
+              {/* GitHub */}
+              <a
+                href="https://github.com/sanjaykamal2006"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-3 rounded-2xl ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} border ${border} flex items-center gap-2.5 active:scale-95 transition-all text-left group`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white">
+                  <Github size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">GitHub</p>
+                  <p className={`text-[9px] font-medium ${mutedText} truncate`}>@sanjaykamal2006</p>
+                </div>
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:sanjaykamal2006@gmail.com"
+                className={`p-3 rounded-2xl ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} border ${border} flex items-center gap-2.5 active:scale-95 transition-all text-left group`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 text-amber-400">
+                  <Mail size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">Email</p>
+                  <p className={`text-[9px] font-medium ${mutedText} truncate`}>sanjaykamal2006</p>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -59,7 +125,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
             onClick={onClose}
             className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
           >
-            Got It
+            Close
           </button>
         </div>
       </div>

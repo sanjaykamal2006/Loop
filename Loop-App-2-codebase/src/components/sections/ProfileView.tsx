@@ -158,11 +158,11 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between py-1 min-h-0">
-      {/* Profile Photo (Compact & Centered) */}
-      <div className="flex flex-col items-center justify-center pt-0.5 pb-1 shrink-0">
+    <div className="min-h-full flex-1 flex flex-col justify-between py-2 min-w-0">
+      {/* Profile Photo (Enlarged & Centered) */}
+      <div className="flex flex-col items-center justify-center pt-1 pb-2 shrink-0">
         <div className="relative group">
-          <div className={`w-20 h-20 sm:w-22 sm:h-22 rounded-[26px] ${isDark ? "bg-[#18181B] border-white/10" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-md overflow-hidden`}>
+          <div className={`w-24 h-24 sm:w-26 sm:h-26 rounded-[30px] ${isDark ? "bg-[#18181B] border-white/15" : "bg-[#F4F4F5] border-black/10"} border-2 flex items-center justify-center shadow-xl overflow-hidden`}>
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -170,7 +170,7 @@ export default function ProfileView() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className={`text-xl font-black ${isDark ? "text-white" : "text-black"}`}>
+              <span className={`text-2xl font-black ${isDark ? "text-white" : "text-black"}`}>
                 {profile.display_name?.substring(0, 2).toUpperCase() || "U"}
               </span>
             )}
@@ -178,9 +178,9 @@ export default function ProfileView() {
 
           <label
             htmlFor="avatar-upload"
-            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#FFC554] text-black border-2 border-black flex items-center justify-center shadow-lg cursor-pointer active:scale-90 transition-transform"
+            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#FFC554] text-black border-2 border-black flex items-center justify-center shadow-lg cursor-pointer active:scale-90 transition-transform"
           >
-            <Camera size={12} strokeWidth={2.5} />
+            <Camera size={14} strokeWidth={2.5} />
             <input
               id="avatar-upload"
               type="file"
@@ -194,9 +194,9 @@ export default function ProfileView() {
       </div>
 
       {/* Middle Cards Section */}
-      <div className="space-y-3 my-auto">
+      <div className="space-y-4 flex-1 flex flex-col justify-evenly py-2">
         {/* Identity Card - Compact & Balanced */}
-        <div className={`p-3.5 sm:p-4 ${cardBg} border ${border} rounded-[26px] space-y-3 shadow-sm`}>
+        <div className={`p-4.5 sm:p-5.5 ${cardBg} border ${border} rounded-[26px] space-y-4 shadow-sm`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
@@ -459,17 +459,17 @@ export default function ProfileView() {
       </div>
       </div>
 
-      {/* Compact 2-Button Row: Sign Out & Delete Account */}
-      <div className="flex gap-2 pt-2 shrink-0">
+      {/* Bottom Row: Sign Out & Delete Account */}
+      <div className="flex gap-2.5 pt-2 shrink-0">
         <button
           onClick={handleSignOut}
-          className={`flex-1 py-2.5 sm:py-3 ${cardBg} border ${border} rounded-[18px] text-red-500 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
+          className={`flex-1 h-11 ${cardBg} border ${border} rounded-[20px] text-red-500 font-black text-xs uppercase tracking-wider active:scale-[0.98] shadow-sm flex items-center justify-center`}
         >
           Sign Out
         </button>
         <button
           onClick={() => setShowDeleteConfirm(true)}
-          className={`flex-1 py-2.5 sm:py-3 ${cardBg} border border-red-500/20 rounded-[18px] text-red-400/80 font-black text-[10px] uppercase tracking-wider active:scale-[0.98] shadow-sm`}
+          className={`flex-1 h-11 ${cardBg} border border-red-500/20 rounded-[20px] text-red-400/80 font-black text-xs uppercase tracking-wider active:scale-[0.98] shadow-sm flex items-center justify-center`}
         >
           Delete Account
         </button>

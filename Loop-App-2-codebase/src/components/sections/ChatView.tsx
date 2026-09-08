@@ -22,6 +22,7 @@ export default function ChatView() {
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
+  const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
 
@@ -203,11 +204,53 @@ export default function ChatView() {
   };
 
   const fetchMembers = async (loopId: string) => {
-    const { data } = await supabase
-      .from("loop_members")
-      .select("user_id, profiles (display_name, avatar_url, reg_no, gender, bio)")
-      .eq("loop_id", loopId);
-    if (data) setMembers(data);
+    try {
+      // 1. Fetch member user_ids for the current loop
+      const { data: memberRows, error: memErr } = await supabase
+        .from("loop_members")
+        .select("user_id")
+        .eq("loop_id", loopId);
+
+      if (memErr || !memberRows || memberRows.length === 0) {
+        return;
+      }
+
+      const userIds = Array.from(new Set(memberRows.map((r: any) => r.user_id)));
+
+      // 2. Query profiles directly by IDs to ensure 100% reliability regardless of PostgREST relation syntax
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, reg_no, gender, bio, phone_number, is_student_verified")
+        .in("id", userIds);
+
+      const profMap: Record<string, any> = {};
+      if (profs) {
+        profs.forEach((p: any) => {
+          profMap[p.id] = p;
+        });
+      }
+
+      const formatted = memberRows.map((r: any) => {
+        const isMe = r.user_id === session.user.id;
+        const fetchedProf = profMap[r.user_id] || {};
+        return {
+          user_id: r.user_id,
+          profiles: {
+            display_name: isMe ? (profile.display_name || fetchedProf.display_name || "You") : (fetchedProf.display_name || "Member"),
+            avatar_url: isMe ? (profile.avatar_url || fetchedProf.avatar_url) : fetchedProf.avatar_url,
+            reg_no: isMe ? (profile.reg_no || fetchedProf.reg_no) : fetchedProf.reg_no,
+            gender: isMe ? (profile.gender || fetchedProf.gender) : fetchedProf.gender,
+            bio: isMe ? (profile.bio || fetchedProf.bio) : fetchedProf.bio,
+            phone_number: isMe ? (profile.phone_number || fetchedProf.phone_number) : fetchedProf.phone_number,
+            is_student_verified: isMe ? profile.is_student_verified : fetchedProf.is_student_verified,
+          },
+        };
+      });
+
+      setMembers(formatted);
+    } catch (e) {
+      console.error("fetchMembers error:", e);
+    }
   };
 
   const sendMessage = async () => {
@@ -448,33 +491,51 @@ export default function ChatView() {
       
       {/* Roster & Controls Header */}
       <div className={`px-4 py-3 flex items-center justify-between border-b ${border} ${cardBg} z-20 shadow-sm shrink-0`}>
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
-          {members.map((m) => (
-            <div
-              key={m.user_id}
-              onClick={() => setSelectedUser({
-                user_id: m.user_id,
-                display_name: m.profiles?.display_name || "Member",
-                avatar_url: m.profiles?.avatar_url,
-                reg_no: m.profiles?.reg_no,
-                gender: m.profiles?.gender,
-                bio: m.profiles?.bio,
-              })}
-              className="relative w-8 h-8 rounded-full border border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform overflow-hidden"
-              title={m.profiles?.display_name}
-            >
-              {m.profiles?.avatar_url ? (
-                <img src={m.profiles.avatar_url} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[10px] font-black text-[#FFC554]">
-                  {(m.profiles?.display_name || "M").substring(0, 2).toUpperCase()}
-                </span>
-              )}
-            </div>
-          ))}
+        <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide flex-1 py-0.5">
+          {members.map((m) => {
+            const isMe = m.user_id === session.user.id;
+            const memberAvatar = isMe ? (profile.avatar_url || m.profiles?.avatar_url) : m.profiles?.avatar_url;
+            const memberName = isMe ? (profile.display_name || m.profiles?.display_name || "You") : (m.profiles?.display_name || "Member");
+            const hasAvatar = Boolean(memberAvatar && !avatarErrors[m.user_id]);
+
+            return (
+              <div
+                key={m.user_id}
+                onClick={() => setSelectedUser({
+                  user_id: m.user_id,
+                  display_name: memberName,
+                  avatar_url: memberAvatar,
+                  reg_no: isMe ? profile.reg_no : m.profiles?.reg_no,
+                  gender: isMe ? profile.gender : m.profiles?.gender,
+                  bio: isMe ? profile.bio : m.profiles?.bio,
+                  phone_number: isMe ? profile.phone_number : m.profiles?.phone_number,
+                  is_student_verified: isMe ? profile.is_student_verified : m.profiles?.is_student_verified,
+                })}
+                className="relative w-10 h-10 rounded-full border-2 border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform overflow-hidden shadow-md group"
+                title={memberName}
+              >
+                {hasAvatar ? (
+                  <img
+                    src={memberAvatar}
+                    alt={memberName}
+                    onError={() => setAvatarErrors((prev) => ({ ...prev, [m.user_id]: true }))}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-black text-[#FFC554] tracking-tight">
+                    {(memberName || "M").substring(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+            );
+          })}
           {/* Info Button to go back to Ride Details */}
-          <button onClick={() => setView("ride-details")} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full active:scale-90 ml-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <button
+            onClick={() => setView("ride-details")}
+            aria-label="View ride details"
+            className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/15 border border-white/10 rounded-full active:scale-90 transition-all shrink-0 ml-1 text-white shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           </button>
         </div>
         
@@ -539,12 +600,12 @@ export default function ChatView() {
                     })}
                     className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
                   >
-                    {msg.profiles?.avatar_url ? (
-                      <img src={msg.profiles.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" />
+                    {senderAvatar ? (
+                      <img src={senderAvatar} alt={senderName} className="w-4 h-4 rounded-full object-cover shrink-0" />
                     ) : (
                       <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
                         <span className="text-[8px] font-bold text-[#FFC554]">
-                          {(msg.profiles?.display_name || (isMe ? "You" : "M")).substring(0, 1).toUpperCase()}
+                          {(senderName || "U").substring(0, 1).toUpperCase()}
                         </span>
                       </div>
                     )}
