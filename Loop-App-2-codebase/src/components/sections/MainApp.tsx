@@ -23,6 +23,10 @@ function AppContent() {
   const { view, selectedLoop, theme } = useLoop();
   const { isDark, bg, text } = theme;
 
+  React.useEffect(() => {
+    document.body.style.backgroundColor = isDark ? "#000000" : "#F2EFE9";
+  }, [isDark]);
+
   const [showTerms, setShowTerms] = React.useState(false);
   const [showTeluguGuide, setShowTeluguGuide] = React.useState(false);
   const [showCreator, setShowCreator] = React.useState(false);

@@ -202,11 +202,12 @@ export function LoopProvider({ session, children }: { session: Session; children
   const isDark = profile.theme === "dark";
   const theme: ThemeClasses = {
     isDark,
-    bg: isDark ? "bg-[#000000]" : "bg-[#F4EFE6]",
-    text: isDark ? "text-white" : "text-[#18181B]",
-    border: isDark ? "border-[#27272A]" : "border-[#DCD5C8]",
-    cardBg: isDark ? "bg-[#121212]" : "bg-[#FFFFFF]",
-    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#52525B]",
+    bg: isDark ? "bg-[#000000]" : "bg-[#F2EFE9]",
+    text: isDark ? "text-white" : "text-[#1C1917]",
+    border: isDark ? "border-[#27272A]" : "border-[#DFD9CE]",
+    cardBg: isDark ? "bg-[#121212]" : "bg-[#FAF8F5]",
+    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#78716C]",
+    accentText: isDark ? "text-[#FFC554]" : "text-[#B45309]",
   };
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);

@@ -81,7 +81,7 @@ export default function HomeView() {
     <div className="space-y-3 pt-1 pb-8">
       {/* Pill Search Bar */}
       <div className={`relative w-full h-[42px] ${cardBg} border ${border} rounded-full flex items-center px-3.5 gap-2.5 shadow-sm focus-within:border-[#FFC554]/80 focus-within:ring-1 focus-within:ring-[#FFC554]/30 transition-all`}>
-        <Search size={16} className="text-[#FFC554] shrink-0" />
+        <Search size={16} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#B45309] shrink-0"} />
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -90,7 +90,7 @@ export default function HomeView() {
         />
         {searchQuery.trim() && (
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2 py-0.5 rounded-full">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20" : "text-[#B45309] bg-[#B45309]/10 border border-[#B45309]/30"}`}>
               {feedLoops.length} {feedLoops.length === 1 ? "loop" : "loops"}
             </span>
             <button
@@ -147,7 +147,7 @@ export default function HomeView() {
             <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
               isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
             }`}>
-              <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className="text-[#FFC554]" strokeWidth={2} />
+              <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={isDark ? "text-[#FFC554]" : "text-[#B45309]"} strokeWidth={2} />
             </div>
 
             {/* Route & Info Block (Zero truncation, no dots, full text wraps cleanly) */}
@@ -156,7 +156,7 @@ export default function HomeView() {
                 <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
                   {loop.start_point || "Campus"}
                 </span>
-                <span className="text-[#FFC554] font-bold text-xs shrink-0 mx-0.5">→</span>
+                <span className={`font-bold text-xs shrink-0 mx-0.5 ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>→</span>
                 <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
                   {loop.destination}
                 </span>
@@ -166,7 +166,7 @@ export default function HomeView() {
               {(isJoined || loop.is_female_only) && (
                 <div className="flex items-center gap-1.5 mt-1">
                   {isJoined && (
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25 px-1.5 py-0.5 rounded-full shrink-0">
+                    <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
                       Joined
                     </span>
                   )}

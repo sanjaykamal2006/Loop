@@ -79,6 +79,7 @@ export interface ThemeClasses {
   border: string;
   cardBg: string;
   mutedText: string;
+  accentText: string;
 }
 
 export interface TrustedVehicle {

@@ -166,7 +166,7 @@ export default function ProfileView() {
         <div className="relative group">
           <div
             className={`w-20 h-20 sm:w-22 sm:h-22 rounded-[26px] ${
-              isDark ? "bg-[#18181B] border-white/15" : "bg-[#F4F4F5] border-black/10"
+              isDark ? "bg-[#18181B] border-white/15" : "bg-[#EAE5DC] border-black/10"
             } border-2 flex items-center justify-center shadow-lg overflow-hidden`}
           >
             {profile.avatar_url ? (
@@ -213,7 +213,7 @@ export default function ProfileView() {
             )}
           </div>
 
-          <p className="text-xs font-semibold text-[#FFC554] tracking-wide">
+          <p className={`text-xs font-bold tracking-wide ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>
             {profile.reg_no || "Student / Tag"}
           </p>
           <p className={`text-[11px] font-medium ${mutedText} truncate`}>
@@ -226,7 +226,7 @@ export default function ProfileView() {
               <button
                 onClick={() => setIsEditingProfile(true)}
                 aria-label="Edit Profile"
-                className="text-[11px] font-black text-[#FFC554] flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FFC554]/10 border border-[#FFC554]/30 active:scale-95 transition-transform"
+                className={`text-[11px] font-black flex items-center gap-1.5 px-3.5 py-1 rounded-full active:scale-95 transition-transform ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30" : "text-[#B45309] bg-[#B45309]/10 border border-[#B45309]/30"}`}
               >
                 <Edit2 size={11} />
                 <span>Edit Profile</span>
@@ -327,13 +327,13 @@ export default function ProfileView() {
         <div className="flex items-center justify-between">
           <span className={`text-xs font-bold ${mutedText}`}>WhatsApp / Phone</span>
           {profile.phone_number ? (
-            <span className="text-xs font-black text-emerald-400 tracking-tight">
+            <span className={`text-xs font-black tracking-tight ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
               +91 {profile.phone_number}
             </span>
           ) : (
             <button
               onClick={() => setIsEditingProfile(true)}
-              className="text-xs text-[#FFC554] font-bold hover:underline"
+              className={`text-xs font-bold hover:underline ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}
             >
               + Add WhatsApp
             </button>
@@ -492,7 +492,7 @@ export default function ProfileView() {
               </>
             ) : (
               <>
-                <Sun size={12} className="text-[#FFC554]" />
+                <Sun size={12} className={isDark ? "text-[#FFC554]" : "text-[#B45309]"} />
                 <span>Light</span>
               </>
             )}
