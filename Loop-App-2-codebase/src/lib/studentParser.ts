@@ -120,3 +120,53 @@ export function isAllowedStudentEmail(email: string): { allowed: boolean; reason
 
   return { allowed: true };
 }
+
+/**
+ * Asynchronously checks if an email is eligible to sign up or log in.
+ * - Educational domains & Developer whitelist: instantaneous client-side allow (0ms latency).
+ * - External domains: queries /api/auth/validate-email to enforce the upcoming 5 external slots quota.
+ */
+export async function validateEmailWithQuota(
+  email: string,
+  isLogin: boolean = false
+): Promise<{ allowed: boolean; reason?: string }> {
+  const syncCheck = isAllowedStudentEmail(email);
+  if (syncCheck.allowed) {
+    return { allowed: true };
+  }
+
+  // If format is invalid, return immediately
+  if (!email || !email.includes("@")) {
+    return { allowed: false, reason: "Please enter a valid email address." };
+  }
+
+  try {
+    const res = await fetch("/api/auth/validate-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), isLogin }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      return {
+        allowed: false,
+        reason: data?.reason || "🎓 Please use your official VIT-AP student email.",
+      };
+    }
+
+    return {
+      allowed: Boolean(data?.allowed),
+      reason: data?.reason,
+    };
+  } catch (err) {
+    // If network fails during login, allow attempt through to Supabase auth
+    if (isLogin) return { allowed: true };
+    return {
+      allowed: false,
+      reason: "Could not verify email quota. Please check your connection and try again.",
+    };
+  }
+}
+

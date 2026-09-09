@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
-import { isAllowedStudentEmail, parseStudentEmail } from "@/lib/studentParser";
+import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
 
 interface AuthLoginProps {
   initialPasswordReset?: boolean;
@@ -59,7 +59,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
       return;
     }
 
-    const allowedCheck = isAllowedStudentEmail(email);
+    const allowedCheck = await validateEmailWithQuota(email, isLogin);
     if (!allowedCheck.allowed) {
       toast.error(allowedCheck.reason || "Please use your official VIT-AP student email (name.rollno@vitapstudent.ac.in).");
       return;
@@ -366,9 +366,9 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                         toast.error("Please enter your email first");
                         return;
                       }
-                      const allowedCheck = isAllowedStudentEmail(email);
+                      const allowedCheck = await validateEmailWithQuota(email, true);
                       if (!allowedCheck.allowed) {
-                        toast.error("Please enter your official VIT-AP student email.");
+                        toast.error(allowedCheck.reason || "Please enter your registered email address.");
                         return;
                       }
                       setIsLoading(true);
