@@ -51,7 +51,6 @@ export default function ProfileView() {
     if (notifEnabled) {
       setNotificationEnabled(false);
       setNotifEnabled(false);
-      toast.info("Notifications turned off");
       return;
     }
 
@@ -59,10 +58,6 @@ export default function ProfileView() {
     if (currentPerm === "granted") {
       setNotificationEnabled(true);
       setNotifEnabled(true);
-      toast.success("Ride notifications enabled! 🔔");
-      await sendLocalNotification("LOOP Notifications Enabled! 🚗", {
-        body: "You'll now receive alerts when passengers join your rides.",
-      });
       return;
     }
 
@@ -71,10 +66,6 @@ export default function ProfileView() {
       setNotifPermission("granted");
       setNotificationEnabled(true);
       setNotifEnabled(true);
-      toast.success("Ride notifications enabled! 🔔");
-      await sendLocalNotification("LOOP Notifications Enabled! 🚗", {
-        body: "You'll now receive alerts when passengers join your rides.",
-      });
     } else if (res.reason === "ios_not_pwa") {
       toast.info("📱 On iPhone, notifications require adding LOOP to your Home Screen: Tap Share (⎋) ➔ 'Add to Home Screen'.");
     } else if (res.reason === "blocked") {

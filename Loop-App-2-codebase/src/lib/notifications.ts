@@ -90,7 +90,6 @@ export async function requestNotificationPermission(): Promise<{
     if (result === "granted") {
       setNotificationEnabled(true);
       triggerHaptic(20);
-      playNotificationSound();
       registerServiceWorker();
       return { granted: true };
     }
