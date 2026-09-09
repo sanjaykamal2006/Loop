@@ -54,13 +54,13 @@ export default function AppHeader() {
       {view === "home" && (
         <div className="flex items-center justify-between w-full pt-2">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden ${isDark ? "bg-black" : "bg-white"} shadow-sm border ${border}`}>
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden ${isDark ? "bg-black" : "bg-white"} shadow-sm`}>
               <img
                 src={isDark ? "/logo.png" : "/logo-light.png"}
                 alt="LOOP App Logo"
-                width="48"
-                height="48"
-                className="w-full h-full object-contain p-0.5"
+                width="44"
+                height="44"
+                className="w-full h-full object-contain"
                 loading="eager"
               />
             </div>
