@@ -248,7 +248,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
               </div>
               <div className="text-left">
                 <p className="text-xs font-black text-[#FFC554]">Buy Creator a Coffee</p>
-                <p className={`text-[10px] font-medium ${mutedText}`}>Support LOOP development ☕</p>
+                <p className={`text-[10px] font-medium ${mutedText}`}>Support LOOP development</p>
               </div>
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-[#FFC554] text-black shadow-xs">

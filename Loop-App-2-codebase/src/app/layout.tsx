@@ -50,6 +50,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={spaceGrotesk.variable}>
+      <head>
+        <link rel="preload" as="image" href="/header-logo.png" />
+      </head>
       <body className="antialiased">
         {children}
         <Toaster />

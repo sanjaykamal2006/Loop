@@ -56,12 +56,13 @@ export default function AppHeader() {
           <div className="flex items-center gap-3">
             <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden ${isDark ? "bg-black" : "bg-white"} shadow-sm`}>
               <img
-                src={isDark ? "/logo.png" : "/logo-light.png"}
+                src={isDark ? "/header-logo.png" : "/header-logo-light.png"}
                 alt="LOOP App Logo"
                 width="44"
                 height="44"
                 className="w-full h-full object-contain"
                 loading="eager"
+                decoding="async"
               />
             </div>
             <div>
@@ -211,7 +212,7 @@ export default function AppHeader() {
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
                   <Coffee size={15} className="text-[#FFC554]" />
-                  <span>Buy Creator a Coffee ☕</span>
+                  <span>Buy Creator a Coffee</span>
                 </button>
 
                 <button

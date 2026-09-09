@@ -117,7 +117,7 @@ export default function BuyCoffeeModal({
             </div>
 
             <h3 className={`text-base font-black mt-2.5 ${isDark ? "text-white" : "text-zinc-900"}`}>
-              Buy Creator a Coffee ☕
+              Buy Creator a Coffee
             </h3>
             <p className={`text-[11px] font-medium ${mutedText} mt-0.5 max-w-[260px] leading-relaxed`}>
               LOOP is built by <span className="font-bold text-[#FFC554]">Sanjay Kamal</span> (VIT-AP). Tips keep servers fast & free!

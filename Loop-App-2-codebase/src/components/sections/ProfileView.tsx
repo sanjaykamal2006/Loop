@@ -323,12 +323,12 @@ export default function ProfileView() {
       )}
 
       {/* 3. Details Card (WhatsApp, Bio, Gender) */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[22px] space-y-3 shadow-sm`}>
+      <div className={`${cardBg} border ${border} rounded-[22px] px-4 divide-y ${isDark ? "divide-white/[0.06]" : "divide-black/[0.06]"} shadow-sm`}>
         {/* Phone / WhatsApp */}
-        <div className="flex items-center justify-between">
-          <span className={`text-xs font-bold ${mutedText}`}>WhatsApp / Phone</span>
+        <div className="flex items-center justify-between py-3.5 min-h-[50px]">
+          <span className={`text-xs font-semibold ${mutedText}`}>WhatsApp / Phone</span>
           {profile.phone_number ? (
-            <span className={`text-xs font-black tracking-tight ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
+            <span className={`text-xs font-mono font-bold tracking-tight ${isDark ? "text-emerald-400" : "text-emerald-700"}`}>
               +91 {profile.phone_number}
             </span>
           ) : (
@@ -341,12 +341,10 @@ export default function ProfileView() {
           )}
         </div>
 
-        <div className={`h-px w-full ${isDark ? "bg-white/5" : "bg-black/5"}`} />
-
         {/* Bio */}
-        <div className="flex items-start justify-between gap-3">
-          <span className={`text-xs font-bold ${mutedText} shrink-0`}>Bio</span>
-          <span className={`text-xs text-right leading-relaxed max-w-[240px] truncate ${
+        <div className="flex items-center justify-between gap-3 py-3.5 min-h-[50px]">
+          <span className={`text-xs font-semibold ${mutedText} shrink-0`}>Bio</span>
+          <span className={`text-xs text-right max-w-[220px] truncate ${
             profile.bio?.trim()
               ? isDark ? "text-zinc-200" : "text-zinc-800"
               : `${mutedText} italic opacity-50`
@@ -355,19 +353,17 @@ export default function ProfileView() {
           </span>
         </div>
 
-        <div className={`h-px w-full ${isDark ? "bg-white/5" : "bg-black/5"}`} />
-
         {/* Gender Selection */}
-        <div className="flex items-center justify-between">
-          <span className={`text-xs font-bold ${mutedText}`}>Gender</span>
+        <div className="flex items-center justify-between py-3 min-h-[50px]">
+          <span className={`text-xs font-semibold ${mutedText}`}>Gender</span>
 
-          <div className={`flex items-center p-1 rounded-full border ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
+          <div className={`flex items-center p-0.5 rounded-full border ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
             <button
               type="button"
               onClick={() => updateProfile({ gender: "male" })}
-              className={`px-4 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 profile.gender === "male"
-                  ? "bg-[#FFC554] text-black font-black shadow-sm"
+                  ? "bg-[#FFC554] text-black font-black shadow-xs"
                   : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
@@ -376,9 +372,9 @@ export default function ProfileView() {
             <button
               type="button"
               onClick={() => updateProfile({ gender: "female" })}
-              className={`px-4 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 profile.gender === "female"
-                  ? "bg-[#FFC554] text-black font-black shadow-sm"
+                  ? "bg-[#FFC554] text-black font-black shadow-xs"
                   : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
