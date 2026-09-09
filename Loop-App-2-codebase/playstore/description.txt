@@ -1,0 +1,38 @@
+Short Description (80 chars max):
+Real-time ride coordination for college students. Find rides instantly.
+
+Full Description:
+LOOP - Purpose-Based Ride Coordination
+
+Rides go better in Loop! The fastest way to coordinate rides with fellow students on campus.
+
+🚗 INSTANT COORDINATION
+Find students going to the same destination at the same time. No waiting, no planning - just hop in.
+
+💬 REAL-TIME CHAT
+Group chat with all ride members. Share your location, coordinate pickup points, split fares instantly.
+
+🎓 CAMPUS VERIFIED
+VIT-AP student email verification. Safe, trusted ride-sharing within your college community.
+
+✨ KEY FEATURES:
+• Create or join rides in seconds
+• Real-time chat with ride groups
+• Automatic fare splitting calculator
+• Female-only ride option
+• Save trusted drivers (autos, bikes, cabs)
+• Expected fare guide from community
+• Dark/Light mode
+• Fast, mobile-first design
+
+🔒 SAFE & PRIVATE
+Peer-to-peer cost sharing only. No commercial service. Your data stays secure with student-only verification.
+
+Perfect for:
+- Airport runs (RGIA, Vijayawada Airport)
+- Railway station trips (BZA, GNT, Tenali)
+- Weekend mall & city visits
+- Emergency late-night rides
+- Daily campus-to-hostel commute sharing
+
+Join students coordinating rides every day on LOOP!

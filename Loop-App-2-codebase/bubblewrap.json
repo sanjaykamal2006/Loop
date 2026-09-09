@@ -1,0 +1,20 @@
+{
+  "packageId": "app.loop.twa",
+  "host": "YOUR_VERCEL_URL",
+  "name": "LOOP",
+  "launcherName": "LOOP",
+  "display": "standalone",
+  "backgroundColor": "#000000",
+  "themeColor": "#FFC554",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "orientation": "portrait",
+  "iconUrl": "https://YOUR_VERCEL_URL/logo.png",
+  "maskableIconUrl": "https://YOUR_VERCEL_URL/icon-512.png",
+  "startUrl": "/",
+  "enableNotifications": true,
+  "webManifestUrl": "https://YOUR_VERCEL_URL/manifest.webmanifest",
+  "splashScreenFadeOutDuration": 300
+}

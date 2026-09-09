@@ -1,0 +1,17 @@
+Feature Graphic Specification for Google Play Store
+
+Dimensions: 1024 x 500 pixels (Exact)
+Aspect Ratio: ~2.048 : 1
+File Format: PNG / JPEG (24-bit, RGB)
+Color Scheme:
+- Background: Pitch Black (#000000) with subtle radial grid / dot-matrix overlay (#1a1a1a)
+- Primary Branding: Bold "LOOP" Typography (Pure White #FFFFFF / Vivid Yellow #FFC554)
+- Tagline: "Rides go better in Loop" in Signature Yellow (#FFC554)
+- Secondary Accent: Real-Time Student Ride Coordination (#A1A1AA)
+
+Safe Margin:
+Keep all typography and brand imagery centered within the central 820 x 400 pixel area to prevent cropping across varied Android device form factors.
+
+Generated Asset Location:
+- public/feature-graphic.png
+- playstore/feature-graphic.png
