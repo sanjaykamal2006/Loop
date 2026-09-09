@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Coffee, Copy, Check, ExternalLink, Heart, QrCode, Smartphone, Info } from "lucide-react";
+import { X, Coffee, Copy, Check, ExternalLink, Heart, QrCode } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -30,7 +30,7 @@ export default function BuyCoffeeModal({
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isCustom, setIsCustom] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pay" | "qr">("pay");
+  const [showQr, setShowQr] = useState(false);
 
   if (!isOpen) return null;
 
@@ -38,14 +38,21 @@ export default function BuyCoffeeModal({
     ? Math.max(1, parseInt(customAmount) || 50)
     : selectedAmount;
 
-  // Build clean P2P UPI link (omitting merchant parameters prevents the "No registered account" banking error on personal Slice VPAs)
-  const buildCleanUpiUrl = () => {
-    return `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(CREATOR_NAME)}&cu=INR`;
+  // IMPORTANT: The '@' symbol in the UPI ID MUST NEVER be URL-encoded (no %40),
+  // as UPI apps validate the VPA with a regex requiring literal '@'.
+  const getUpiUrl = (androidPackage?: string) => {
+    const isAndroid =
+      typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+    const baseParams = `pa=${UPI_ID}&pn=Sanjay%20Kamal&am=${finalAmount}&cu=INR`;
+
+    if (isAndroid && androidPackage) {
+      return `intent://pay?${baseParams}#Intent;scheme=upi;package=${androidPackage};end`;
+    }
+    return `upi://pay?${baseParams}`;
   };
 
-  // QR code image URL (uses QR Server API, margin 8, size 260x260)
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(
-    `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(CREATOR_NAME)}&am=${finalAmount}&cu=INR`
+    `upi://pay?pa=${UPI_ID}&pn=Sanjay Kamal&am=${finalAmount}&cu=INR`
   )}`;
 
   const handleCopyUpi = (e?: React.MouseEvent) => {
@@ -59,19 +66,13 @@ export default function BuyCoffeeModal({
     }
   };
 
-  const handlePayViaApp = () => {
+  const handlePayClick = (pkg?: string) => {
     triggerHaptic(15);
-    
-    // Always copy UPI ID to clipboard as immediate fail-safe
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(UPI_ID);
+      navigator.clipboard.writeText(UPI_ID).catch(() => {});
     }
-
-    // Launch standard P2P intent
-    const cleanUrl = buildCleanUpiUrl();
-    window.location.href = cleanUrl;
-
-    toast.info("Opening UPI app... (UPI ID copied to clipboard 📋)");
+    const url = getUpiUrl(pkg);
+    window.location.href = url;
   };
 
   return (
@@ -119,7 +120,7 @@ export default function BuyCoffeeModal({
               Buy Creator a Coffee ☕
             </h3>
             <p className={`text-[11px] font-medium ${mutedText} mt-0.5 max-w-[260px] leading-relaxed`}>
-              LOOP is built by <span className="font-bold text-[#FFC554]">Sanjay Kamal</span> (VIT-AP). Tips keep servers lightning fast!
+              LOOP is built by <span className="font-bold text-[#FFC554]">Sanjay Kamal</span> (VIT-AP). Tips keep servers fast & free!
             </p>
           </div>
 
@@ -199,99 +200,98 @@ export default function BuyCoffeeModal({
             </div>
           </div>
 
-          {/* Mode Switcher Tabs */}
-          <div className="flex items-center p-1 rounded-2xl bg-white/5 border border-white/10">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic(5);
-                setActiveTab("pay");
-              }}
-              className={`flex-1 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === "pay"
-                  ? "bg-[#FFC554] text-black font-black shadow-sm"
-                  : mutedText
-              }`}
+          {/* Primary Instant Pay Button */}
+          <div className="space-y-2 pt-1">
+            <a
+              href={getUpiUrl()}
+              onClick={() => handlePayClick()}
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform cursor-pointer"
             >
-              <Smartphone size={13} />
-              <span>UPI App</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic(5);
-                setActiveTab("qr");
-              }}
-              className={`flex-1 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === "qr"
-                  ? "bg-[#FFC554] text-black font-black shadow-sm"
-                  : mutedText
-              }`}
-            >
-              <QrCode size={13} />
-              <span>Scan QR Code</span>
-            </button>
+              <span>Pay ₹{finalAmount} Now</span>
+              <ExternalLink size={14} strokeWidth={2.5} />
+            </a>
+
+            {/* Direct App Buttons Row */}
+            <div className="flex items-center justify-center gap-2">
+              <a
+                href={getUpiUrl("com.google.android.apps.nbu.paisa.user")}
+                onClick={() => handlePayClick("com.google.android.apps.nbu.paisa.user")}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                  isDark ? "text-white" : "text-zinc-900"
+                }`}
+              >
+                Google Pay
+              </a>
+              <a
+                href={getUpiUrl("com.phonepe.app")}
+                onClick={() => handlePayClick("com.phonepe.app")}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                  isDark ? "text-white" : "text-zinc-900"
+                }`}
+              >
+                PhonePe
+              </a>
+              <a
+                href={getUpiUrl("net.one97.paytm")}
+                onClick={() => handlePayClick("net.one97.paytm")}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                  isDark ? "text-white" : "text-zinc-900"
+                }`}
+              >
+                Paytm
+              </a>
+            </div>
           </div>
 
-          {/* Tab 1: UPI App Intent */}
-          {activeTab === "pay" && (
-            <div className="space-y-3 pt-1">
-              <button
-                type="button"
-                onClick={handlePayViaApp}
-                className="w-full py-3.5 px-4 rounded-2xl bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform cursor-pointer"
-              >
-                <span>Pay ₹{finalAmount} via UPI App</span>
-                <ExternalLink size={14} strokeWidth={2.5} />
-              </button>
+          {/* Toggle QR Code */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(5);
+                setShowQr(!showQr);
+              }}
+              className={`text-xs font-bold flex items-center justify-center gap-1.5 mx-auto ${mutedText} hover:text-[#FFC554] transition-colors cursor-pointer`}
+            >
+              <QrCode size={13} />
+              <span>{showQr ? "Hide QR Code" : "Show QR Code to Scan"}</span>
+            </button>
 
-              <p className={`text-[10px] ${mutedText} leading-relaxed text-center px-1`}>
-                Launches Google Pay, PhonePe, Paytm, or Slice. We automatically copy the UPI ID as a backup.
-              </p>
-            </div>
-          )}
-
-          {/* Tab 2: Scannable QR Code */}
-          {activeTab === "qr" && (
-            <div className="space-y-3 pt-1 flex flex-col items-center">
-              {/* High-contrast crisp white QR card */}
-              <div className="p-3 bg-white rounded-2xl shadow-xl flex flex-col items-center border border-zinc-200">
-                <img
-                  src={qrCodeUrl}
-                  alt="UPI QR Code"
-                  className="w-48 h-48 rounded-lg object-contain"
-                  loading="eager"
-                />
-                <div className="mt-2 text-center">
-                  <p className="text-[11px] font-black text-black">Scan to Pay ₹{finalAmount}</p>
-                  <p className="text-[9px] font-bold text-zinc-600">Sanjay Kamal • 8825680623@slice</p>
+            {showQr && (
+              <div className="pt-2 flex flex-col items-center animate-fade-in">
+                <div className="p-3 bg-white rounded-2xl shadow-xl border border-zinc-200">
+                  <img
+                    src={qrCodeUrl}
+                    alt="UPI QR Code"
+                    className="w-44 h-44 rounded-lg object-contain"
+                    loading="eager"
+                  />
+                  <p className="text-[10px] font-black text-black mt-1.5">
+                    Scan with any UPI app to pay ₹{finalAmount}
+                  </p>
                 </div>
               </div>
+            )}
+          </div>
 
-              <p className={`text-[10px] ${mutedText} leading-relaxed text-center px-2`}>
-                Scan with any UPI app scanner, or screenshot this QR and open it via <span className="font-bold">"Scan from Gallery"</span>.
-              </p>
-            </div>
-          )}
-
-          {/* UPI ID Copy Box (Always Visible) */}
+          {/* UPI ID Info Bar */}
           <div
             onClick={handleCopyUpi}
-            className={`p-2.5 rounded-2xl border ${border} ${
-              isDark ? "bg-white/[0.04]" : "bg-black/[0.04]"
-            } flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all hover:border-[#FFC554]/40`}
+            className={`p-2 rounded-xl border ${border} ${
+              isDark ? "bg-white/[0.03]" : "bg-black/[0.03]"
+            } flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all`}
           >
             <div className="text-left min-w-0">
-              <span className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>
+              <span className={`text-[8px] font-black uppercase tracking-wider ${mutedText}`}>
                 UPI ID (Sanjay Kamal)
               </span>
-              <p className={`text-xs font-black font-mono truncate ${isDark ? "text-white" : "text-zinc-900"}`}>
+              <p className={`text-[11px] font-black font-mono truncate ${isDark ? "text-white" : "text-zinc-900"}`}>
                 {UPI_ID}
               </p>
             </div>
             <button
               type="button"
-              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 ${
+              className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 ${
                 copied
                   ? "bg-emerald-500/20 text-emerald-400"
                   : isDark
@@ -299,17 +299,9 @@ export default function BuyCoffeeModal({
                   : "bg-black/5 text-[#B45309]"
               }`}
             >
-              {copied ? <Check size={11} strokeWidth={3} /> : <Copy size={11} strokeWidth={2.5} />}
-              <span>{copied ? "Copied!" : "Copy"}</span>
+              {copied ? <Check size={10} strokeWidth={3} /> : <Copy size={10} strokeWidth={2.5} />}
+              <span>{copied ? "Copied" : "Copy"}</span>
             </button>
-          </div>
-
-          {/* Info helper note explaining P2P resolution */}
-          <div className={`p-2.5 rounded-xl ${isDark ? "bg-amber-500/10 border-amber-500/20 text-amber-300" : "bg-amber-50 border-amber-200 text-amber-900"} border text-left flex items-start gap-2`}>
-            <Info size={14} className="shrink-0 mt-0.5" />
-            <p className="text-[10px] leading-relaxed">
-              <span className="font-bold">Troubleshooting tip:</span> If your bank app shows <span className="italic">"No registered account"</span>, simply tap <span className="font-bold">Copy</span> above, open your UPI app, and paste into <span className="font-bold">"Pay to UPI ID"</span>.
-            </p>
           </div>
         </div>
       </div>
