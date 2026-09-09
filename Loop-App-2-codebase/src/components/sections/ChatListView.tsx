@@ -202,65 +202,91 @@ export default function ChatListView() {
   useEffect(() => {
     fetchRecentMessages();
 
-    // Real-time listener for incoming messages to keep recent message preview live
-    const channel = supabase
-      .channel("chat-list-recent-messages")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        async (payload) => {
-          const msg = payload.new as any;
-          if (!msg?.loop_id || !msg.content) return;
+    let channel: any = null;
 
-          const isMe = msg.user_id === session?.user?.id;
-          let senderName = isMe ? (profile?.display_name || "You") : "";
+    const subscribeChannel = () => {
+      if (channel) return;
+      channel = supabase
+        .channel("chat-list-recent-messages")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          async (payload) => {
+            const msg = payload.new as any;
+            if (!msg?.loop_id || !msg.content) return;
 
-          setRecentMessages((prev) => {
-            const next = {
-              ...prev,
-              [msg.loop_id]: {
-                content: msg.content,
-                created_at: msg.created_at,
-                user_id: msg.user_id,
-                sender_name: senderName,
-              },
-            };
-            if (typeof window !== "undefined") {
-              try {
-                localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
-              } catch {}
-            }
-            return next;
-          });
+            const isMe = msg.user_id === session?.user?.id;
+            let senderName = isMe ? (profile?.display_name || "You") : "";
 
-          if (!isMe && msg.user_id) {
-            const { data } = await supabase
-              .from("profiles")
-              .select("display_name")
-              .eq("id", msg.user_id)
-              .single();
-            if (data?.display_name) {
-              setRecentMessages((prev) => {
-                const cur = prev[msg.loop_id];
-                if (cur && cur.created_at === msg.created_at) {
-                  const next = { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
-                  if (typeof window !== "undefined") {
-                    try {
-                      localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
-                    } catch {}
+            setRecentMessages((prev) => {
+              const next = {
+                ...prev,
+                [msg.loop_id]: {
+                  content: msg.content,
+                  created_at: msg.created_at,
+                  user_id: msg.user_id,
+                  sender_name: senderName,
+                },
+              };
+              if (typeof window !== "undefined") {
+                try {
+                  localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+                } catch {}
+              }
+              return next;
+            });
+
+            if (!isMe && msg.user_id) {
+              const { data } = await supabase
+                .from("profiles")
+                .select("display_name")
+                .eq("id", msg.user_id)
+                .single();
+              if (data?.display_name) {
+                setRecentMessages((prev) => {
+                  const cur = prev[msg.loop_id];
+                  if (cur && cur.created_at === msg.created_at) {
+                    const next = { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
+                    if (typeof window !== "undefined") {
+                      try {
+                        localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+                      } catch {}
+                    }
+                    return next;
                   }
-                  return next;
-                }
-                return prev;
-              });
+                  return prev;
+                });
+              }
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    };
+
+    const unsubscribeChannel = () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+    };
+
+    if (typeof document === "undefined" || document.visibilityState === "visible") {
+      subscribeChannel();
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        unsubscribeChannel();
+      } else if (document.visibilityState === "visible") {
+        subscribeChannel();
+        fetchRecentMessages();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      unsubscribeChannel();
     };
   }, [fetchRecentMessages, session?.user?.id, profile?.display_name]);
 

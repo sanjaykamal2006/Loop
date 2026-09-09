@@ -55,6 +55,8 @@ export default function ChatView() {
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
 
@@ -103,117 +105,135 @@ export default function ChatView() {
     }
   };
 
-  // Real-time chat & presence subscription
+  // Real-time chat & presence subscription - ONLY when tab is active (Free tier optimization)
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
 
-    const channel = supabase.channel(`chat-${loopId}`);
-    channelRef.current = channel;
+    const subscribeChannel = () => {
+      if (channelRef.current) return;
+      const channel = supabase.channel(`chat-${loopId}`);
+      channelRef.current = channel;
 
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const typing: Record<string, string> = {};
-        for (const id in state) {
-          state[id].forEach((presence: any) => {
-            if (presence.typing && presence.user_id !== session.user.id) {
-              typing[presence.user_id] = presence.name;
-            }
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          const typing: Record<string, string> = {};
+          for (const id in state) {
+            state[id].forEach((presence: any) => {
+              if (presence.typing && presence.user_id !== session.user.id) {
+                typing[presence.user_id] = presence.name;
+              }
+            });
+          }
+          setTypingUsers(typing);
+        })
+        .on("broadcast", { event: "new_message" }, (payload) => {
+          if (!payload.payload) return;
+          const msg = payload.payload as Message;
+          if (msg.loop_id !== loopId) return;
+          if (msg.user_id === session.user.id) return;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev;
+            const updated = [...prev, msg];
+            messageCache[loopId] = updated;
+            return updated;
           });
-        }
-        setTypingUsers(typing);
-      })
-      .on("broadcast", { event: "new_message" }, (payload) => {
-        if (!payload.payload) return;
-        const msg = payload.payload as Message;
-        if (msg.loop_id !== loopId) return;
-        if (msg.user_id === session.user.id) return;
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          const updated = [...prev, msg];
-          messageCache[loopId] = updated;
-          return updated;
-        });
-        requestAnimationFrame(() => scrollToBottom(true));
-        if (typeof document !== "undefined" && document.visibilityState === "hidden") {
-          playNotificationChime();
-          sendLocalNotification("LOOP Chat", {
-            body: msg.content || "New message received",
-            data: { url: `/?loop=${loopId}` },
-            tag: `chat-msg-${loopId}`,
-          });
-        }
-      })
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-        (payload) => {
-          const newMsg = payload.new as any;
-          if (!newMsg?.id) return;
-          if (newMsg.user_id !== session.user.id && typeof document !== "undefined" && document.visibilityState === "hidden") {
+          requestAnimationFrame(() => scrollToBottom(true));
+          if (typeof document !== "undefined" && document.visibilityState === "hidden") {
             playNotificationChime();
             sendLocalNotification("LOOP Chat", {
-              body: newMsg.content || "New message received",
+              body: msg.content || "New message received",
               data: { url: `/?loop=${loopId}` },
               tag: `chat-msg-${loopId}`,
             });
           }
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            // Instant resolution from loop members without database roundtrip
-            const sender = loopMembersRef.current.find((mem) => mem.user_id === newMsg.user_id);
-            const enriched: Message = {
-              ...newMsg,
-              profiles: sender?.profiles || { display_name: "Member" },
-            };
-            const updated = [...prev, enriched];
-            messageCache[loopId] = updated;
-            requestAnimationFrame(() => scrollToBottom(true));
-            return updated;
-          });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-        (payload) => {
-          const updated = payload.new as any;
-          if (!updated?.id) return;
-          setMessages((prev) => {
-            const next = prev.map((m) =>
-              m.id === updated.id
-                ? { ...m, ...updated, profiles: m.profiles }
-                : m
-            );
-            messageCache[loopId] = next;
-            return next;
-          });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-        (payload) => {
-          const deletedId = payload.old?.id;
-          if (!deletedId) return;
-          setMessages((prev) => {
-            const next = prev.filter((m) => m.id !== deletedId);
-            messageCache[loopId] = next;
-            return next;
-          });
-        }
-      )
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
-        }
-      });
+        })
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+          (payload) => {
+            const newMsg = payload.new as any;
+            if (!newMsg?.id) return;
+            if (newMsg.user_id !== session.user.id && typeof document !== "undefined" && document.visibilityState === "hidden") {
+              playNotificationChime();
+              sendLocalNotification("LOOP Chat", {
+                body: newMsg.content || "New message received",
+                data: { url: `/?loop=${loopId}` },
+                tag: `chat-msg-${loopId}`,
+              });
+            }
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              // Instant resolution from loop members without database roundtrip
+              const sender = loopMembersRef.current.find((mem) => mem.user_id === newMsg.user_id);
+              const enriched: Message = {
+                ...newMsg,
+                profiles: sender?.profiles || { display_name: "Member" },
+              };
+              const updated = [...prev, enriched];
+              messageCache[loopId] = updated;
+              requestAnimationFrame(() => scrollToBottom(true));
+              return updated;
+            });
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+          (payload) => {
+            const updated = payload.new as any;
+            if (!updated?.id) return;
+            setMessages((prev) => {
+              const next = prev.map((m) =>
+                m.id === updated.id
+                  ? { ...m, ...updated, profiles: m.profiles }
+                  : m
+              );
+              messageCache[loopId] = next;
+              return next;
+            });
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
+          (payload) => {
+            const deletedId = payload.old?.id;
+            if (!deletedId) return;
+            setMessages((prev) => {
+              const next = prev.filter((m) => m.id !== deletedId);
+              messageCache[loopId] = next;
+              return next;
+            });
+          }
+        )
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+          }
+        });
+    };
+
+    const unsubscribeChannel = () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+
+    // Only subscribe immediately if tab is currently visible
+    if (typeof document === "undefined" || document.visibilityState === "visible") {
+      subscribeChannel();
+    }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
+        // Free WebSocket connection when tab is backgrounded
+        unsubscribeChannel();
       } else if (document.visibilityState === "visible") {
+        // Re-subscribe and fetch fresh messages when returning to foreground
+        subscribeChannel();
         fetchMessages(loopId);
       }
     };
@@ -221,16 +241,20 @@ export default function ChatView() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      supabase.removeChannel(channel);
+      unsubscribeChannel();
     };
   }, [selectedLoop?.id, session.user.id, profile.display_name]);
 
+  const PAGE_SIZE = 25;
+
   const fetchMessages = async (loopId: string) => {
+    // Fetch most recent messages with limit (Free tier optimization)
     const { data, error } = await supabase
       .from("messages")
       .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles!fk_messages_profiles (display_name, avatar_url, reg_no, gender, bio)")
       .eq("loop_id", loopId)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .limit(PAGE_SIZE);
 
     if (error) {
       console.error("fetchMessages error:", error);
@@ -239,22 +263,53 @@ export default function ChatView() {
         .from("messages")
         .select("id, loop_id, user_id, content, created_at, edited_at, reactions")
         .eq("loop_id", loopId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
       if (fallbackData) {
-        const enriched = fallbackData.map((m: any) => {
+        const enriched = fallbackData.reverse().map((m: any) => {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
           return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
         });
         messageCache[loopId] = enriched;
         setMessages(enriched);
+        setHasMoreMessages(fallbackData.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
       }
     } else if (data) {
-      const msgs = data as unknown as Message[];
+      // Reverse to get chronological order
+      const msgs = (data as unknown as Message[]).reverse();
       messageCache[loopId] = msgs;
       setMessages(msgs);
+      setHasMoreMessages(data.length === PAGE_SIZE);
       requestAnimationFrame(() => scrollToBottom(false));
     }
+  };
+
+  const loadMoreMessages = async () => {
+    if (!selectedLoop?.id || messages.length === 0 || isLoadingMore) return;
+    setIsLoadingMore(true);
+
+    const oldestMessage = messages[0];
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id, loop_id, user_id, content, created_at, edited_at, reactions, profiles!fk_messages_profiles (display_name, avatar_url, reg_no, gender, bio)")
+      .eq("loop_id", selectedLoop.id)
+      .lt("created_at", oldestMessage.created_at)
+      .order("created_at", { ascending: false })
+      .limit(PAGE_SIZE);
+
+    if (!error && data && data.length > 0) {
+      const olderMessages = (data as unknown as Message[]).reverse();
+      setMessages((prev) => {
+        const combined = [...olderMessages, ...prev];
+        messageCache[selectedLoop.id] = combined;
+        return combined;
+      });
+      setHasMoreMessages(data.length === PAGE_SIZE);
+    } else {
+      setHasMoreMessages(false);
+    }
+    setIsLoadingMore(false);
   };
 
   const fetchMembers = async (loopId: string) => {
@@ -631,6 +686,18 @@ export default function ChatView() {
 
       {/* Messages scroll area */}
       <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4">
+        {hasMoreMessages && (
+          <div className="flex justify-center py-2">
+            <button
+              onClick={loadMoreMessages}
+              disabled={isLoadingMore}
+              className="text-[11px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-3 py-1 rounded-full hover:bg-[#FFC554]/20 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isLoadingMore ? "Loading older messages..." : "↑ Load older messages"}
+            </button>
+          </div>
+        )}
+
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className={`w-14 h-14 rounded-full ${cardBg} border ${border} flex items-center justify-center mb-3`}>

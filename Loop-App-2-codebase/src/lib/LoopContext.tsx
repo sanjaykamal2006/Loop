@@ -363,12 +363,14 @@ export function LoopProvider({ session, children }: { session: Session; children
     const userGender = profileRef.current.gender;
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
+    // Free tier optimization: limit initial fetch to 30 active rides to reduce connection overhead
     const { data, error } = await supabase
       .from("loops")
       .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
       .in("status", ["open", "started", "active", "in_progress"])
       .gte("departure_time", twoHoursAgo)
-      .order("departure_time", { ascending: true });
+      .order("departure_time", { ascending: true })
+      .limit(30);
 
     if (!error && data) {
       const now = new Date();
@@ -782,9 +784,21 @@ export function LoopProvider({ session, children }: { session: Session; children
               setUnreadLoopIds((prev) => Array.from(new Set([...prev, newMsg.loop_id])));
 
               try {
-                const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
-                audio.volume = 0.6;
-                audio.play().catch(() => {});
+                const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                if (AudioCtx) {
+                  const ctx = new AudioCtx();
+                  const osc = ctx.createOscillator();
+                  const gain = ctx.createGain();
+                  osc.type = "sine";
+                  osc.frequency.setValueAtTime(880, ctx.currentTime);
+                  osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.08);
+                  gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+                  osc.connect(gain);
+                  gain.connect(ctx.destination);
+                  osc.start();
+                  osc.stop(ctx.currentTime + 0.22);
+                }
               } catch (e) {}
 
               if (typeof navigator !== "undefined" && "vibrate" in navigator) {
