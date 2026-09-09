@@ -7,9 +7,13 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CLEANUP_CRON_SECRET || 'your-secret-token-here';
+    const expectedToken = process.env.CLEANUP_CRON_SECRET;
 
-    if (expectedToken !== 'your-secret-token-here' && authHeader !== `Bearer ${expectedToken}`) {
+    if (!expectedToken) {
+      return NextResponse.json({ error: 'Server misconfigured - CLEANUP_CRON_SECRET not set' }, { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
