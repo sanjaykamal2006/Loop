@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight } from "lucide-react";
+import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight, Search } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
@@ -59,6 +59,36 @@ export default function ChatView() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Listen for toggle-message-search from header
+  useEffect(() => {
+    const handleToggleSearch = () => {
+      if (messages.length === 0) {
+        toast.info("No messages in this chat yet to search.");
+        return;
+      }
+      setIsSearchOpen((prev) => !prev);
+    };
+    window.addEventListener("toggle-message-search", handleToggleSearch);
+    return () => window.removeEventListener("toggle-message-search", handleToggleSearch);
+  }, [messages.length]);
+
+  const matchingMsgIds = React.useMemo(() => {
+    if (!searchQuery.trim()) return new Set<string>();
+    const q = searchQuery.toLowerCase();
+    const matches = new Set<string>();
+    for (const m of messages) {
+      const isMe = m.user_id === session.user.id;
+      const senderName = isMe ? profile.display_name || "You" : m.profiles?.display_name || "";
+      if (m.content.toLowerCase().includes(q) || senderName.toLowerCase().includes(q)) {
+        matches.add(m.id);
+      }
+    }
+    return matches;
+  }, [messages, searchQuery, session.user.id, profile.display_name]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -684,6 +714,45 @@ export default function ChatView() {
         </div>
       </div>
 
+      {/* In-Chat Message Search Bar */}
+      {isSearchOpen && (
+        <div className={`px-4 py-2 border-b ${border} ${cardBg} flex items-center gap-2 animate-fade-in shrink-0`}>
+          <div className="relative flex-1">
+            <Search size={14} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${mutedText}`} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search messages in chat..."
+              autoFocus
+              className={`w-full h-8 pl-9 pr-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none focus:border-[#FFC554] transition-colors`}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px]"
+              >
+                <X size={10} />
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <span className={`text-[10px] font-bold shrink-0 ${matchingMsgIds.size > 0 ? (isDark ? "text-[#FFC554]" : "text-[#B45309]") : mutedText}`}>
+              {matchingMsgIds.size} {matchingMsgIds.size === 1 ? "match" : "matches"}
+            </span>
+          )}
+          <button
+            onClick={() => {
+              setIsSearchOpen(false);
+              setSearchQuery("");
+            }}
+            className={`text-xs font-bold ${mutedText} hover:opacity-100 px-1`}
+          >
+            Done
+          </button>
+        </div>
+      )}
+
       {/* Messages scroll area */}
       <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4">
         {hasMoreMessages && (
@@ -695,6 +764,15 @@ export default function ChatView() {
             >
               {isLoadingMore ? "Loading older messages..." : "↑ Load older messages"}
             </button>
+          </div>
+        )}
+
+        {/* Empty Search State */}
+        {Boolean(searchQuery.trim()) && matchingMsgIds.size === 0 && (
+          <div className="py-12 text-center">
+            <Search size={22} className={`mx-auto mb-2 opacity-30 ${mutedText}`} />
+            <p className="text-xs font-bold">No messages found</p>
+            <p className={`text-[11px] ${mutedText} mt-1`}>No message matches &ldquo;{searchQuery}&rdquo;</p>
           </div>
         )}
 
@@ -717,6 +795,8 @@ export default function ChatView() {
             const senderName = isMe ? profile.display_name || "You" : msg.profiles?.display_name || "Member";
             const senderAvatar = isMe ? profile.avatar_url : msg.profiles?.avatar_url;
             const senderInitial = (senderName || "U").substring(0, 1).toUpperCase();
+            const isSearchActive = Boolean(searchQuery.trim());
+            const isMatch = matchingMsgIds.has(msg.id);
 
             return (
               <div
@@ -777,7 +857,13 @@ export default function ChatView() {
                   </div>
                 ) : (
                   <div
-                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''}`}
+                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''} ${
+                      isSearchActive
+                        ? isMatch
+                          ? "ring-2 ring-[#FFC554] rounded-[20px] shadow-[0_0_12px_rgba(255,197,84,0.35)] scale-[1.01] transition-all"
+                          : "opacity-35 transition-opacity"
+                        : ""
+                    }`}
                     onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
                     onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >

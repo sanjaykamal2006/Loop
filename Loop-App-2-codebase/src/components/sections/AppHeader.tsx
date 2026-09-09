@@ -6,7 +6,7 @@ import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, 
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource } = useLoop();
+  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource, userJoinedLoops, activeLoops } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -121,6 +121,15 @@ export default function AppHeader() {
               <Plus size={20} className="rotate-45" />
             </button>
           )}
+          {view === "chat" && (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
+              aria-label="Search messages"
+              className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm`}
+            >
+              <Search size={18} className="opacity-80" />
+            </button>
+          )}
         </div>
       )}
       {view === "chat-list" && (
@@ -132,7 +141,14 @@ export default function AppHeader() {
             </p>
           </div>
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("toggle-chat-search"))}
+            onClick={() => {
+              const joinedCount = activeLoops.filter((l) => userJoinedLoops.includes(l.id)).length;
+              if (joinedCount === 0) {
+                toast.info("No active chats to search yet. Join or create a ride first!");
+                return;
+              }
+              window.dispatchEvent(new CustomEvent("toggle-chat-search"));
+            }}
             aria-label="Search chats"
             className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm`}
           >

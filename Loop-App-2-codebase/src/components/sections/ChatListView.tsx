@@ -300,10 +300,20 @@ export default function ChatListView() {
 
   if (joinedLoops.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[55vh] opacity-30 text-center px-4">
-        <MessageSquare size={32} strokeWidth={1.5} />
-        <p className="text-xs font-black uppercase tracking-[0.2em] mt-3">No Active Chats</p>
-        <p className="text-[11px] font-medium mt-1">Join or create a loop to coordinate with your ride group</p>
+      <div className="flex flex-col items-center justify-center h-[58vh] text-center px-6 animate-fade-in">
+        <div className={`w-16 h-16 rounded-3xl ${cardBg} border ${border} flex items-center justify-center mb-4 shadow-sm`}>
+          <MessageSquare size={28} className={mutedText} strokeWidth={1.8} />
+        </div>
+        <p className="text-sm font-black uppercase tracking-wider">No Active Chats</p>
+        <p className={`text-xs ${mutedText} mt-1.5 max-w-[260px] leading-relaxed`}>
+          Join or create a loop ride to coordinate with your group in real time.
+        </p>
+        <button
+          onClick={() => setView("home")}
+          className="mt-6 px-6 py-2.5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider active:scale-95 shadow-lg shadow-[#FFC554]/15 hover:brightness-105 transition-all cursor-pointer"
+        >
+          Explore Campus Rides
+        </button>
       </div>
     );
   }
@@ -333,8 +343,26 @@ export default function ChatListView() {
         </div>
       )}
 
-      {/* Compact Chat Cards */}
-      {filteredLoops.map((loop) => {
+      {/* Empty Search State */}
+      {filteredLoops.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center px-4 animate-fade-in">
+          <div className={`w-12 h-12 rounded-full ${cardBg} border ${border} flex items-center justify-center mb-3`}>
+            <Search size={20} className={mutedText} />
+          </div>
+          <p className="text-sm font-bold">No chats found</p>
+          <p className={`text-xs ${mutedText} mt-1 max-w-[220px]`}>
+            No conversations match &ldquo;{searchQuery}&rdquo;
+          </p>
+          <button
+            onClick={() => setSearchQuery("")}
+            className={`mt-4 px-4 py-1.5 rounded-full ${cardBg} border ${border} text-xs font-bold active:scale-95 transition-transform cursor-pointer`}
+          >
+            Clear Search
+          </button>
+        </div>
+      ) : (
+        /* Compact Chat Cards */
+        filteredLoops.map((loop) => {
         const isUnread = unreadLoopIds?.includes(loop.id);
         const latestMsg = recentMessages[loop.id];
 
@@ -415,7 +443,8 @@ export default function ChatListView() {
             )}
           </div>
         );
-      })}
-    </div>
+      })
+    )}
+  </div>
   );
 }
