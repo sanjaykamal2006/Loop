@@ -542,13 +542,27 @@ export default function ProfileView() {
                 onClick={async () => {
                   setIsDeleting(true);
                   try {
-                    const { error } = await supabase.rpc('delete_user_account');
-                    if (error) throw error;
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    const token = sessionData.session?.access_token;
+                    if (!token) throw new Error("Please log in to delete your account.");
+
+                    const res = await fetch("/api/account/delete", {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    });
+
+                    if (!res.ok) {
+                      const body = await res.json().catch(() => ({}));
+                      throw new Error(body.error || "Failed to delete account");
+                    }
+
                     await supabase.auth.signOut();
-                    toast.success('Account permanently deleted.');
-                  } catch (error) {
+                    toast.success("Account permanently deleted.");
+                  } catch (error: any) {
                     console.error(error);
-                    toast.error('Failed to delete account. Please try again.');
+                    toast.error(error.message || "Failed to delete account. Please try again.");
                   } finally {
                     setIsDeleting(false);
                     setShowDeleteConfirm(false);

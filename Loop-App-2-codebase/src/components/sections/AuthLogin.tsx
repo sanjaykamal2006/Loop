@@ -77,16 +77,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
           if (error.message.includes("Email rate limit") || error.status === 429) {
             throw new Error("Rate limit exceeded. Please wait a moment before trying again.");
           }
-          
-          const { data: userExists } = await supabase.rpc('check_user_exists', {
-            user_email: email.trim(),
-          });
-
-          if (!userExists) {
-            throw new Error("Account does not exist. Please sign up first.");
-          } else {
-            throw new Error("Incorrect email or password. Please try again or reset your password.");
-          }
+          throw new Error("Incorrect email or password. Please try again or switch to Sign Up.");
         }
         toast.success("Welcome back!");
       } else {
@@ -382,19 +373,6 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                       }
                       setIsLoading(true);
                       try {
-                        const { data: userExists, error: checkErr } = await supabase.rpc('check_user_exists', {
-                          user_email: email.trim(),
-                        });
-
-                        if (checkErr) {
-                          console.error("User check error:", checkErr);
-                        }
-
-                        if (!userExists) {
-                          toast.error("Account does not exist. Please check your email or sign up.");
-                          return;
-                        }
-
                         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { 
                           redirectTo: window.location.origin 
                         });
