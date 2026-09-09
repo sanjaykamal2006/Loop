@@ -358,29 +358,26 @@ export default function ProfileView() {
 
         {/* Gender Selection */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-bold ${mutedText}`}>Gender</span>
-            <span className={`text-xs font-black capitalize ${isDark ? "text-white" : "text-zinc-900"}`}>
-              {profile.gender || "Not set"}
-            </span>
-          </div>
+          <span className={`text-xs font-bold ${mutedText}`}>Gender</span>
 
-          <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
+          <div className={`flex items-center p-1 rounded-full border ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
             <button
+              type="button"
               onClick={() => updateProfile({ gender: "male" })}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+              className={`px-4 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 profile.gender === "male"
-                  ? "bg-[#FFC554] text-black shadow-sm"
+                  ? "bg-[#FFC554] text-black font-black shadow-sm"
                   : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
               Male
             </button>
             <button
+              type="button"
               onClick={() => updateProfile({ gender: "female" })}
-              className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+              className={`px-4 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 profile.gender === "female"
-                  ? "bg-[#FFC554] text-black shadow-sm"
+                  ? "bg-[#FFC554] text-black font-black shadow-sm"
                   : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
               }`}
             >

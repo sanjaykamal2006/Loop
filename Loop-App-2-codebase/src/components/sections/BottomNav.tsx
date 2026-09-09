@@ -34,7 +34,7 @@ export default function BottomNav() {
       v: "home",
       icon: (isActive) => (
         <MapPin
-          size={19}
+          size={22}
           className={isActive ? "fill-[#FFC554]/15 text-[#FFC554]" : "text-current"}
           strokeWidth={isActive ? 2.8 : 2}
         />
@@ -45,7 +45,7 @@ export default function BottomNav() {
       v: "create",
       icon: (isActive) => (
         <Plus
-          size={21}
+          size={24}
           className={isActive ? "text-[#FFC554]" : "text-current"}
           strokeWidth={isActive ? 3.5 : 2.2}
         />
@@ -56,7 +56,7 @@ export default function BottomNav() {
       v: "chat-list",
       icon: (isActive) => (
         <MessageSquare
-          size={18}
+          size={21}
           className={isActive ? "fill-[#FFC554]/15 text-[#FFC554]" : "text-current"}
           strokeWidth={isActive ? 2.8 : 2}
         />
@@ -67,7 +67,7 @@ export default function BottomNav() {
       v: "profile",
       icon: (isActive) => (
         <Users
-          size={19}
+          size={22}
           className={isActive ? "fill-[#FFC554]/15 text-[#FFC554]" : "text-current"}
           strokeWidth={isActive ? 2.8 : 2}
         />
@@ -79,7 +79,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 ${bg} border-t ${border} flex items-center justify-around px-2 z-20 h-14 pb-safe backdrop-blur-xl ${
+      className={`absolute bottom-0 left-0 right-0 ${bg} border-t ${border} flex items-center justify-around px-2 z-20 pt-2.5 pb-6 backdrop-blur-xl ${
         isDark ? "bg-black/95" : "bg-white/95"
       }`}
     >
@@ -94,7 +94,7 @@ export default function BottomNav() {
             key={v}
             onClick={() => handleNavClick(v)}
             aria-label={`${label} navigation tab`}
-            className={`flex flex-col items-center justify-center gap-0.5 active:scale-90 flex-1 py-1 relative transition-all duration-200 cursor-pointer ${
+            className={`flex flex-col items-center justify-center gap-1 active:scale-90 flex-1 py-1 relative transition-all duration-200 cursor-pointer ${
               isActive ? "text-[#FFC554]" : mutedText
             }`}
           >
@@ -103,17 +103,17 @@ export default function BottomNav() {
 
               {/* Unread Chat Badge */}
               {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC554] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FFC554]" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]" />
                 </span>
               )}
             </div>
 
             {/* Label */}
             <span
-              className={`text-[9px] font-black uppercase tracking-wider transition-all ${
-                isActive ? "opacity-100 text-[#FFC554]" : "opacity-45"
+              className={`text-[10px] font-black uppercase tracking-wider transition-all ${
+                isActive ? "opacity-100 text-[#FFC554]" : "opacity-50"
               }`}
             >
               {label}
@@ -121,7 +121,7 @@ export default function BottomNav() {
 
             {/* Subtle Minimal Active Indicator Dot */}
             {isActive && (
-              <span className="w-1 h-1 rounded-full bg-[#FFC554] absolute -bottom-0.5 shadow-[0_0_3px_#FFC554]" />
+              <span className="w-1 h-1 rounded-full bg-[#FFC554] absolute -bottom-1 shadow-[0_0_4px_#FFC554]" />
             )}
           </button>
         );
