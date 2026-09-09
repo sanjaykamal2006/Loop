@@ -6,7 +6,7 @@ import { X, Coffee, Copy, Check, ExternalLink, Heart, QrCode } from "lucide-reac
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 
-const UPI_ID = "8825680623@slice";
+const UPI_ID = "8825680623@slc";
 const CREATOR_NAME = "Sanjay Kamal";
 
 const PRESET_AMOUNTS = [
@@ -61,7 +61,7 @@ export default function BuyCoffeeModal({
     if (navigator.clipboard) {
       navigator.clipboard.writeText(UPI_ID);
       setCopied(true);
-      toast.success("UPI ID copied: 8825680623@slice");
+      toast.success(`UPI ID copied: ${UPI_ID}`);
       setTimeout(() => setCopied(false), 2500);
     }
   };
