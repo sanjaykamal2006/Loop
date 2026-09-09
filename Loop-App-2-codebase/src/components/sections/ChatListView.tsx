@@ -110,9 +110,18 @@ export default function ChatListView() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [recentMessages, setRecentMessages] = useState<Record<string, RecentMsgData>>({});
+  const [recentMessages, setRecentMessages] = useState<Record<string, RecentMsgData>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("loop_recent_messages_cache");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return {};
+  });
 
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
+  const joinedLoopIdsKey = userJoinedLoops.join(",");
 
   // Toggle search from custom event in header
   useEffect(() => {
@@ -123,8 +132,8 @@ export default function ChatListView() {
 
   // Fetch the latest real message for joined loops with sender profile
   const fetchRecentMessages = useCallback(async () => {
-    if (joinedLoops.length === 0) return;
-    const loopIds = joinedLoops.map((l) => l.id);
+    if (userJoinedLoops.length === 0) return;
+    const loopIds = userJoinedLoops;
 
     try {
       const { data, error } = await supabase
@@ -178,9 +187,14 @@ export default function ChatListView() {
           }
         }
         setRecentMessages(msgMap);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("loop_recent_messages_cache", JSON.stringify(msgMap));
+          } catch {}
+        }
       }
     } catch {}
-  }, [joinedLoops]);
+  }, [joinedLoopIdsKey]);
 
   useEffect(() => {
     fetchRecentMessages();
@@ -198,15 +212,23 @@ export default function ChatListView() {
           const isMe = msg.user_id === session?.user?.id;
           let senderName = isMe ? (profile?.display_name || "You") : "";
 
-          setRecentMessages((prev) => ({
-            ...prev,
-            [msg.loop_id]: {
-              content: msg.content,
-              created_at: msg.created_at,
-              user_id: msg.user_id,
-              sender_name: senderName,
-            },
-          }));
+          setRecentMessages((prev) => {
+            const next = {
+              ...prev,
+              [msg.loop_id]: {
+                content: msg.content,
+                created_at: msg.created_at,
+                user_id: msg.user_id,
+                sender_name: senderName,
+              },
+            };
+            if (typeof window !== "undefined") {
+              try {
+                localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+              } catch {}
+            }
+            return next;
+          });
 
           if (!isMe && msg.user_id) {
             const { data } = await supabase
@@ -218,7 +240,13 @@ export default function ChatListView() {
               setRecentMessages((prev) => {
                 const cur = prev[msg.loop_id];
                 if (cur && cur.created_at === msg.created_at) {
-                  return { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
+                  const next = { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
+                  if (typeof window !== "undefined") {
+                    try {
+                      localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+                    } catch {}
+                  }
+                  return next;
                 }
                 return prev;
               });
@@ -231,7 +259,7 @@ export default function ChatListView() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchRecentMessages]);
+  }, [fetchRecentMessages, session?.user?.id, profile?.display_name]);
 
   const filteredLoops = joinedLoops.filter((loop) => {
     if (!searchQuery.trim()) return true;

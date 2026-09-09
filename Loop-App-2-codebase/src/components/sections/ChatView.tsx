@@ -10,11 +10,18 @@ import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 
+const messageCache: Record<string, Message[]> = {};
+
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (selectedLoop?.id && messageCache[selectedLoop.id]) {
+      return messageCache[selectedLoop.id];
+    }
+    return [];
+  });
   const [newMessage, setNewMessage] = useState("");
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -30,23 +37,29 @@ export default function ChatView() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const currentLoopIdRef = useRef<string | null>(null);
 
-  // Fetch messages on mount or loop change (ONLY reset messages if loop ID changes)
+  // Fetch messages on mount or loop change (instant 0ms cache check)
   useEffect(() => {
     if (!selectedLoop?.id) return;
     if (currentLoopIdRef.current !== selectedLoop.id) {
       currentLoopIdRef.current = selectedLoop.id;
-      setMessages([]);
+      if (messageCache[selectedLoop.id]) {
+        setMessages(messageCache[selectedLoop.id]);
+      } else {
+        setMessages([]);
+      }
     }
     fetchMessages(selectedLoop.id);
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id]);
 
-  // Ultra-fast background polling safety net (every 1 second) to ensure 100% instant delivery on mobile networks
+  // Lightweight 30s background sync safety net (only when tab is visible)
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const pollInterval = setInterval(() => {
-      fetchMessages(selectedLoop.id);
-    }, 1000);
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchMessages(selectedLoop.id);
+      }
+    }, 30000);
     return () => clearInterval(pollInterval);
   }, [selectedLoop?.id]);
 
@@ -59,7 +72,6 @@ export default function ChatView() {
   const scrollToBottom = (force = false) => {
     if (chatScrollRef.current) {
       const { scrollHeight, clientHeight } = chatScrollRef.current;
-      // Only scroll if content is taller than the container (overflowing) or if explicitly forced when sending
       if (force || scrollHeight > clientHeight + 20) {
         chatScrollRef.current.scrollTop = scrollHeight - clientHeight;
       }
@@ -94,7 +106,9 @@ export default function ChatView() {
         if (msg.user_id === session.user.id) return;
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev;
-          return [...prev, msg];
+          const updated = [...prev, msg];
+          messageCache[loopId] = updated;
+          return updated;
         });
         requestAnimationFrame(() => scrollToBottom(true));
         try {
@@ -125,8 +139,16 @@ export default function ChatView() {
           }
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
-            fetchMessages(loopId);
-            return prev;
+            // Instant resolution from loop members without database roundtrip
+            const sender = loopMembersRef.current.find((mem) => mem.user_id === newMsg.user_id);
+            const enriched: Message = {
+              ...newMsg,
+              profiles: sender?.profiles || { display_name: "Member" },
+            };
+            const updated = [...prev, enriched];
+            messageCache[loopId] = updated;
+            requestAnimationFrame(() => scrollToBottom(true));
+            return updated;
           });
         }
       )
@@ -136,13 +158,15 @@ export default function ChatView() {
         (payload) => {
           const updated = payload.new as any;
           if (!updated?.id) return;
-          setMessages((prev) =>
-            prev.map((m) =>
+          setMessages((prev) => {
+            const next = prev.map((m) =>
               m.id === updated.id
                 ? { ...m, ...updated, profiles: m.profiles }
                 : m
-            )
-          );
+            );
+            messageCache[loopId] = next;
+            return next;
+          });
         }
       )
       .on(
@@ -151,7 +175,11 @@ export default function ChatView() {
         (payload) => {
           const deletedId = payload.old?.id;
           if (!deletedId) return;
-          setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+          setMessages((prev) => {
+            const next = prev.filter((m) => m.id !== deletedId);
+            messageCache[loopId] = next;
+            return next;
+          });
         }
       )
       .subscribe(async (status) => {
@@ -191,14 +219,18 @@ export default function ChatView() {
         .eq("loop_id", loopId)
         .order("created_at", { ascending: true });
       if (fallbackData) {
-        setMessages(fallbackData.map((m: any) => {
+        const enriched = fallbackData.map((m: any) => {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
           return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
-        }));
+        });
+        messageCache[loopId] = enriched;
+        setMessages(enriched);
         requestAnimationFrame(() => scrollToBottom(false));
       }
     } else if (data) {
-      setMessages(data as unknown as Message[]);
+      const msgs = data as unknown as Message[];
+      messageCache[loopId] = msgs;
+      setMessages(msgs);
       requestAnimationFrame(() => scrollToBottom(false));
     }
   };
@@ -291,7 +323,11 @@ export default function ChatView() {
         ...inserted,
         profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
       };
-      setMessages((prev) => prev.map((m) => (m.id === optimisticId ? realMsg : m)));
+      setMessages((prev) => {
+        const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
+        messageCache[selectedLoop.id] = next;
+        return next;
+      });
 
       // Broadcast over WebSocket for instant delivery to all connected receivers
       if (channelRef.current) {

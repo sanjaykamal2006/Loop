@@ -8,6 +8,79 @@ import { Users, Clock, MapPin, Search, X, CarFront } from "lucide-react";
 import { SteeringWheelIcon, VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
+interface LoopCardProps {
+  loop: any;
+  isJoined: boolean;
+  isDark: boolean;
+  cardBg: string;
+  border: string;
+  timeFormatted: string;
+  onSelect: () => void;
+}
+
+const LoopCard = React.memo(function LoopCard({
+  loop,
+  isJoined,
+  isDark,
+  cardBg,
+  border,
+  timeFormatted,
+  onSelect,
+}: LoopCardProps) {
+  return (
+    <div
+      onClick={onSelect}
+      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30`}
+    >
+      {/* Left Squircle Icon Container */}
+      <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
+        isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
+      }`}>
+        <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={isDark ? "text-[#FFC554]" : "text-[#B45309]"} strokeWidth={2} />
+      </div>
+
+      {/* Route & Info Block */}
+      <div className="ml-3 sm:ml-3.5 flex-1 min-w-0 flex flex-col justify-center">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
+            {loop.start_point || "Campus"}
+          </span>
+          <span className={`font-bold text-xs shrink-0 mx-0.5 ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>→</span>
+          <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
+            {loop.destination}
+          </span>
+        </div>
+
+        {/* Badges sub-row */}
+        {(isJoined || loop.is_female_only) && (
+          <div className="flex items-center gap-1.5 mt-1">
+            {isJoined && (
+              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
+                Joined
+              </span>
+            )}
+            {loop.is_female_only && (
+              <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0">
+                Female
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Subtle Vertical Divider */}
+      <div className={`w-px h-7 ${isDark ? "bg-white/10" : "bg-black/10"} shrink-0 mx-2.5 sm:mx-3`} />
+
+      {/* Time Block */}
+      <div className="shrink-0 flex items-center">
+        <span className={`font-bold text-[13px] sm:text-[14px] tracking-tight ${isDark ? "text-white" : "text-zinc-900"} whitespace-nowrap`}>
+          {timeFormatted}
+        </span>
+      </div>
+    </div>
+  );
+});
+
 export default function HomeView() {
   const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
@@ -130,67 +203,22 @@ export default function HomeView() {
         </div>
       )}
 
-      {feedLoops.map((loop) => {
-        const isJoined = userJoinedLoops.includes(loop.id);
-
-        return (
-          <div
-            key={loop.id}
-            onClick={() => {
-              triggerHaptic(10);
-              setSelectedLoop(loop);
-              setView("ride-details");
-            }}
-            className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30`}
-          >
-            {/* Left Squircle Icon Container */}
-            <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
-              isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
-            }`}>
-              <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={isDark ? "text-[#FFC554]" : "text-[#B45309]"} strokeWidth={2} />
-            </div>
-
-            {/* Route & Info Block (Zero truncation, no dots, full text wraps cleanly) */}
-            <div className="ml-3 sm:ml-3.5 flex-1 min-w-0 flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
-                  {loop.start_point || "Campus"}
-                </span>
-                <span className={`font-bold text-xs shrink-0 mx-0.5 ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>→</span>
-                <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
-                  {loop.destination}
-                </span>
-              </div>
-
-              {/* Badges sub-row: Never steals horizontal width from route text */}
-              {(isJoined || loop.is_female_only) && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  {isJoined && (
-                    <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
-                      Joined
-                    </span>
-                  )}
-                  {loop.is_female_only && (
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0">
-                      Female
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Subtle Vertical Divider */}
-            <div className={`w-px h-7 ${isDark ? "bg-white/10" : "bg-black/10"} shrink-0 mx-2.5 sm:mx-3`} />
-
-            {/* Time Block */}
-            <div className="shrink-0 flex items-center">
-              <span className={`font-bold text-[13px] sm:text-[14px] tracking-tight ${isDark ? "text-white" : "text-zinc-900"} whitespace-nowrap`}>
-                {formatTime(loop.departure_time)}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+      {feedLoops.map((loop) => (
+        <LoopCard
+          key={loop.id}
+          loop={loop}
+          isJoined={userJoinedLoops.includes(loop.id)}
+          isDark={isDark}
+          cardBg={cardBg}
+          border={border}
+          timeFormatted={formatTime(loop.departure_time)}
+          onSelect={() => {
+            triggerHaptic(10);
+            setSelectedLoop(loop);
+            setView("ride-details");
+          }}
+        />
+      ))}
     </div>
   );
 }

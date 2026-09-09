@@ -13,6 +13,8 @@ import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 
+const membersCache: Record<string, LoopMember[]> = {};
+
 export default function RideDetailsView() {
   const {
     session,
@@ -34,8 +36,15 @@ export default function RideDetailsView() {
   } = useLoop();
   const { bg, border, cardBg, mutedText } = theme;
 
-  const [loopMembers, setLoopMembers] = useState<LoopMember[]>([]);
-  const [isLoadingMembers, setIsLoadingMembers] = useState(true);
+  const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() => {
+    if (selectedLoop?.id && membersCache[selectedLoop.id]) {
+      return membersCache[selectedLoop.id];
+    }
+    return [];
+  });
+  const [isLoadingMembers, setIsLoadingMembers] = useState(() => {
+    return !(selectedLoop?.id && membersCache[selectedLoop.id]);
+  });
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
@@ -51,22 +60,28 @@ export default function RideDetailsView() {
   }, [selectedLoop?.total_fare]);
 
   useEffect(() => {
-    if (!selectedLoop) return;
-    setIsLoadingMembers(true);
-    fetchLoopMembers(selectedLoop.id);
+    if (!selectedLoop?.id) return;
+    const loopId = selectedLoop.id;
+    if (membersCache[loopId]) {
+      setLoopMembers(membersCache[loopId]);
+      setIsLoadingMembers(false);
+    } else {
+      setIsLoadingMembers(true);
+    }
+    fetchLoopMembers(loopId);
 
     const memberSub = supabase
-      .channel(`members-${selectedLoop.id}`)
+      .channel(`members-${loopId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "loop_members",
-          filter: `loop_id=eq.${selectedLoop.id}`,
+          filter: `loop_id=eq.${loopId}`,
         },
         () => {
-          fetchLoopMembers(selectedLoop.id);
+          fetchLoopMembers(loopId);
         }
       )
       .subscribe();
@@ -74,7 +89,7 @@ export default function RideDetailsView() {
     return () => {
       supabase.removeChannel(memberSub);
     };
-  }, [selectedLoop]);
+  }, [selectedLoop?.id]);
 
   const fetchLoopMembers = async (loopId: string) => {
     const { data, error } = await supabase
@@ -82,7 +97,11 @@ export default function RideDetailsView() {
       .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio, phone_number, is_student_verified)")
       .eq("loop_id", loopId);
 
-    if (!error && data) setLoopMembers(data as unknown as LoopMember[]);
+    if (!error && data) {
+      const mems = data as unknown as LoopMember[];
+      membersCache[loopId] = mems;
+      setLoopMembers(mems);
+    }
     setIsLoadingMembers(false);
   };
 

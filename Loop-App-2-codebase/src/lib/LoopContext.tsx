@@ -69,7 +69,15 @@ export function useLoop() {
 
 export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
   const [view, setViewState] = useState<View>("home");
-  const [activeLoops, setActiveLoops] = useState<Loop[]>([]);
+  const [activeLoops, setActiveLoops] = useState<Loop[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("loop_active_loops_cache");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
   const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -97,8 +105,24 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, []);
   const [isJoining, setIsJoining] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [userJoinedLoops, setUserJoinedLoops] = useState<string[]>([]);
-  const [userLoops, setUserLoops] = useState<string[]>([]);
+  const [userJoinedLoops, setUserJoinedLoops] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`loop_joined_loops_${session.user.id}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
+  const [userLoops, setUserLoops] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`loop_created_loops_${session.user.id}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
 
   // Profile
   const [profile, setProfile] = useState<Profile>(() => {
@@ -297,21 +321,31 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Update profile ---
   const updateProfile = useCallback(async (updates: Partial<Profile>): Promise<boolean> => {
+    // Optimistically update local state & cache instantly
+    const prevProfile = profileRef.current;
+    const nextProfile = { ...prevProfile, ...updates };
+    setProfile(nextProfile);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(nextProfile));
+      } catch {}
+    }
+
     const { error } = await supabase
       .from("profiles")
       .upsert({ id: session.user.id, ...updates, updated_at: new Date().toISOString() }, { onConflict: "id" });
 
     if (error) {
+      // Revert on error
+      setProfile(prevProfile);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(prevProfile));
+        } catch {}
+      }
       toast.error("Failed to update profile. Please try again.");
       return false;
     } else {
-      setProfile((prev) => {
-        const next = { ...prev, ...updates };
-        try {
-          localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(next));
-        } catch {}
-        return next;
-      });
       if (
         updates.display_name !== undefined ||
         updates.reg_no !== undefined ||
@@ -349,20 +383,44 @@ export function LoopProvider({ session, children }: { session: Session; children
         if (l.is_female_only && userGender !== "female") return false;
         return true;
       });
-      setActiveLoops(filtered.map((l: any) => ({ ...l, member_count: l.loop_members?.[0]?.count || 0 })));
+      const formatted = filtered.map((l: any) => ({ ...l, member_count: l.loop_members?.[0]?.count || 0 }));
+      setActiveLoops(formatted);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
+        } catch {}
+      }
     }
   }, [session.user.id]);
 
-  // --- Fetch memberships ---
+  // --- Fetch memberships concurrently ---
   const fetchUserMemberships = useCallback(async () => {
-    const { data } = await supabase.from("loop_members").select("loop_id").eq("user_id", session.user.id);
-    if (data) setUserJoinedLoops(data.map((m: any) => m.loop_id));
+    const [{ data: joinedData }, { data: creatorData }] = await Promise.all([
+      supabase.from("loop_members").select("loop_id").eq("user_id", session.user.id),
+      supabase.from("loops").select("id").eq("creator_id", session.user.id),
+    ]);
 
-    const { data: creatorData } = await supabase.from("loops").select("id").eq("creator_id", session.user.id);
-    if (creatorData) setUserLoops(creatorData.map((l: any) => l.id));
+    if (joinedData) {
+      const joinedIds = joinedData.map((m: any) => m.loop_id);
+      setUserJoinedLoops(joinedIds);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(joinedIds));
+        } catch {}
+      }
+    }
+    if (creatorData) {
+      const creatorIds = creatorData.map((l: any) => l.id);
+      setUserLoops(creatorIds);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(creatorIds));
+        } catch {}
+      }
+    }
   }, [session.user.id]);
 
-  // --- Join loop ---
+  // --- Join loop (Optimistic UI for 0ms transition) ---
   const joinLoop = useCallback(async (loop: Loop, profileOverride?: Partial<Profile>) => {
     const currentGender = profileOverride?.gender || profile.gender;
     const currentName = profileOverride?.display_name || profile.display_name;
@@ -377,28 +435,43 @@ export function LoopProvider({ session, children }: { session: Session; children
       toast.error("Loop is full!");
       return;
     }
+
+    // Instant optimistic transition
+    const previousJoined = userJoinedLoopsRef.current;
+    const isAlreadyMember = previousJoined.includes(loop.id);
+    const newCount = (loop.member_count || 0) + (isAlreadyMember ? 0 : 1);
+    const updatedLoop = { ...loop, member_count: newCount };
+
+    setUserJoinedLoops((prev) => {
+      const next = Array.from(new Set([...prev, loop.id]));
+      try {
+        localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setSelectedLoop(updatedLoop);
+    setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? updatedLoop : l)));
+    setView("chat");
+    toast.success("Joined loop!");
+
     setIsJoining(true);
     const { error } = await supabase.from("loop_members").insert({ loop_id: loop.id, user_id: session.user.id });
     if (error) {
-      if (error.code === "23505") { // Unique constraint violation = already in loop
-        setUserJoinedLoops((prev) => Array.from(new Set([...prev, loop.id])));
-        setSelectedLoop(loop);
-        setView("chat");
+      if (error.code === "23505") {
+        // Already a member, safe to remain joined
       } else {
+        // Rollback
+        setUserJoinedLoops(previousJoined);
+        setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? loop : l)));
+        setSelectedLoop(loop);
         toast.error("Failed to join loop. Please try again.");
       }
     } else {
-      toast.success("Joined loop!");
-      setUserJoinedLoops((prev) => Array.from(new Set([...prev, loop.id])));
-      const newCount = (loop.member_count || 0) + 1;
-      const updatedLoop = { ...loop, member_count: newCount };
-      setSelectedLoop(updatedLoop);
-      setActiveLoops(prev => prev.map(l => l.id === loop.id ? updatedLoop : l));
       fetchLoops();
-      setView("chat");
+      fetchUserMemberships();
     }
     setIsJoining(false);
-  }, [profile, session.user.id, fetchLoops]);
+  }, [profile, session.user.id, fetchLoops, fetchUserMemberships, setSelectedLoop, setView]);
 
   // Resume joining after profile is set
   useEffect(() => {
@@ -469,22 +542,40 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
   }, [isDeleting, setView, fetchLoops, fetchUserMemberships, setSelectedLoop]);
 
-  // --- Leave loop ---
+  // --- Leave loop (Optimistic UI for 0ms transition) ---
   const leaveLoop = useCallback(async (loopId: string) => {
-    const { error } = await supabase.from("loop_members").delete().eq("loop_id", loopId).eq("user_id", session.user.id);
-    if (error) toast.error("Failed to leave loop");
-    else {
-      toast.success("Left loop");
-      setUserJoinedLoops((prev) => prev.filter((id) => id !== loopId));
-      if (selectedLoop && selectedLoop.id === loopId) {
-        const newCount = Math.max(0, (selectedLoop.member_count || 1) - 1);
-        setSelectedLoop({ ...selectedLoop, member_count: newCount });
-        setActiveLoops(prev => prev.map(l => l.id === loopId ? { ...l, member_count: newCount } : l));
-      }
-      setView("home");
-      fetchLoops();
+    const previousJoined = userJoinedLoopsRef.current;
+    const previousLoop = selectedLoopRef.current;
+
+    // Instant optimistic leave
+    setUserJoinedLoops((prev) => {
+      const next = prev.filter((id) => id !== loopId);
+      try {
+        localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    if (previousLoop && previousLoop.id === loopId) {
+      const newCount = Math.max(0, (previousLoop.member_count || 1) - 1);
+      const updatedLoop = { ...previousLoop, member_count: newCount };
+      setSelectedLoop(updatedLoop);
+      setActiveLoops((prev) => prev.map((l) => (l.id === loopId ? updatedLoop : l)));
     }
-  }, [session.user.id, selectedLoop, fetchLoops]);
+    setView("home");
+    toast.success("Left loop");
+
+    const { error } = await supabase.from("loop_members").delete().eq("loop_id", loopId).eq("user_id", session.user.id);
+    if (error) {
+      // Rollback
+      setUserJoinedLoops(previousJoined);
+      if (previousLoop) setSelectedLoop(previousLoop);
+      toast.error("Failed to leave loop");
+    } else {
+      fetchLoops();
+      fetchUserMemberships();
+    }
+  }, [session.user.id, setSelectedLoop, setView, fetchLoops, fetchUserMemberships]);
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut({ scope: "global" });
@@ -501,8 +592,7 @@ export function LoopProvider({ session, children }: { session: Session; children
   useEffect(() => {
     registerServiceWorker();
     fetchProfile();
-    fetchLoops();
-    fetchUserMemberships();
+    Promise.all([fetchLoops(), fetchUserMemberships()]);
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let hideTimer: NodeJS.Timeout | null = null;
