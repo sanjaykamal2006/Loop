@@ -236,6 +236,19 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);
 
+  // Synchronize mobile notification/status bar theme-color
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const targetColor = isDark ? "#000000" : "#ffffff";
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", targetColor);
+  }, [isDark]);
+
   const toggleTheme = () => {
     const nextTheme = profile.theme === "dark" ? "light" : "dark";
     updateProfile({ theme: nextTheme });
