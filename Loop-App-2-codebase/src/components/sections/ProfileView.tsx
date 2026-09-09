@@ -15,9 +15,12 @@ import {
   Moon,
   X,
   AlertTriangle,
+  Coffee,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
+import { triggerHaptic } from "@/lib/haptics";
+import BuyCoffeeModal from "./BuyCoffeeModal";
 import {
   getNotificationPermission,
   isNotificationEnabled,
@@ -37,6 +40,7 @@ export default function ProfileView() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBuyCoffee, setShowBuyCoffee] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const [notifEnabled, setNotifEnabled] = useState(false);
@@ -470,6 +474,36 @@ export default function ProfileView() {
           </div>
         </div>
 
+        {/* Buy Creator a Coffee */}
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic(10);
+            setShowBuyCoffee(true);
+          }}
+          className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center text-[#FFC554] shrink-0">
+              <Coffee size={16} strokeWidth={2.5} />
+            </div>
+            <div>
+              <span className={`text-xs sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
+                Buy Creator a Coffee
+              </span>
+              <p className={`text-[10px] font-semibold ${mutedText}`}>
+                Support dev & keep servers running ☕
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
+              Tip UPI
+            </span>
+            <ChevronRight size={15} className="opacity-40" />
+          </div>
+        </button>
+
         {/* Theme Appearance Toggle */}
         <div className="w-full px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -562,6 +596,9 @@ export default function ProfileView() {
           </div>
         </div>
       )}
+
+      {/* Buy Creator a Coffee Modal */}
+      <BuyCoffeeModal isOpen={showBuyCoffee} onClose={() => setShowBuyCoffee(false)} />
     </div>
   );
 }
