@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AuthLogin from "../components/sections/AuthLogin";
 import MainApp from "../components/sections/MainApp";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Session } from "@supabase/supabase-js";
 
 export default function Home() {
@@ -50,25 +51,25 @@ export default function Home() {
     );
   }
 
-  if (isPasswordReset) {
-    return (
-      <main>
-        <AuthLogin
-          initialPasswordReset={true}
-          onPasswordResetComplete={() => {
-            setIsPasswordReset(false);
-            if (typeof window !== "undefined") {
-              window.history.replaceState(null, "", window.location.pathname);
-            }
-          }}
-        />
-      </main>
-    );
-  }
-
   return (
-    <main>
-      {session ? <MainApp session={session} /> : <AuthLogin />}
-    </main>
+    <ErrorBoundary>
+      {isPasswordReset ? (
+        <main>
+          <AuthLogin
+            initialPasswordReset={true}
+            onPasswordResetComplete={() => {
+              setIsPasswordReset(false);
+              if (typeof window !== "undefined") {
+                window.history.replaceState(null, "", window.location.pathname);
+              }
+            }}
+          />
+        </main>
+      ) : (
+        <main>
+          {session ? <MainApp session={session} /> : <AuthLogin />}
+        </main>
+      )}
+    </ErrorBoundary>
   );
 }

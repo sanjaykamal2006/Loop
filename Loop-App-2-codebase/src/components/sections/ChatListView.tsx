@@ -136,11 +136,13 @@ export default function ChatListView() {
     const loopIds = userJoinedLoops;
 
     try {
+      const fetchLimit = Math.min(Math.max(loopIds.length * 5, 20), 50);
       const { data, error } = await supabase
         .from("messages")
         .select("loop_id, content, created_at, user_id, profiles:user_id(display_name)")
         .in("loop_id", loopIds)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(fetchLimit);
 
       let list = data;
       if (error || !data) {
@@ -148,7 +150,8 @@ export default function ChatListView() {
           .from("messages")
           .select("loop_id, content, created_at, user_id")
           .in("loop_id", loopIds)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .limit(fetchLimit);
         list = fallback.data as any;
       }
 

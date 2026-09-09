@@ -51,7 +51,13 @@ export default function RideDetailsView() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const isPast = selectedLoop?.status === "ended" || selectedLoop?.status === "cancelled";
+  const isTimePast = selectedLoop?.departure_time
+    ? new Date(selectedLoop.departure_time).getTime() < Date.now()
+    : false;
+  const isPast =
+    selectedLoop?.status === "ended" ||
+    selectedLoop?.status === "cancelled" ||
+    isTimePast;
 
   useEffect(() => {
     if (selectedLoop) {

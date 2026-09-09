@@ -12,6 +12,31 @@ import { formatDepartureFull } from "@/lib/dateFormatter";
 
 const messageCache: Record<string, Message[]> = {};
 
+const playNotificationChime = () => {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.08);
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch (e) {
+    // Autoplay restrictions or unavailable audio context
+  }
+};
+
 export default function ChatView() {
   const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
@@ -111,12 +136,8 @@ export default function ChatView() {
           return updated;
         });
         requestAnimationFrame(() => scrollToBottom(true));
-        try {
-          const audio = new Audio("https://cdn.freesound.org/previews/242/242501_4414128-lq.mp3");
-          audio.volume = 0.5;
-          audio.play();
-        } catch (e) {}
         if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+          playNotificationChime();
           sendLocalNotification("LOOP Chat", {
             body: msg.content || "New message received",
             data: { url: `/?loop=${loopId}` },
@@ -131,6 +152,7 @@ export default function ChatView() {
           const newMsg = payload.new as any;
           if (!newMsg?.id) return;
           if (newMsg.user_id !== session.user.id && typeof document !== "undefined" && document.visibilityState === "hidden") {
+            playNotificationChime();
             sendLocalNotification("LOOP Chat", {
               body: newMsg.content || "New message received",
               data: { url: `/?loop=${loopId}` },
@@ -248,6 +270,16 @@ export default function ChatView() {
       }
 
       const userIds = Array.from(new Set(memberRows.map((r: any) => r.user_id)));
+
+      // Access Guard: Ensure caller is member or creator
+      const isCreator = selectedLoop?.creator_id === session?.user?.id;
+      const isMember = userIds.includes(session?.user?.id);
+      if (!isCreator && !isMember) {
+        toast.info("You must join this loop to view its chat");
+        setView("home");
+        setSelectedLoop(null);
+        return;
+      }
 
       // 2. Query profiles directly by IDs to ensure 100% reliability regardless of PostgREST relation syntax
       const { data: profs } = await supabase
