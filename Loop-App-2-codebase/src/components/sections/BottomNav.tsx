@@ -104,9 +104,9 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-2 pb-5 px-4 rounded-t-[26px] backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-2.5 pb-5 px-4 backdrop-blur-2xl transition-colors duration-300 ${
         isDark
-          ? "bg-[#09090b]/95 border-t border-white/[0.08] shadow-[0_-8px_30px_rgba(0,0,0,0.6)]"
+          ? "bg-black/95 border-t border-white/[0.08] shadow-[0_-8px_30px_rgba(0,0,0,0.6)]"
           : "bg-white/95 border-t border-black/[0.06] shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
       }`}
     >
