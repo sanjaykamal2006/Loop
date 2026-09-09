@@ -18,6 +18,7 @@ import GenderModal from "./GenderModal";
 import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 import TeluguGuideModal from "./TeluguGuideModal";
+import BuyCoffeeModal from "./BuyCoffeeModal";
 
 function AppContent() {
   const { view, selectedLoop, theme } = useLoop();
@@ -30,18 +31,22 @@ function AppContent() {
   const [showTerms, setShowTerms] = React.useState(false);
   const [showTeluguGuide, setShowTeluguGuide] = React.useState(false);
   const [showCreator, setShowCreator] = React.useState(false);
+  const [showBuyCoffee, setShowBuyCoffee] = React.useState(false);
 
   React.useEffect(() => {
     const handleTerms = () => setShowTerms(true);
     const handleTelugu = () => setShowTeluguGuide(true);
     const handleCreator = () => setShowCreator(true);
+    const handleBuyCoffee = () => setShowBuyCoffee(true);
     window.addEventListener("open-terms-modal", handleTerms);
     window.addEventListener("open-telugu-guide-modal", handleTelugu);
     window.addEventListener("open-creator-modal", handleCreator);
+    window.addEventListener("open-buy-coffee-modal", handleBuyCoffee);
     return () => {
       window.removeEventListener("open-terms-modal", handleTerms);
       window.removeEventListener("open-telugu-guide-modal", handleTelugu);
       window.removeEventListener("open-creator-modal", handleCreator);
+      window.removeEventListener("open-buy-coffee-modal", handleBuyCoffee);
     };
   }, []);
 
@@ -74,6 +79,7 @@ function AppContent() {
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
+      <BuyCoffeeModal isOpen={showBuyCoffee} onClose={() => setShowBuyCoffee(false)} />
     </div>
   );
 }

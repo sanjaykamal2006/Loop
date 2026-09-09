@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search } from "lucide-react";
+import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
@@ -172,7 +172,7 @@ export default function AppHeader() {
                     setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-creator-modal"));
                   }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
                   <Sparkles size={15} className="text-[#FFC554]" />
                   <span>About Creator</span>
@@ -181,9 +181,20 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
+                    window.dispatchEvent(new CustomEvent("open-buy-coffee-modal"));
+                  }}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                >
+                  <Coffee size={15} className="text-[#FFC554]" />
+                  <span>Buy Creator a Coffee ☕</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
                     window.dispatchEvent(new CustomEvent("open-terms-modal"));
                   }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
                   <ShieldCheck size={15} className="text-[#FFC554]" />
                   <span>Terms & Privacy Policy</span>

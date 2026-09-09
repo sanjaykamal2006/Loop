@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Sparkles, Github, Linkedin, Instagram, Mail, ArrowUpRight, BadgeCheck, Copy, Check, ExternalLink } from "lucide-react";
+import { X, Sparkles, Github, Linkedin, Instagram, Mail, ArrowUpRight, BadgeCheck, Copy, Check, ExternalLink, Coffee } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 // App Opener Links Configuration provided by creator
@@ -232,11 +232,36 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           </div>
         </div>
 
+        {/* Tip / Buy Coffee Button */}
+        <div className="pt-2 pb-2">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              window.dispatchEvent(new CustomEvent("open-buy-coffee-modal"));
+            }}
+            className="w-full py-3 px-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-between active:scale-[0.98] transition-all hover:bg-amber-500/25 cursor-pointer shadow-sm"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-xl bg-[#FFC554] text-black flex items-center justify-center shrink-0">
+                <Coffee size={14} strokeWidth={2.5} />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-black text-[#FFC554]">Buy Creator a Coffee</p>
+                <p className={`text-[10px] font-medium ${mutedText}`}>Support LOOP development ☕</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-[#FFC554] text-black shadow-xs">
+              Tip UPI
+            </span>
+          </button>
+        </div>
+
         {/* Footer */}
         <div className="pt-2 border-t border-white/10 shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
+            className={`w-full py-2.5 ${isDark ? "bg-white/10 hover:bg-white/15 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"} font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] transition-all`}
           >
             Close
           </button>
