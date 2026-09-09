@@ -54,7 +54,16 @@ export default function AppHeader() {
       {view === "home" && (
         <div className="flex items-center justify-between w-full pt-2">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="LOOP App Logo" width="40" height="40" className="w-10 h-10 object-contain" loading="eager" />
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden ${isDark ? "bg-black" : "bg-white"} shadow-sm`}>
+              <img
+                src={isDark ? "/logo.png" : "/logo-light.png"}
+                alt="LOOP App Logo"
+                width="44"
+                height="44"
+                className="w-full h-full object-contain"
+                loading="eager"
+              />
+            </div>
             <div>
               <h1 className="text-3xl font-black tracking-tighter leading-none">LOOP</h1>
               <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
