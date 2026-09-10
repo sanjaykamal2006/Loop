@@ -7,14 +7,25 @@ import MainApp from "../components/sections/MainApp";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Session } from "@supabase/supabase-js";
 
+function checkIsRecovery(): boolean {
+  if (typeof window === "undefined") return false;
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
+  return (
+    hash.includes("type=recovery") ||
+    search.includes("type=recovery") ||
+    (hash.includes("access_token=") && hash.includes("recovery"))
+  );
+}
+
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState<boolean>(() => checkIsRecovery());
 
   useEffect(() => {
     // Detect password recovery token in URL hash or search params
-    if (typeof window !== "undefined" && (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery"))) {
+    if (checkIsRecovery()) {
       setIsPasswordReset(true);
     }
 

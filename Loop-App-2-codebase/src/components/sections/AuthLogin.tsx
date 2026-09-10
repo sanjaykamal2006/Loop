@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Mail, AlertTriangle } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
@@ -372,59 +372,99 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
     return (
       <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
         <div className="dot-matrix-bg text-white" />
-        <div className="flex flex-col h-full px-8 relative z-10 pt-12">
-          <button 
-            onClick={() => {
-              setIsResetOtp(false);
-              setOtp("");
-            }}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
-          >
-            <ArrowLeft size={20} />
-          </button>
+        <div className="flex flex-col h-full px-6 relative z-10 pt-8 pb-6 justify-between">
+          <div>
+            <button 
+              onClick={() => {
+                setIsResetOtp(false);
+                setOtp("");
+              }}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 border border-white/10 active:scale-90 transition-transform mb-4"
+            >
+              <ArrowLeft size={18} />
+            </button>
 
-          <div className="flex flex-col items-center justify-center flex-1 space-y-12">
-            <div className="text-center space-y-3">
-              <h1 className="text-4xl font-black tracking-tighter">RESET CODE</h1>
-              <p className="text-sm font-medium opacity-40 max-w-[240px] mx-auto">
-                Enter the 6-digit code sent to <span className="text-white opacity-100">{email}</span>
+            <div className="space-y-1.5 mb-4">
+              <h1 className="text-3xl font-black tracking-tighter">RESET PASSWORD</h1>
+              <p className="text-xs font-medium text-white/50">
+                Instructions sent to <span className="text-white font-bold">{email}</span>
               </p>
             </div>
 
-            <div className="space-y-8 w-full flex flex-col items-center">
-              <OTPInput
-                maxLength={6}
-                value={otp}
-                onChange={setOtp}
-                onComplete={handleVerifyResetOtp}
-                containerClassName="flex gap-2"
-                render={({ slots }) => (
-                  <div className="flex gap-2">
-                    {slots.map((slot, idx) => (
-                      <Slot key={idx} {...slot} />
-                    ))}
-                  </div>
-                )}
-              />
-
-              <div className="w-full space-y-4">
-                <button
-                  onClick={handleVerifyResetOtp}
-                  disabled={isLoading || otp.length < 6}
-                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                >
-                  {isLoading ? "Verifying..." : "Verify & Set Password"}
-                </button>
-
-                <button 
-                  onClick={resendResetOtp}
-                  disabled={isLoading || countdown > 0}
-                  className="w-full py-2 text-xs font-bold opacity-40 disabled:opacity-20 transition-opacity"
-                >
-                  {countdown > 0 ? `Resend code in ${countdown}s` : "Resend reset code"}
-                </button>
+            {/* Spam Folder Callout */}
+            <div className="w-full p-3 bg-[#FFC554]/10 border border-[#FFC554]/30 rounded-2xl flex items-start gap-2.5 text-left mb-4">
+              <AlertTriangle size={16} className="text-[#FFC554] shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-[#FFC554]">Check your Spam / Junk folder</p>
+                <p className="text-[11px] text-white/75 leading-tight">
+                  Verification emails often land in Spam. If you don't see it in your inbox, please check Spam.
+                </p>
               </div>
             </div>
+
+            {/* Option 1: Tap Email Link */}
+            <div className="w-full p-3 bg-white/[0.04] border border-white/10 rounded-2xl flex items-center gap-2.5 text-left mb-4">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#FFC554] shrink-0">
+                <Mail size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-white leading-tight">Option 1: Tap Link in Email</p>
+                <p className="text-[10px] text-white/50 leading-tight mt-0.5">Click the "Reset Password" link in the email to set a new password directly.</p>
+              </div>
+            </div>
+
+            {/* Option 2: Enter 6-digit Code */}
+            <div className="w-full space-y-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-px bg-white/10 flex-1" />
+                <span className="text-[9px] uppercase font-bold tracking-widest text-white/40">OR ENTER 6-DIGIT CODE</span>
+                <div className="h-px bg-white/10 flex-1" />
+              </div>
+
+              <div className="flex justify-center py-1">
+                <OTPInput
+                  maxLength={6}
+                  value={otp}
+                  onChange={setOtp}
+                  onComplete={handleVerifyResetOtp}
+                  containerClassName="flex gap-2"
+                  render={({ slots }) => (
+                    <div className="flex gap-2">
+                      {slots.map((slot, idx) => (
+                        <Slot key={idx} {...slot} />
+                      ))}
+                    </div>
+                  )}
+                />
+              </div>
+
+              <button
+                onClick={handleVerifyResetOtp}
+                disabled={isLoading || otp.length < 6}
+                className="w-full h-12 bg-[#FFC554] text-black font-black rounded-full text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-lg shadow-[#FFC554]/10 disabled:opacity-40"
+              >
+                {isLoading ? "Verifying..." : "Verify Code & Set Password"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1 text-center w-full pt-2">
+            <button 
+              onClick={resendResetOtp}
+              disabled={isLoading || countdown > 0}
+              className="w-full py-1 text-xs font-bold text-[#FFC554] opacity-80 disabled:opacity-30 transition-opacity"
+            >
+              {countdown > 0 ? `Resend email in ${countdown}s` : "Resend reset email"}
+            </button>
+            <button
+              onClick={() => {
+                setIsResetOtp(false);
+                setOtp("");
+              }}
+              className="w-full py-1 text-xs font-bold opacity-40 hover:opacity-80 transition-opacity"
+            >
+              Back to Login
+            </button>
           </div>
         </div>
       </div>
@@ -505,7 +545,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                         setOtp("");
                         setCountdown(60);
                         setIsResetOtp(true);
-                        toast.success("6-digit reset code sent to your email!");
+                        toast.success("Reset email sent! Please check your Inbox and Spam folder.");
                       } catch (err: any) {
                         console.error("Password reset error:", err);
                         const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
