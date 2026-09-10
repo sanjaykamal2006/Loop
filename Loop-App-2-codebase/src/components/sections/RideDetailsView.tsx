@@ -147,7 +147,7 @@ export default function RideDetailsView() {
     } else {
       toast.success("Fare updated");
       setIsEditingFare(false);
-      fetchLoops();
+      fetchLoops(true);
       setSelectedLoop({ ...selectedLoop, total_fare: val });
     }
   };
@@ -587,7 +587,7 @@ export default function RideDetailsView() {
           currentMemberCount={loopMembers.length}
           onUpdated={(updated) => {
             setSelectedLoop(updated);
-            fetchLoops();
+            fetchLoops(true);
           }}
         />
       )}

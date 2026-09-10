@@ -148,8 +148,8 @@ export default function CreateView() {
         setTravelDate("");
         setIsDriver(false);
         setView("home");
-        fetchLoops();
-        fetchUserMemberships();
+        fetchLoops(true);
+        fetchUserMemberships(true);
       }
     } catch {
       toast.error("Something went wrong. Please try again.");

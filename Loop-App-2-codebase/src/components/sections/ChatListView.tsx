@@ -130,9 +130,20 @@ export default function ChatListView() {
     return () => window.removeEventListener("toggle-chat-search", toggle);
   }, []);
 
-  // Fetch the latest real message for joined loops with sender profile
-  const fetchRecentMessages = useCallback(async () => {
+  const lastFetchRecentTimeRef = React.useRef<number>(0);
+  const isFetchingRecentRef = React.useRef<boolean>(false);
+
+  // Fetch the latest real message for joined loops with sender profile (SWR 15s cache)
+  const fetchRecentMessages = useCallback(async (force = false) => {
     if (userJoinedLoops.length === 0) return;
+    const now = Date.now();
+    if (!force && now - lastFetchRecentTimeRef.current < 15000 && Object.keys(recentMessages).length > 0) {
+      return;
+    }
+    if (isFetchingRecentRef.current) return;
+    isFetchingRecentRef.current = true;
+    lastFetchRecentTimeRef.current = now;
+
     const loopIds = userJoinedLoops;
 
     try {
@@ -196,8 +207,10 @@ export default function ChatListView() {
           } catch {}
         }
       }
-    } catch {}
-  }, [joinedLoopIdsKey]);
+    } catch {} finally {
+      isFetchingRecentRef.current = false;
+    }
+  }, [joinedLoopIdsKey, recentMessages]);
 
   useEffect(() => {
     fetchRecentMessages();

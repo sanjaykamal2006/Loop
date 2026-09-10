@@ -31,10 +31,10 @@ interface LoopContextValue {
 
   // Loops
   activeLoops: Loop[];
-  fetchLoops: () => Promise<void>;
+  fetchLoops: (force?: boolean) => Promise<void>;
   userJoinedLoops: string[];
   userLoops: string[];
-  fetchUserMemberships: () => Promise<void>;
+  fetchUserMemberships: (force?: boolean) => Promise<void>;
 
   // Actions
   joinLoop: (loop: Loop, profileOverride?: Partial<Profile>) => Promise<void>;
@@ -372,66 +372,102 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, [session.user.id]);
 
   // --- Fetch loops (supports advance rides; keeps rides active until 2 hrs after departure) ---
-  const fetchLoops = useCallback(async () => {
-    const userGender = profileRef.current.gender;
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const lastFetchLoopsTimeRef = useRef<number>(0);
+  const isFetchingLoopsRef = useRef<boolean>(false);
 
-    // Free tier optimization: limit initial fetch to 30 active rides to reduce connection overhead
-    const { data, error } = await supabase
-      .from("loops")
-      .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
-      .in("status", ["open", "started", "active", "in_progress"])
-      .gte("departure_time", twoHoursAgo)
-      .order("departure_time", { ascending: true })
-      .limit(30);
+  const fetchLoops = useCallback(async (force = false) => {
+    const now = Date.now();
+    // 15-second SWR cache: Skip redundant DB roundtrip if fetched recently and cache is present
+    if (!force && now - lastFetchLoopsTimeRef.current < 15000 && activeLoopsRef.current.length > 0) {
+      return;
+    }
+    if (isFetchingLoopsRef.current) return;
+    isFetchingLoopsRef.current = true;
+    lastFetchLoopsTimeRef.current = now;
 
-    if (!error && data) {
-      const now = new Date();
-      const filtered = data.filter((l: any) => {
-        // Keep rides active until 2 hours after their departure time
-        const depTime = new Date(l.departure_time);
-        if (now.getTime() - depTime.getTime() > 2 * 60 * 60 * 1000) return false;
+    try {
+      const userGender = profileRef.current.gender;
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
-        if (l.expires_at && new Date(l.expires_at) < now) return false;
+      // Free tier optimization: limit initial fetch to 30 active rides to reduce connection overhead
+      const { data, error } = await supabase
+        .from("loops")
+        .select("*, loop_members(count), creator:profiles!fk_loops_creator_id(display_name, avatar_url, reg_no)")
+        .in("status", ["open", "started", "active", "in_progress"])
+        .gte("departure_time", twoHoursAgo)
+        .order("departure_time", { ascending: true })
+        .limit(30);
 
-        if (l.creator_id === session.user.id) return true;
-        if (l.is_female_only && userGender !== "female") return false;
-        return true;
-      });
-      const formatted = filtered.map((l: any) => ({ ...l, member_count: l.loop_members?.[0]?.count || 0 }));
-      setActiveLoops(formatted);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
-        } catch {}
+      if (!error && data) {
+        const nowDate = new Date();
+        const filtered = data.filter((l: any) => {
+          // Keep rides active until 2 hours after their departure time
+          const depTime = new Date(l.departure_time);
+          if (nowDate.getTime() - depTime.getTime() > 2 * 60 * 60 * 1000) return false;
+
+          if (l.expires_at && new Date(l.expires_at) < nowDate) return false;
+
+          if (l.creator_id === session.user.id) return true;
+          if (l.is_female_only && userGender !== "female") return false;
+          return true;
+        });
+        const formatted = filtered.map((l: any) => ({ ...l, member_count: l.loop_members?.[0]?.count || 0 }));
+        setActiveLoops(formatted);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
+          } catch {}
+        }
       }
+    } catch (err) {
+      console.warn("Error fetching loops:", err);
+    } finally {
+      isFetchingLoopsRef.current = false;
     }
   }, [session.user.id]);
 
   // --- Fetch memberships concurrently ---
-  const fetchUserMemberships = useCallback(async () => {
-    const [{ data: joinedData }, { data: creatorData }] = await Promise.all([
-      supabase.from("loop_members").select("loop_id").eq("user_id", session.user.id),
-      supabase.from("loops").select("id").eq("creator_id", session.user.id),
-    ]);
+  const lastFetchMembershipsTimeRef = useRef<number>(0);
+  const isFetchingMembershipsRef = useRef<boolean>(false);
 
-    if (joinedData) {
-      const joinedIds = joinedData.map((m: any) => m.loop_id);
-      setUserJoinedLoops(joinedIds);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(joinedIds));
-        } catch {}
-      }
+  const fetchUserMemberships = useCallback(async (force = false) => {
+    const now = Date.now();
+    // 15-second SWR cache: Skip redundant DB roundtrip if fetched recently
+    if (!force && now - lastFetchMembershipsTimeRef.current < 15000) {
+      return;
     }
-    if (creatorData) {
-      const creatorIds = creatorData.map((l: any) => l.id);
-      setUserLoops(creatorIds);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(creatorIds));
-        } catch {}
+    if (isFetchingMembershipsRef.current) return;
+    isFetchingMembershipsRef.current = true;
+    lastFetchMembershipsTimeRef.current = now;
+
+    try {
+      const [{ data: joinedData }, { data: creatorData }] = await Promise.all([
+        supabase.from("loop_members").select("loop_id").eq("user_id", session.user.id),
+        supabase.from("loops").select("id").eq("creator_id", session.user.id),
+      ]);
+
+      if (joinedData) {
+        const joinedIds = joinedData.map((m: any) => m.loop_id);
+        setUserJoinedLoops(joinedIds);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(joinedIds));
+          } catch {}
+        }
       }
+      if (creatorData) {
+        const creatorIds = creatorData.map((l: any) => l.id);
+        setUserLoops(creatorIds);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(creatorIds));
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.warn("Error fetching memberships:", err);
+    } finally {
+      isFetchingMembershipsRef.current = false;
     }
   }, [session.user.id]);
 
@@ -482,8 +518,8 @@ export function LoopProvider({ session, children }: { session: Session; children
         toast.error("Failed to join loop. Please try again.");
       }
     } else {
-      fetchLoops();
-      fetchUserMemberships();
+      fetchLoops(true);
+      fetchUserMemberships(true);
     }
     setIsJoining(false);
   }, [profile, session.user.id, fetchLoops, fetchUserMemberships, setSelectedLoop, setView]);
@@ -546,8 +582,8 @@ export function LoopProvider({ session, children }: { session: Session; children
         setUserLoops((prev) => prev.filter((id) => id !== loopId));
         setSelectedLoop(null);
         setView("home");
-        fetchLoops();
-        fetchUserMemberships();
+        fetchLoops(true);
+        fetchUserMemberships(true);
       }
     } catch (err: any) {
       console.error("Unexpected error deleting loop:", err);
@@ -587,8 +623,8 @@ export function LoopProvider({ session, children }: { session: Session; children
       if (previousLoop) setSelectedLoop(previousLoop);
       toast.error("Failed to leave loop");
     } else {
-      fetchLoops();
-      fetchUserMemberships();
+      fetchLoops(true);
+      fetchUserMemberships(true);
     }
   }, [session.user.id, setSelectedLoop, setView, fetchLoops, fetchUserMemberships]);
 

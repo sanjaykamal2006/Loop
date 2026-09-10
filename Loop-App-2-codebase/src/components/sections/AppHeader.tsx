@@ -44,7 +44,7 @@ export default function AppHeader() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([fetchLoops(), fetchUserMemberships()]);
+    await Promise.all([fetchLoops(true), fetchUserMemberships(true)]);
     toast.success("Rides refreshed!");
     setTimeout(() => setIsRefreshing(false), 500);
   };
