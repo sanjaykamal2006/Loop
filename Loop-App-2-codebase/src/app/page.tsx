@@ -78,7 +78,19 @@ export default function Home() {
         </main>
       ) : (
         <main>
-          {session ? <MainApp session={session} /> : <AuthLogin />}
+          {session ? (
+            <MainApp session={session} />
+          ) : (
+            <AuthLogin
+              onStartPasswordReset={() => setIsPasswordReset(true)}
+              onPasswordResetComplete={() => {
+                setIsPasswordReset(false);
+                if (typeof window !== "undefined") {
+                  window.history.replaceState(null, "", window.location.pathname);
+                }
+              }}
+            />
+          )}
         </main>
       )}
     </ErrorBoundary>
