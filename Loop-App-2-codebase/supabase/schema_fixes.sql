@@ -62,6 +62,11 @@ CREATE POLICY "messages_update" ON public.messages FOR UPDATE TO public
   USING ((select auth.uid()) = user_id) 
   WITH CHECK ((select auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS "messages_delete" ON public.messages;
+CREATE POLICY "messages_delete" ON public.messages FOR DELETE TO authenticated 
+  USING (((select auth.uid()) = user_id) OR (EXISTS (SELECT 1 FROM loops WHERE loops.id = messages.loop_id AND loops.creator_id = (select auth.uid()))));
+
+
 -- profiles
 DROP POLICY IF EXISTS "profiles_insert" ON public.profiles;
 CREATE POLICY "profiles_insert" ON public.profiles FOR INSERT TO authenticated 

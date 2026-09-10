@@ -20,6 +20,7 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResetOtp, setIsResetOtp] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(initialPasswordReset);
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(0);
@@ -193,6 +194,58 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
     }
   };
 
+  const handleVerifyResetOtp = async () => {
+    if (otp.length !== 6) {
+      toast.error("Please enter the 6-digit code");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otp.trim(),
+        type: "recovery",
+      });
+
+      if (error) {
+        if (error.message.includes("expired")) {
+          throw new Error("Token has expired. Please request a new code.");
+        }
+        throw error;
+      }
+
+      toast.success("Code verified! Set your new password.");
+      setIsResetOtp(false);
+      setIsResettingPassword(true);
+      setPassword("");
+    } catch (error: any) {
+      console.error("Recovery OTP verify error:", error);
+      toast.error(error.message || "Invalid or expired code");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendResetOtp = async () => {
+    if (countdown > 0) return;
+    
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      });
+      if (error) throw error;
+      setCountdown(60);
+      setOtp("");
+      toast.success("New reset code sent!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend reset code");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (showPrivacy) {
     return <PrivacyPolicyView onBack={() => setShowPrivacy(false)} />;
   }
@@ -202,6 +255,15 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
       <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
         <div className="dot-matrix-bg text-white" />
         <div className="flex flex-col h-full px-8 relative z-10 pt-12">
+          <button 
+            onClick={() => {
+              setIsResettingPassword(false);
+              if (onPasswordResetComplete) onPasswordResetComplete();
+            }}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
+          >
+            <ArrowLeft size={20} />
+          </button>
           <div className="flex flex-col items-center justify-center flex-1 space-y-8">
             <div className="text-center space-y-3">
               <h1 className="text-4xl font-black tracking-tighter">NEW PASSWORD</h1>
@@ -306,6 +368,69 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
     );
   }
 
+  if (isResetOtp) {
+    return (
+      <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
+        <div className="dot-matrix-bg text-white" />
+        <div className="flex flex-col h-full px-8 relative z-10 pt-12">
+          <button 
+            onClick={() => {
+              setIsResetOtp(false);
+              setOtp("");
+            }}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
+          >
+            <ArrowLeft size={20} />
+          </button>
+
+          <div className="flex flex-col items-center justify-center flex-1 space-y-12">
+            <div className="text-center space-y-3">
+              <h1 className="text-4xl font-black tracking-tighter">RESET CODE</h1>
+              <p className="text-sm font-medium opacity-40 max-w-[240px] mx-auto">
+                Enter the 6-digit code sent to <span className="text-white opacity-100">{email}</span>
+              </p>
+            </div>
+
+            <div className="space-y-8 w-full flex flex-col items-center">
+              <OTPInput
+                maxLength={6}
+                value={otp}
+                onChange={setOtp}
+                onComplete={handleVerifyResetOtp}
+                containerClassName="flex gap-2"
+                render={({ slots }) => (
+                  <div className="flex gap-2">
+                    {slots.map((slot, idx) => (
+                      <Slot key={idx} {...slot} />
+                    ))}
+                  </div>
+                )}
+              />
+
+              <div className="w-full space-y-4">
+                <button
+                  onClick={handleVerifyResetOtp}
+                  disabled={isLoading || otp.length < 6}
+                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+                >
+                  {isLoading ? "Verifying..." : "Verify & Set Password"}
+                </button>
+
+                <button 
+                  onClick={resendResetOtp}
+                  disabled={isLoading || countdown > 0}
+                  className="w-full py-2 text-xs font-bold opacity-40 disabled:opacity-20 transition-opacity"
+                >
+                  {countdown > 0 ? `Resend code in ${countdown}s` : "Resend reset code"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
       <div className="dot-matrix-bg text-white" />
@@ -374,13 +499,16 @@ export default function AuthLogin({ initialPasswordReset = false, onPasswordRese
                       setIsLoading(true);
                       try {
                         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { 
-                          redirectTo: window.location.origin 
+                          redirectTo: typeof window !== "undefined" ? window.location.origin : undefined 
                         });
                         if (error) throw error;
-                        toast.success("Password reset link sent to your email!");
+                        setOtp("");
+                        setCountdown(60);
+                        setIsResetOtp(true);
+                        toast.success("6-digit reset code sent to your email!");
                       } catch (err: any) {
                         console.error("Password reset error:", err);
-                        const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset link. Please check your email or try again.";
+                        const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
                         toast.error(msg);
                       } finally {
                         setIsLoading(false);

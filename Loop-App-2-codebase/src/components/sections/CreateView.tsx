@@ -115,7 +115,7 @@ export default function CreateView() {
     const expiresAt = new Date(departure);
     expiresAt.setHours(expiresAt.getHours() + 5);
 
-    const finalLimit = isDriver ? (vehicleType === "car" ? limit : 1) : limit;
+    const finalLimit = isDriver ? (vehicleType === "car" ? limit + 1 : 2) : limit;
 
     try {
       const { data, error } = await supabase
@@ -299,7 +299,7 @@ export default function CreateView() {
             {[
               { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
               { type: "bike", label: "Bike (1)", Icon: MotorcycleIcon },
-              { type: "car", label: "Car (1-4)", Icon: CarIcon }
+              { type: "car", label: "Car (1-6)", Icon: CarIcon }
             ].map(v => {
               const isSelected = vehicleType === v.type;
               return (
@@ -329,26 +329,52 @@ export default function CreateView() {
         )}
       </div>
 
-      {/* Available Seats: Only show selector if Car or normal ride */}
+      {/* Available Seats / Capacity */}
       {isDriver && vehicleType === "car" ? (
         <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4].map((n) => (
+          <div className="flex items-center justify-between ml-1">
+            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
+              Passenger Seats to Offer
+            </label>
+            <span className="text-[10px] font-bold text-[#FFC554]">
+              {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setLimit(n)}
-                className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
+                className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                  limit === n
+                    ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                    : `${border} ${cardBg} ${mutedText}`
+                }`}
               >
-                {n} {n === 1 ? "seat" : "seats"}
+                {n}
               </button>
             ))}
           </div>
         </div>
+      ) : isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
+        <div className={`p-3 ${cardBg} border ${border} rounded-[18px] flex items-center justify-between`}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
+              <Users size={14} />
+            </div>
+            <div>
+              <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
+              <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2.5 py-1 rounded-full">
+            Driver + 1 Rider
+          </span>
+        </div>
       ) : !isDriver ? (
         <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Available Seats</label>
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Total Group Size</label>
           <div className="space-y-1.5">
             <div className="flex gap-1.5">
               {[2, 3, 4, 5, 6].map((n) => (

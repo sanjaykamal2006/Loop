@@ -160,10 +160,13 @@ export default function RideDetailsView() {
       : `https://loop-demo-app.vercel.app/?loop=${selectedLoop.id}`;
 
     const seatsLeft = Math.max(0, selectedLoop.participants_limit - (loopMembers.length || 1));
+    const totalOfferedSeats = selectedLoop.is_driver_offering
+      ? Math.max(1, selectedLoop.participants_limit - 1)
+      : selectedLoop.participants_limit;
     const femaleNote = selectedLoop.is_female_only ? "\nPreference: Female passengers only" : "";
     const start = selectedLoop.start_point || "VIT-AP Campus";
 
-    const text = `LOOP — Ride to ${selectedLoop.destination}\nFrom: ${start}\nSchedule: ${formatDepartureFull(selectedLoop.departure_time)}\nSeats Available: ${seatsLeft} of ${selectedLoop.participants_limit}${femaleNote}\n\nJoin this ride:\n${shareUrl}`;
+    const text = `LOOP — Ride to ${selectedLoop.destination}\nFrom: ${start}\nSchedule: ${formatDepartureFull(selectedLoop.departure_time)}\nSeats Available: ${seatsLeft} of ${totalOfferedSeats}${femaleNote}\n\nJoin this ride:\n${shareUrl}`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -327,7 +330,9 @@ export default function RideDetailsView() {
       {/* Passengers */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
         <div className="flex items-center justify-between">
-          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Passengers</p>
+          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>
+            {selectedLoop.is_driver_offering ? "Driver & Passengers" : "Passengers"}
+          </p>
           <span className="text-xs font-black text-[#FFC554]">
             {isLoadingMembers
               ? `${selectedLoop.member_count || 1}/${selectedLoop.participants_limit}`
@@ -399,11 +404,22 @@ export default function RideDetailsView() {
                           </span>
                         )}
                       </div>
-                      {regNo && (
-                        <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[90px]">
-                          {regNo}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                        {regNo && (
+                          <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[90px]">
+                            {regNo}
+                          </span>
+                        )}
+                        {member.user_id === selectedLoop.creator_id && selectedLoop.is_driver_offering ? (
+                          <span className="text-[8px] bg-[#FFC554]/15 border border-[#FFC554]/25 text-[#FFC554] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                            Driver
+                          </span>
+                        ) : member.user_id === selectedLoop.creator_id ? (
+                          <span className="text-[8px] bg-white/10 text-zinc-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                            Host
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 

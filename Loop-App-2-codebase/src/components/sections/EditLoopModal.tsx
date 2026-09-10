@@ -61,7 +61,10 @@ export default function EditLoopModal({
 
     setStartPoint(loop.start_point || "");
     setDest(loop.destination || "");
-    setLimit(loop.participants_limit || 4);
+    const initialLimit = loop.is_driver_offering
+      ? (loop.vehicle_type === "car" ? Math.max(1, (loop.participants_limit || 4) - 1) : 1)
+      : (loop.participants_limit || 4);
+    setLimit(initialLimit);
     setIsFemaleOnly(Boolean(loop.is_female_only));
     if (loop.vehicle_type) setVehicleType(loop.vehicle_type);
 
@@ -84,7 +87,8 @@ export default function EditLoopModal({
 
   if (!isOpen) return null;
 
-  const minAllowedSeats = Math.max(loop.is_driver_offering ? 1 : 2, currentMemberCount || 1);
+  const minAllowedSeats = Math.max(2, currentMemberCount || 1);
+  const minPassengerSeats = Math.max(1, (currentMemberCount || 1) - 1);
 
   const handleHourChange = (val: string) => {
     const digits = val.replace(/\D/g, "").slice(0, 2);
@@ -125,8 +129,8 @@ export default function EditLoopModal({
 
       const finalLimit = loop.is_driver_offering
         ? vehicleType === "car"
-          ? limit
-          : 1
+          ? limit + 1
+          : 2
         : limit;
 
       // Track changes for announcement
@@ -141,7 +145,7 @@ export default function EditLoopModal({
         changes.push(`Schedule: ${formatDepartureFull(departure.toISOString())}`);
       }
       if (finalLimit !== loop.participants_limit) {
-        changes.push(`Seats: ${finalLimit}`);
+        changes.push(loop.is_driver_offering ? `Passenger Seats: ${limit}` : `Seats: ${finalLimit}`);
       }
       if (isFemaleOnly !== loop.is_female_only) {
         changes.push(isFemaleOnly ? "Mode: Female Only" : "Mode: Open to Everyone");
@@ -395,11 +399,57 @@ export default function EditLoopModal({
         )}
 
         {/* Available Seats / Limit */}
-        {(!loop.is_driver_offering || vehicleType === "car") && (
+        {loop.is_driver_offering && vehicleType === "car" ? (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between ml-1">
               <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
-                Available Seats / Limit
+                Passenger Seats to Offer
+              </label>
+              <span className="text-[10px] font-bold text-[#FFC554]">
+                {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5, 6].map((n) => {
+                  const isDisabled = n < minPassengerSeats;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => setLimit(n)}
+                      className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                        limit === n
+                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                          : isDisabled
+                          ? "opacity-25 cursor-not-allowed border-white/5"
+                          : `${border} ${bg} ${mutedText}`
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : loop.is_driver_offering && (vehicleType === "bike" || vehicleType === "scooter") ? (
+          <div className={`p-3 ${bg} border ${border} rounded-[18px] flex items-center justify-between`}>
+            <div>
+              <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
+              <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
+            </div>
+            <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2.5 py-1 rounded-full">
+              Driver + 1 Rider
+            </span>
+          </div>
+        ) : !loop.is_driver_offering ? (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between ml-1">
+              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
+                Total Group Size / Limit
               </label>
               {currentMemberCount > 1 && (
                 <span className="text-[9px] text-[#FFC554] font-bold">
@@ -432,33 +482,31 @@ export default function EditLoopModal({
                 })}
               </div>
 
-              {!loop.is_driver_offering && (
-                <div className="flex gap-1.5">
-                  {[7, 8, 9, 10].map((n) => {
-                    const isDisabled = n < minAllowedSeats;
-                    return (
-                      <button
-                        key={n}
-                        type="button"
-                        disabled={isDisabled}
-                        onClick={() => setLimit(n)}
-                        className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
-                          limit === n
-                            ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
-                            : isDisabled
-                            ? "opacity-25 cursor-not-allowed border-white/5"
-                            : `${border} ${bg} ${mutedText}`
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="flex gap-1.5">
+                {[7, 8, 9, 10].map((n) => {
+                  const isDisabled = n < minAllowedSeats;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => setLimit(n)}
+                      className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                        limit === n
+                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                          : isDisabled
+                          ? "opacity-25 cursor-not-allowed border-white/5"
+                          : `${border} ${bg} ${mutedText}`
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Female Only Preference (Only if creator is female) */}
         {profile.gender === "female" && (

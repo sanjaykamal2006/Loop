@@ -528,12 +528,26 @@ export default function ChatView() {
   };
 
   const deleteMessage = async (messageId: string) => {
-    const { error } = await supabase.from('messages').delete().eq('id', messageId).eq('user_id', session.user.id);
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+        .select('id');
+
+      if (error) {
+        console.error('Delete message error:', error);
+        toast.error('Failed to delete message');
+      } else if (!data || data.length === 0) {
+        console.warn('No message was deleted in database');
+        toast.error('Failed to delete message');
+      } else {
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+        toast.success('Message deleted');
+      }
+    } catch (err) {
+      console.error('deleteMessage exception:', err);
       toast.error('Failed to delete message');
-    } else {
-      setMessages(prev => prev.filter(m => m.id !== messageId));
-      toast.success('Message deleted');
     }
   };
 
@@ -614,6 +628,9 @@ export default function ChatView() {
   };
 
   const handleShare = async () => {
+    const totalOfferedSeats = selectedLoop?.is_driver_offering
+      ? Math.max(1, (selectedLoop.participants_limit || 2) - 1)
+      : (selectedLoop?.participants_limit || 4);
     const emptySeats = Math.max(0, (selectedLoop?.participants_limit || 4) - members.length);
     const timeStr = formatDepartureFull(selectedLoop?.departure_time);
     const fromStr = selectedLoop?.start_point || "VIT-AP Campus";
@@ -622,7 +639,7 @@ export default function ChatView() {
       ? `${window.location.origin}/?loop=${selectedLoop?.id}`
       : `https://loop-app-2.vercel.app/?loop=${selectedLoop?.id}`;
 
-    const rawShareMessage = `LOOP — Ride to ${selectedLoop?.destination}\nFrom: ${fromStr}\nSchedule: ${timeStr}\nSeats Available: ${emptySeats} of ${selectedLoop?.participants_limit}${femaleTag}\n\nJoin this ride:\n${shareUrl}`;
+    const rawShareMessage = `LOOP — Ride to ${selectedLoop?.destination}\nFrom: ${fromStr}\nSchedule: ${timeStr}\nSeats Available: ${emptySeats} of ${totalOfferedSeats}${femaleTag}\n\nJoin this ride:\n${shareUrl}`;
 
     if (navigator.share) {
       try {
