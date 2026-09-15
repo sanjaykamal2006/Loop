@@ -90,7 +90,6 @@ export default function ChatView() {
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
-  const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
@@ -507,32 +506,6 @@ export default function ChatView() {
     }
   };
 
-  const toggleReaction = async (msg: Message, emoji: string) => {
-    setReactionMsgId(null);
-    const existing = msg.reactions || {};
-    
-    const newReactions: Record<string, string[]> = {};
-    let hasReactedToCurrent = false;
-
-    // First, copy existing reactions but REMOVE the user from ALL emojis
-    for (const [key, users] of Object.entries(existing)) {
-      if (key === emoji && users.includes(session.user.id)) {
-        hasReactedToCurrent = true;
-      }
-      const filtered = users.filter((id: string) => id !== session.user.id);
-      if (filtered.length > 0) {
-        newReactions[key] = filtered;
-      }
-    }
-
-    // If they didn't already react to the CURRENT emoji, add them to it
-    if (!hasReactedToCurrent) {
-      newReactions[emoji] = [...(newReactions[emoji] || []), session.user.id];
-    }
-    
-    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, reactions: newReactions } : m));
-    await supabase.from("messages").update({ reactions: newReactions }).eq("id", msg.id);
-  };
 
   const startEditMessage = (msg: Message) => {
     const ageMs = Date.now() - new Date(msg.created_at).getTime();
@@ -640,17 +613,44 @@ export default function ChatView() {
           chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
         }
 
-        const { error } = await supabase.from("messages").insert({
-          loop_id: selectedLoop.id,
-          user_id: session.user.id,
-          content,
-        });
+        const { data: inserted, error } = await supabase
+          .from("messages")
+          .insert({
+            loop_id: selectedLoop.id,
+            user_id: session.user.id,
+            content,
+          })
+          .select("id, loop_id, user_id, content, created_at")
+          .single();
 
         setIsSharingLocation(false);
-        if (error) {
+        if (error || !inserted) {
           toast.error("Failed to share location");
           setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
         } else {
+          const realMsg: Message = {
+            ...inserted,
+            profiles: {
+              display_name: profile.display_name || "Me",
+              avatar_url: profile.avatar_url,
+              gender: profile.gender || "",
+              reg_no: profile.reg_no,
+            },
+          };
+          setMessages((prev) => {
+            const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
+            messageCache[selectedLoop.id] = next;
+            return next;
+          });
+
+          if (channelRef.current) {
+            channelRef.current.send({
+              type: "broadcast",
+              event: "new_message",
+              payload: realMsg,
+            });
+          }
+
           toast.success("Spot shared in chat!");
         }
       },
@@ -913,7 +913,7 @@ export default function ChatView() {
                   </div>
                 ) : (
                   <div
-                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-2.5' : ''} ${
+                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${
                       isSearchActive
                         ? isMatch
                           ? "ring-2 ring-[#FFC554] rounded-[20px] shadow-[0_0_12px_rgba(255,197,84,0.35)] scale-[1.01] transition-all"
@@ -921,7 +921,6 @@ export default function ChatView() {
                         : ""
                     }`}
                     onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
-                    onContextMenu={(e) => { e.preventDefault(); !isOptimistic && setReactionMsgId(msg.id); }}
                   >
                     {!mapsUrl ? (
                       <div
@@ -977,26 +976,6 @@ export default function ChatView() {
                         </div>
                       </a>
                     )}
-                    {/* Reactions Pill */}
-                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                      <div className={`absolute -bottom-2 ${isMe ? "right-2" : "left-2"} flex gap-0.5 bg-black/80 dark:bg-white/80 rounded-full px-1.5 py-0.5 border border-white/10 shadow-md`}>
-                        {Object.entries(msg.reactions).map(([emoji, users]) => (
-                          <div key={emoji} onClick={() => toggleReaction(msg, emoji)} className="text-[10px] flex items-center gap-1 cursor-pointer hover:scale-110">
-                            {emoji} <span className="text-white dark:text-black opacity-80">{users.length > 1 ? users.length : ""}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {/* Reaction Menu */}
-                    {reactionMsgId === msg.id && (
-                      <div className={`absolute z-20 ${isMe ? "right-0" : "left-0"} -top-10 flex gap-2 ${cardBg} border ${border} p-2 rounded-[16px] shadow-xl`}>
-                        {["👍", "❤️", "😂", "👎"].map(emoji => (
-                          <button key={emoji} onClick={() => toggleReaction(msg, emoji)} className="text-lg hover:scale-125 active:scale-90 transition-transform">
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                     {/* Message Actions */}
                     {isMe && !isOptimistic && (
                       <div
@@ -1046,10 +1025,6 @@ export default function ChatView() {
         )}
       </div>
 
-      {/* Global click handler to close reaction menu */}
-      {reactionMsgId && (
-        <div className="absolute inset-0 z-10" onClick={() => setReactionMsgId(null)} />
-      )}
 
       {/* Message input */}
       <div className="shrink-0 px-4 pb-5 pt-2 z-20">

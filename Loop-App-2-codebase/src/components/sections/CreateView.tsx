@@ -78,6 +78,15 @@ export default function CreateView() {
     }
   }, [isProfileLoaded, profile.gender, profile.display_name, profile.reg_no, setPendingAction, setShowGenderSelect]);
 
+  const handleToggleFemaleOnly = () => {
+    triggerHaptic(8);
+    if (!isFemaleOnly && profile.gender !== "female") {
+      toast.error("Applicable for female travellers only");
+      return;
+    }
+    setIsFemaleOnly(!isFemaleOnly);
+  };
+
   const createLoop = async () => {
     triggerHaptic(15);
     const isProfileComplete = Boolean(
@@ -95,6 +104,12 @@ export default function CreateView() {
 
     if (!formattedStart) return toast.error("Starting Point is required");
     if (!formattedDest) return toast.error("Destination is required");
+    if (formattedStart.toLowerCase() === formattedDest.toLowerCase()) {
+      return toast.error("Starting point and destination cannot be the same");
+    }
+    if (isFemaleOnly && profile.gender !== "female") {
+      return toast.error("Applicable for female travellers only");
+    }
     if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
     if (isCreatingLoop) return;
 
@@ -405,9 +420,12 @@ export default function CreateView() {
       ) : null}
 
       {/* Female Only Option */}
-      <div className={`flex items-center justify-between p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] ${isFemaleOnly ? "border-pink-500/50" : ""}`}>
+      <div 
+        onClick={handleToggleFemaleOnly}
+        className={`flex items-center justify-between p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] cursor-pointer active:scale-[0.99] transition-all ${isFemaleOnly ? "border-pink-500/50" : ""}`}
+      >
         <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : "bg-white/5 text-white/40"}`}>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
             <Users size={16} strokeWidth={2.5} />
           </div>
           <div>
@@ -417,7 +435,10 @@ export default function CreateView() {
         </div>
         <button
           type="button"
-          onClick={() => setIsFemaleOnly(!isFemaleOnly)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleFemaleOnly();
+          }}
           className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
         >
           <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-5" : "translate-x-0"}`} />

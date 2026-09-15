@@ -98,10 +98,14 @@ export function formatLocation(input: string): string {
   // 6. Compound inline cleanup
   cleaned = cleaned.replace(/\bvit[\s\-_.]*ap\b/gi, "VIT-AP");
   cleaned = cleaned.replace(/\bvit\b/gi, "VIT");
+  cleaned = cleaned.replace(/\bbza(\s+(railway\s+)?station|\s+stn|\s+rly)?\b/gi, "Vijayawada Railway Station");
+  cleaned = cleaned.replace(/\bpnbs(\s+(bus\s+)?stand|\s+station)?\b/gi, "Vijayawada Bus Stand");
   cleaned = cleaned.replace(/\brly\b/gi, "Railway");
   cleaned = cleaned.replace(/\bstn\b/gi, "Station");
-  cleaned = cleaned.replace(/\bpnbs\b/gi, "Vijayawada Bus Stand");
-  cleaned = cleaned.replace(/\bbza\b/gi, "Vijayawada Railway Station");
+
+  // Deduplicate repeated consecutive words/phrases (e.g. "Railway Station Station", "Campus Campus")
+  cleaned = cleaned.replace(/\b(Railway Station|Bus Stand|Station|Airport|Campus|VIT-AP|Vijayawada|Guntur)\s+\1\b/gi, "$1");
+  cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, "$1");
 
   // 7. Title-case words and format punctuation properly
   const words = cleaned.split(" ").map((w) => {
