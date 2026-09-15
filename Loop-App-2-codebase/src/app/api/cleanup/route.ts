@@ -26,19 +26,23 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { error } = await supabase.rpc('cleanup_old_rides');
+    const [{ error: ridesError }, { error: unconfirmedError }] = await Promise.all([
+      supabase.rpc('cleanup_old_rides'),
+      supabase.rpc('cleanup_unconfirmed_users'),
+    ]);
 
-    if (error) {
-      console.error('Cleanup error:', error);
+    if (ridesError || unconfirmedError) {
+      const errMsg = (ridesError?.message || '') + (unconfirmedError ? ` ${unconfirmedError.message}` : '');
+      console.error('Cleanup error:', errMsg);
       return NextResponse.json({
         success: false,
-        error: error.message,
+        error: errMsg,
       }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Old rides cleaned up successfully',
+      message: 'Old rides and unconfirmed users cleaned up successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
