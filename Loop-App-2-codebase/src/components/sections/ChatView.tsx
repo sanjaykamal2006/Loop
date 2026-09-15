@@ -89,13 +89,11 @@ export default function ChatView() {
   const [newMessage, setNewMessage] = useState("");
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
-  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -184,18 +182,6 @@ export default function ChatView() {
       channelRef.current = channel;
 
       channel
-        .on('presence', { event: 'sync' }, () => {
-          const state = channel.presenceState();
-          const typing: Record<string, string> = {};
-          for (const id in state) {
-            state[id].forEach((presence: any) => {
-              if (presence.typing && presence.user_id !== session.user.id) {
-                typing[presence.user_id] = presence.name;
-              }
-            });
-          }
-          setTypingUsers(typing);
-        })
         .on("broadcast", { event: "new_message" }, (payload) => {
           if (!payload.payload) return;
           const msg = payload.payload as Message;
@@ -276,11 +262,7 @@ export default function ChatView() {
             });
           }
         )
-        .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            await channel.track({ user_id: session.user.id, name: profile.display_name, typing: false });
-          }
-        });
+        .subscribe();
     };
 
     const unsubscribeChannel = () => {
@@ -458,11 +440,6 @@ export default function ChatView() {
     setMessages((prev) => [...prev, optimisticMsg]);
     requestAnimationFrame(() => scrollToBottom(true));
 
-    // Clear typing
-    if (channelRef.current) {
-      channelRef.current.track({ user_id: session.user.id, name: profile.display_name, typing: false });
-    }
-
     const { data: inserted, error } = await supabase
       .from("messages")
       .insert({ loop_id: selectedLoop.id, user_id: session.user.id, content })
@@ -497,13 +474,6 @@ export default function ChatView() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    if (channelRef.current) {
-      channelRef.current.track({ user_id: session.user.id, name: profile.display_name, typing: true });
-      if (typingTimeout.current) clearTimeout(typingTimeout.current);
-      typingTimeout.current = setTimeout(() => {
-        channelRef.current?.track({ user_id: session.user.id, name: profile.display_name, typing: false });
-      }, 2000);
-    }
   };
 
 
@@ -1010,19 +980,6 @@ export default function ChatView() {
           })
         )}
         <div ref={messagesEndRef} />
-        {/* Typing Indicator */}
-        {Object.keys(typingUsers).length > 0 && (
-          <div className="flex items-center gap-2 mt-4 px-1">
-            <div className={`px-3 py-2 ${cardBg} border ${border} rounded-[16px] rounded-tl-[4px] flex items-center gap-1`}>
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse [animation-delay:150ms]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse [animation-delay:300ms]" />
-            </div>
-            <span className={`text-[10px] ${mutedText} font-bold`}>
-              {Object.values(typingUsers).join(", ")} {Object.keys(typingUsers).length > 1 ? "are" : "is"} typing...
-            </span>
-          </div>
-        )}
       </div>
 
 
