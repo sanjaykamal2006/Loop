@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       return !isEducationalDomain(userEmail);
     });
 
-    const maxExternal = parseInt(process.env.MAX_EXTERNAL_EMAILS || '5', 10) || 5;
+    const maxExternal = parseInt(process.env.MAX_EXTERNAL_EMAILS || '15', 10) || 15;
     const currentCount = externalUsers.length;
 
     if (currentCount >= maxExternal) {
