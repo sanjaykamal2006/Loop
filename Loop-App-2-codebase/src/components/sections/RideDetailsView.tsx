@@ -66,6 +66,18 @@ export default function RideDetailsView() {
   }, [selectedLoop?.total_fare]);
 
   useEffect(() => {
+    if (!selectedLoop) {
+      setView("home");
+      return;
+    }
+    const isCreator = selectedLoop.creator_id === session?.user?.id || userLoops.includes(selectedLoop.id);
+    if (selectedLoop.is_female_only && profile.gender && profile.gender !== "female" && !isCreator) {
+      toast.error("This ride is restricted to female students only.");
+      setView("home");
+    }
+  }, [selectedLoop, session?.user?.id, userLoops, profile.gender, setView]);
+
+  useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
     if (membersCache[loopId]) {

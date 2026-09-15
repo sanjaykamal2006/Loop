@@ -195,6 +195,33 @@ export function LoopProvider({ session, children }: { session: Session; children
             .single();
 
           if (data && !error) {
+            // Check if ride has ended, cancelled, or expired
+            const isEnded = ['cancelled', 'ended', 'expired'].includes(data.status);
+            const isExpired = data.expires_at && new Date(data.expires_at) < new Date();
+            const isOld = (Date.now() - new Date(data.departure_time).getTime()) > 2 * 60 * 60 * 1000;
+            if (isEnded || isExpired || isOld) {
+              toast.info("This ride has already ended or expired.");
+              setViewState("home");
+              window.history.replaceState({ view: "home" }, "", window.location.pathname);
+              return;
+            }
+
+            // Check female-only restriction
+            if (data.is_female_only && data.creator_id !== session.user.id) {
+              const { data: userProfile } = await supabase
+                .from("profiles")
+                .select("gender")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+              if (userProfile && userProfile.gender && userProfile.gender !== "female") {
+                toast.error("This ride is restricted to female students only.");
+                setViewState("home");
+                window.history.replaceState({ view: "home" }, "", window.location.pathname);
+                return;
+              }
+            }
+
             const formatted = {
               ...data,
               member_count: data.loop_members?.[0]?.count || 0,
@@ -213,6 +240,10 @@ export function LoopProvider({ session, children }: { session: Session; children
 
     const handlePopState = (e: PopStateEvent) => {
       if (e.state?.view) {
+        if ((e.state.view === "chat" || e.state.view === "ride-details") && !selectedLoopRef.current) {
+          setViewState("home");
+          return;
+        }
         setViewState(e.state.view);
       } else {
         setViewState("home");
@@ -220,7 +251,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [setSelectedLoop]);
+  }, [setSelectedLoop, session.user.id]);
 
   // --- Theme ---
   const isDark = profile.theme === "dark";

@@ -38,8 +38,47 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
+
+  // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
+  useEffect(() => {
+    if (!selectedLoop?.id) {
+      setView("home");
+      return;
+    }
+
+    let isCancelled = false;
+
+    const verifyAccess = async () => {
+      // 1. If user is creator, access is granted
+      if (selectedLoop.creator_id === session.user.id || userLoops.includes(selectedLoop.id)) return;
+
+      // 2. If user is already in local joined loops state, access is granted
+      if (userJoinedLoops.includes(selectedLoop.id)) return;
+
+      // 3. If not in local cache, verify membership with database
+      const { data, error } = await supabase
+        .from("loop_members")
+        .select("id")
+        .eq("loop_id", selectedLoop.id)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (isCancelled) return;
+
+      if (!data || error) {
+        toast.error("Access denied: You must join this ride to access the group chat.");
+        setView("home");
+      }
+    };
+
+    verifyAccess();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, setView]);
 
   const [messages, setMessages] = useState<Message[]>(() => {
     if (selectedLoop?.id && messageCache[selectedLoop.id]) {
