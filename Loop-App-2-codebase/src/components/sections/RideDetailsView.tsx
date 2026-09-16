@@ -110,17 +110,53 @@ export default function RideDetailsView() {
   }, [selectedLoop?.id]);
 
   const fetchLoopMembers = async (loopId: string) => {
-    const { data, error } = await supabase
-      .from("loop_members")
-      .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio, phone_number, is_student_verified)")
-      .eq("loop_id", loopId);
+    try {
+      const isAuthorized = Boolean(
+        selectedLoop &&
+        (selectedLoop.creator_id === session?.user?.id ||
+          userLoops.includes(selectedLoop.id) ||
+          userJoinedLoops.includes(selectedLoop.id))
+      );
 
-    if (!error && data) {
-      const mems = data as unknown as LoopMember[];
-      membersCache[loopId] = mems;
-      setLoopMembers(mems);
+      const [membersRes, contactsRes] = await Promise.all([
+        supabase
+          .from("loop_members")
+          .select("user_id, profiles:user_id (display_name, avatar_url, gender, reg_no, bio, is_student_verified)")
+          .eq("loop_id", loopId),
+        isAuthorized
+          ? supabase.rpc("get_loop_contacts", { target_loop_id: loopId })
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      if (!membersRes.error && membersRes.data) {
+        const contactsMap = new Map<string, string>();
+        if (contactsRes?.data && Array.isArray(contactsRes.data)) {
+          contactsRes.data.forEach((c: any) => {
+            if (c.user_id && c.phone_number) {
+              contactsMap.set(c.user_id, c.phone_number);
+            }
+          });
+        }
+
+        const mems = (membersRes.data as any[]).map((m: any) => {
+          const phone = contactsMap.get(m.user_id) || "";
+          return {
+            ...m,
+            profiles: {
+              ...m.profiles,
+              phone_number: phone,
+            },
+          };
+        }) as LoopMember[];
+
+        membersCache[loopId] = mems;
+        setLoopMembers(mems);
+      }
+    } catch (err) {
+      console.error("fetchLoopMembers error:", err);
+    } finally {
+      setIsLoadingMembers(false);
     }
-    setIsLoadingMembers(false);
   };
 
   const enterChat = () => {
@@ -394,7 +430,7 @@ export default function RideDetailsView() {
                       reg_no: regNo,
                       gender: gender,
                       bio: bio,
-                      phone_number: phone,
+                      phone_number: (canDirectContact || isMe) ? phone : undefined,
                       is_student_verified: isStudentVerified,
                     })}
                   >

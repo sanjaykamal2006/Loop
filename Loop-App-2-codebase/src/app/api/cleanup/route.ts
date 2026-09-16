@@ -55,12 +55,5 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({
-    message: 'Use POST with Authorization header to trigger cleanup',
-    endpoint: '/api/cleanup',
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer YOUR_CLEANUP_CRON_SECRET',
-    },
-  });
+  return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
 }

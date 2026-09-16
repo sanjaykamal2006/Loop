@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map, ChevronRight, Search } from "lucide-react";
+import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
@@ -376,8 +376,8 @@ export default function ChatView() {
 
       const userIds = Array.from(new Set(memberRows.map((r: any) => r.user_id)));
 
-      // Access Guard: Ensure caller is member or creator
-      const isCreator = selectedLoop?.creator_id === session?.user?.id;
+      if (!selectedLoop) return;
+      const isCreator = selectedLoop.creator_id === session?.user?.id;
       const isMember = userIds.includes(session?.user?.id);
       if (!isCreator && !isMember) {
         toast.info("You must join this loop to view its chat");
@@ -386,11 +386,14 @@ export default function ChatView() {
         return;
       }
 
-      // 2. Query profiles directly by IDs to ensure 100% reliability regardless of PostgREST relation syntax
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, reg_no, gender, bio, phone_number, is_student_verified")
-        .in("id", userIds);
+      // 2. Query profiles directly by IDs and contact info via secure RPC
+      const [{ data: profs }, { data: contacts }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, reg_no, gender, bio, is_student_verified")
+          .in("id", userIds),
+        supabase.rpc("get_loop_contacts", { target_loop_id: loopId }),
+      ]);
 
       const profMap: Record<string, any> = {};
       if (profs) {
@@ -399,9 +402,19 @@ export default function ChatView() {
         });
       }
 
+      const contactsMap = new Map<string, string>();
+      if (contacts && Array.isArray(contacts)) {
+        contacts.forEach((c: any) => {
+          if (c.user_id && c.phone_number) {
+            contactsMap.set(c.user_id, c.phone_number);
+          }
+        });
+      }
+
       const formatted = memberRows.map((r: any) => {
         const isMe = r.user_id === session.user.id;
         const fetchedProf = profMap[r.user_id] || {};
+        const contactPhone = contactsMap.get(r.user_id) || "";
         return {
           user_id: r.user_id,
           profiles: {
@@ -410,7 +423,7 @@ export default function ChatView() {
             reg_no: isMe ? (profile.reg_no || fetchedProf.reg_no) : fetchedProf.reg_no,
             gender: isMe ? (profile.gender || fetchedProf.gender) : fetchedProf.gender,
             bio: isMe ? (profile.bio || fetchedProf.bio) : fetchedProf.bio,
-            phone_number: isMe ? (profile.phone_number || fetchedProf.phone_number) : fetchedProf.phone_number,
+            phone_number: isMe ? (profile.phone_number || contactPhone) : contactPhone,
             is_student_verified: isMe ? profile.is_student_verified : fetchedProf.is_student_verified,
           },
         };
@@ -937,7 +950,7 @@ export default function ChatView() {
                         {/* Bottom Action Bar */}
                         <div className="border-t border-zinc-100 dark:border-white/10 pt-2 mt-2.5 flex items-center justify-between text-zinc-500 dark:text-zinc-400">
                           <div className="flex items-center gap-1.5">
-                            <Map size={13} strokeWidth={2.2} className="text-zinc-400 dark:text-zinc-400" />
+                            <MapIcon size={13} strokeWidth={2.2} className="text-zinc-400 dark:text-zinc-400" />
                             <span className="text-[10px] font-bold tracking-widest uppercase">
                               OPEN IN MAPS
                             </span>

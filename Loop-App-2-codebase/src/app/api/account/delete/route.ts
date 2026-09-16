@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Clean up public tables
+    await adminClient.from("profile_contacts").delete().eq("user_id", userId);
     await adminClient.from("messages").delete().eq("user_id", userId);
     await adminClient.from("loop_members").delete().eq("user_id", userId);
     await adminClient.from("loops").delete().eq("creator_id", userId);

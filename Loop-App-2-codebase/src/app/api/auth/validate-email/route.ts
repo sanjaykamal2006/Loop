@@ -80,17 +80,14 @@ export async function POST(request: NextRequest) {
 
     const existingUser = data.users.find((u) => (u.email || '').toLowerCase() === email);
 
-    // If logging in: if account already exists, they can always log in!
+    // If logging in: allow attempt through to Supabase auth
     if (isLogin) {
-      if (existingUser) {
-        return NextResponse.json({ allowed: true, type: 'existing_external' });
-      }
-      return NextResponse.json({ allowed: true, type: 'external_login_attempt' });
+      return NextResponse.json({ allowed: true });
     }
 
-    // If signing up:
+    // If signing up and user already exists, allow them to proceed to login/signup handler
     if (existingUser) {
-      return NextResponse.json({ allowed: true, type: 'existing_external' });
+      return NextResponse.json({ allowed: true });
     }
 
     // Count external registered users (excluding developer whitelist)
@@ -114,8 +111,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       allowed: true,
-      type: 'new_external',
-      slotsRemaining: maxExternal - currentCount - 1,
     });
   } catch (err: any) {
     console.error('validate-email route error:', err);

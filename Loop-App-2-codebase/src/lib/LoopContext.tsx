@@ -287,11 +287,21 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   // --- Fetch profile ---
   const fetchProfile = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("display_name, theme, gender, reg_no, avatar_url, bio, phone_number, is_student_verified")
-      .eq("id", session.user.id)
-      .single();
+    const [profRes, contactRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("display_name, theme, gender, reg_no, avatar_url, bio, is_student_verified")
+        .eq("id", session.user.id)
+        .single(),
+      supabase
+        .from("profile_contacts")
+        .select("phone_number")
+        .eq("user_id", session.user.id)
+        .maybeSingle(),
+    ]);
+
+    const { data, error } = profRes;
+    const userPhone = contactRes.data?.phone_number || "";
 
     if (error && error.code === "PGRST116") {
       const parsed = parseStudentEmail(session.user.email || "");
@@ -352,7 +362,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         reg_no: regNo,
         avatar_url: data.avatar_url,
         bio: data.bio || "",
-        phone_number: data.phone_number || "",
+        phone_number: userPhone,
         is_student_verified: Boolean(isStudent),
       };
       setProfile(newProf);
@@ -375,11 +385,39 @@ export function LoopProvider({ session, children }: { session: Session; children
       } catch {}
     }
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ id: session.user.id, ...updates, updated_at: new Date().toISOString() }, { onConflict: "id" });
+    const { phone_number, ...profileUpdates } = updates;
+    const promises: PromiseLike<any>[] = [];
 
-    if (error) {
+    if (Object.keys(profileUpdates).length > 0) {
+      promises.push(
+        supabase
+          .from("profiles")
+          .upsert({ id: session.user.id, ...profileUpdates, updated_at: new Date().toISOString() }, { onConflict: "id" })
+      );
+    }
+
+    if (phone_number !== undefined) {
+      const cleanPhone = (phone_number || "").replace(/\D/g, "").slice(0, 10);
+      if (cleanPhone) {
+        promises.push(
+          supabase
+            .from("profile_contacts")
+            .upsert({ user_id: session.user.id, phone_number: cleanPhone, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+        );
+      } else {
+        promises.push(
+          supabase
+            .from("profile_contacts")
+            .delete()
+            .eq("user_id", session.user.id)
+        );
+      }
+    }
+
+    const results = await Promise.all(promises);
+    const dbError = results.find((r) => r?.error)?.error;
+
+    if (dbError) {
       // Revert on error
       setProfile(prevProfile);
       if (typeof window !== "undefined") {
