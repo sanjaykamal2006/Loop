@@ -557,7 +557,7 @@ export default function RideDetailsView() {
               disabled={isJoining}
               className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
             >
-              {isJoined ? "Open Chat" : "Join Loop"}
+              {isJoining ? "Joining..." : isJoined ? "Open Chat" : "Join Loop"}
             </button>
 
             {/* WhatsApp / Social Share */}

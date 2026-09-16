@@ -39,7 +39,7 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
@@ -58,7 +58,10 @@ export default function ChatView() {
       // 2. If user is already in local joined loops state, access is granted
       if (userJoinedLoops.includes(selectedLoop.id)) return;
 
-      // 3. If not in local cache, verify membership with database
+      // 3. If joining is in flight, do not kick out
+      if (isJoining) return;
+
+      // 4. If not in local cache, verify membership with database
       const { data, error } = await supabase
         .from("loop_members")
         .select("id")
@@ -67,6 +70,8 @@ export default function ChatView() {
         .maybeSingle();
 
       if (isCancelled) return;
+
+      if (userJoinedLoops.includes(selectedLoop.id)) return;
 
       if (!data || error) {
         toast.error("Access denied: You must join this ride to access the group chat.");
@@ -79,7 +84,7 @@ export default function ChatView() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, setView]);
+  }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, isJoining, setView]);
 
   const [messages, setMessages] = useState<Message[]>(() => {
     if (selectedLoop?.id && messageCache[selectedLoop.id]) {
@@ -383,20 +388,38 @@ export default function ChatView() {
         .select("user_id")
         .eq("loop_id", loopId);
 
-      if (memErr || !memberRows || memberRows.length === 0) {
+      if (memErr) {
+        console.warn("fetchMembers query error:", memErr);
         return;
       }
 
-      const userIds = Array.from(new Set(memberRows.map((r: any) => r.user_id)));
+      const rawMemberRows = memberRows || [];
+      const userIds = Array.from(new Set(rawMemberRows.map((r: any) => r.user_id)));
 
       if (!selectedLoop) return;
-      const isCreator = selectedLoop.creator_id === session?.user?.id;
-      const isMember = userIds.includes(session?.user?.id);
+      const isCreator = selectedLoop.creator_id === session?.user?.id || userLoops.includes(selectedLoop.id);
+      const isMember = userIds.includes(session?.user?.id) || userJoinedLoops.includes(selectedLoop.id);
+
       if (!isCreator && !isMember) {
-        toast.info("You must join this loop to view its chat");
-        setView("home");
-        setSelectedLoop(null);
-        return;
+        // Fallback: check if the member record exists directly in DB before kicking to eliminate race condition
+        const { data: checkRow } = await supabase
+          .from("loop_members")
+          .select("id")
+          .eq("loop_id", loopId)
+          .eq("user_id", session?.user?.id)
+          .maybeSingle();
+
+        if (!checkRow) {
+          toast.info("You must join this loop to view its chat");
+          setView("home");
+          setSelectedLoop(null);
+          return;
+        }
+        if (session?.user?.id && !userIds.includes(session.user.id)) {
+          userIds.push(session.user.id);
+        }
+      } else if (session?.user?.id && !userIds.includes(session.user.id)) {
+        userIds.push(session.user.id);
       }
 
       // 2. Query profiles directly by IDs and contact info via secure RPC
@@ -424,7 +447,12 @@ export default function ChatView() {
         });
       }
 
-      const formatted = memberRows.map((r: any) => {
+      const memberList = [...rawMemberRows];
+      if (session?.user?.id && !memberList.some((r: any) => r.user_id === session.user.id)) {
+        memberList.push({ user_id: session.user.id });
+      }
+
+      const formatted = memberList.map((r: any) => {
         const isMe = r.user_id === session.user.id;
         const fetchedProf = profMap[r.user_id] || {};
         const contactPhone = contactsMap.get(r.user_id) || "";

@@ -570,42 +570,52 @@ export function LoopProvider({ session, children }: { session: Session; children
       return;
     }
 
-    // Instant optimistic transition
-    const previousJoined = userJoinedLoopsRef.current;
-    const isAlreadyMember = previousJoined.includes(loop.id);
-    const newCount = (loop.member_count || 0) + (isAlreadyMember ? 0 : 1);
-    const updatedLoop = { ...loop, member_count: newCount };
-
-    setUserJoinedLoops((prev) => {
-      const next = Array.from(new Set([...prev, loop.id]));
-      try {
-        localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
-    setSelectedLoop(updatedLoop);
-    setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? updatedLoop : l)));
-    setView("chat");
-    toast.success("Joined loop!");
-
+    if (isJoining) return;
     setIsJoining(true);
-    const { error } = await supabase.from("loop_members").insert({ loop_id: loop.id, user_id: session.user.id });
-    if (error) {
-      if (error.code === "23505") {
-        // Already a member, safe to remain joined
-      } else {
-        // Rollback
-        setUserJoinedLoops(previousJoined);
-        setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? loop : l)));
-        setSelectedLoop(loop);
+
+    try {
+      // 1. Insert membership into database first to eliminate race condition with ChatView
+      const { error } = await supabase.from("loop_members").insert({
+        loop_id: loop.id,
+        user_id: session.user.id,
+      });
+
+      // Error code 23505 is PostgreSQL unique_violation (already a member), safe to proceed
+      if (error && error.code !== "23505") {
+        console.error("Failed to insert loop membership:", error);
         toast.error("Failed to join loop. Please try again.");
+        return;
       }
-    } else {
+
+      // 2. Confirmed in DB: update joined loops & active loops state
+      const previousJoined = userJoinedLoopsRef.current;
+      const isAlreadyMember = previousJoined.includes(loop.id);
+      const newCount = (loop.member_count || 0) + (isAlreadyMember ? 0 : 1);
+      const updatedLoop = { ...loop, member_count: newCount };
+
+      const nextJoined = Array.from(new Set([...previousJoined, loop.id]));
+      userJoinedLoopsRef.current = nextJoined;
+      setUserJoinedLoops(nextJoined);
+      try {
+        localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(nextJoined));
+      } catch {}
+
+      setSelectedLoop(updatedLoop);
+      setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? updatedLoop : l)));
+      setChatSource("ride-details");
+      setView("chat");
+      toast.success("Joined loop!");
+
+      // 3. Background refresh
       fetchLoops(true);
       fetchUserMemberships(true);
+    } catch (err) {
+      console.error("joinLoop error:", err);
+      toast.error("Failed to join loop. Please try again.");
+    } finally {
+      setIsJoining(false);
     }
-    setIsJoining(false);
-  }, [profile, session.user.id, fetchLoops, fetchUserMemberships, setSelectedLoop, setView]);
+  }, [profile, session.user.id, isJoining, fetchLoops, fetchUserMemberships, setSelectedLoop, setView, setChatSource]);
 
   // Resume joining after profile is set
   useEffect(() => {
