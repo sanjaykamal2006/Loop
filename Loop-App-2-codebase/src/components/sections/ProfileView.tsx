@@ -126,13 +126,19 @@ export default function ProfileView() {
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
+      const rawExt = file.name.split(".").pop() || "jpg";
+      const fileExt = rawExt.toLowerCase();
       const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = fileName;
+
+      const inferredType = file.type || (fileExt === "png" ? "image/png" : fileExt === "webp" ? "image/webp" : fileExt === "gif" ? "image/gif" : "image/jpeg");
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          contentType: inferredType,
+          upsert: true,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -143,8 +149,8 @@ export default function ProfileView() {
       await updateProfile({ avatar_url: publicUrl });
       toast.success("Profile photo updated!");
     } catch (err: any) {
-      console.error(err);
-      toast.error("Failed to upload image. Please try again.");
+      console.error("Avatar upload error:", err);
+      toast.error(err?.message || "Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
     }
