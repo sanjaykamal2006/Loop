@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search } from "lucide-react";
+import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import { sendLocalNotification } from "@/lib/notifications";
@@ -89,6 +89,18 @@ export default function ChatView() {
   const [newMessage, setNewMessage] = useState("");
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [actionMenuMsg, setActionMenuMsg] = useState<Message | null>(null);
+  const [holdingMsgId, setHoldingMsgId] = useState<string | null>(null);
+
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const didTriggerHoldRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    };
+  }, []);
   const [members, setMembers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
@@ -500,6 +512,54 @@ export default function ChatView() {
     setEditingContent(msg.content);
   };
 
+  const startHold = (msg: Message, e: React.TouchEvent | React.MouseEvent) => {
+    if (msg.id.startsWith("opt-") || editingMsgId) return;
+    if ("button" in e && e.button !== 0) return; // Only primary mouse button
+
+    didTriggerHoldRef.current = false;
+    const x = "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const y = "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    touchStartPosRef.current = { x, y };
+    setHoldingMsgId(msg.id);
+
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+
+    holdTimerRef.current = setTimeout(() => {
+      didTriggerHoldRef.current = true;
+      if (typeof window !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate(35);
+        } catch {}
+      }
+      setHoldingMsgId(null);
+      setActionMenuMsg(msg);
+      holdTimerRef.current = null;
+    }, 450);
+  };
+
+  const moveHold = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!holdTimerRef.current || !touchStartPosRef.current) return;
+    const x = "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const y = "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+
+    const dx = Math.abs(x - touchStartPosRef.current.x);
+    const dy = Math.abs(y - touchStartPosRef.current.y);
+
+    if (dx > 8 || dy > 8) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+      setHoldingMsgId(null);
+    }
+  };
+
+  const endHold = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    setHoldingMsgId(null);
+  };
+
   const saveEditMessage = async () => {
     if (!editingMsgId || !editingContent.trim()) return;
     const { error } = await supabase
@@ -517,6 +577,13 @@ export default function ChatView() {
             : m
         )
       );
+      if (selectedLoop?.id && messageCache[selectedLoop.id]) {
+        messageCache[selectedLoop.id] = messageCache[selectedLoop.id].map((m) =>
+          m.id === editingMsgId
+            ? { ...m, content: editingContent.trim(), edited_at: new Date().toISOString() }
+            : m
+        );
+      }
       setEditingMsgId(null);
       setEditingContent("");
     }
@@ -538,6 +605,9 @@ export default function ChatView() {
         toast.error('Failed to delete message');
       } else {
         setMessages(prev => prev.filter(m => m.id !== messageId));
+        if (selectedLoop?.id && messageCache[selectedLoop.id]) {
+          messageCache[selectedLoop.id] = messageCache[selectedLoop.id].filter(m => m.id !== messageId);
+        }
         toast.success('Message deleted');
       }
     } catch (err) {
@@ -896,13 +966,29 @@ export default function ChatView() {
                   </div>
                 ) : (
                   <div
-                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group ${
+                    className={`relative ${isLocationMsg ? "max-w-[94%]" : "max-w-[80%]"} group select-none transition-all duration-150 cursor-pointer ${
+                      holdingMsgId === msg.id ? "scale-[0.97] opacity-85" : "active:scale-[0.99]"
+                    } ${
                       isSearchActive
                         ? isMatch
                           ? "ring-2 ring-[#FFC554] rounded-[20px] shadow-[0_0_12px_rgba(255,197,84,0.35)] scale-[1.01] transition-all"
                           : "opacity-35 transition-opacity"
                         : ""
                     }`}
+                    onTouchStart={(e) => startHold(msg, e)}
+                    onTouchMove={moveHold}
+                    onTouchEnd={endHold}
+                    onTouchCancel={endHold}
+                    onMouseDown={(e) => startHold(msg, e)}
+                    onMouseMove={moveHold}
+                    onMouseUp={endHold}
+                    onMouseLeave={endHold}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (!isOptimistic && !editingMsgId) {
+                        setActionMenuMsg(msg);
+                      }
+                    }}
                     onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
                   >
                     {!mapsUrl ? (
@@ -920,6 +1006,12 @@ export default function ChatView() {
                         href={mapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (didTriggerHoldRef.current) {
+                            e.preventDefault();
+                            didTriggerHoldRef.current = false;
+                          }
+                        }}
                         className={`block w-[240px] max-w-[80vw] p-3 rounded-[20px] border shadow-sm transition-all active:scale-[0.98] ${
                           isDark
                             ? "bg-[#18181B] border-white/10 text-white shadow-black/40"
@@ -959,25 +1051,22 @@ export default function ChatView() {
                         </div>
                       </a>
                     )}
-                    {/* Message Actions */}
-                    {isMe && !isOptimistic && (
-                      <div
-                        className="absolute -left-[52px] top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-focus-within:opacity-100 active:opacity-100 md:group-hover:opacity-100"
-                        style={{ WebkitTapHighlightColor: "transparent" }}
+                    {/* Desktop Hover 3-Dots Button */}
+                    {!isOptimistic && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuMsg(msg);
+                        }}
+                        aria-label="Message options"
+                        className={`absolute ${
+                          isMe ? "-left-8" : "-right-8"
+                        } top-1/2 -translate-y-1/2 w-6 h-6 rounded-full ${
+                          isDark ? "bg-white/10 hover:bg-white/20 text-white/80 hover:text-white" : "bg-black/5 hover:bg-black/10 text-black/70 hover:text-black"
+                        } hidden md:group-hover:flex items-center justify-center transition-all opacity-0 md:group-hover:opacity-100 shadow-sm`}
                       >
-                        <button
-                          onClick={() => deleteMessage(msg.id)}
-                          className="w-6 h-6 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center"
-                        >
-                          <X size={10} strokeWidth={3} />
-                        </button>
-                        <button
-                          onClick={() => startEditMessage(msg)}
-                          className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"
-                        >
-                          <Edit2 size={10} />
-                        </button>
-                      </div>
+                        <MoreHorizontal size={13} />
+                      </button>
                     )}
                   </div>
                 )}
@@ -1035,6 +1124,116 @@ export default function ChatView() {
       </div>
 
       <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
+
+      {/* Hold Message Action Sheet (Mobile-First Drawer & Context Menu) */}
+      {actionMenuMsg && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setActionMenuMsg(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`w-full sm:max-w-sm ${cardBg} border ${border} sm:rounded-[28px] rounded-t-[28px] p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom-6 duration-200`}
+          >
+            {/* Drawer drag handle for mobile */}
+            <div className="w-10 h-1 rounded-full bg-zinc-500/30 mx-auto sm:hidden -mt-1 mb-2" />
+
+            {/* Message Quote Preview */}
+            <div className={`p-3 rounded-2xl ${isDark ? "bg-white/5 border border-white/5" : "bg-black/5 border border-black/5"} space-y-1`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${actionMenuMsg.user_id === session.user.id ? "text-[#FFC554]" : mutedText}`}>
+                  {actionMenuMsg.user_id === session.user.id ? "You" : actionMenuMsg.profiles?.display_name || "Member"}
+                </span>
+                <span className={`text-[9px] ${mutedText}`}>
+                  {formatTime(actionMenuMsg.created_at)}
+                </span>
+              </div>
+              <p className={`text-xs font-medium line-clamp-3 break-words ${text} opacity-90`}>
+                {actionMenuMsg.content}
+              </p>
+            </div>
+
+            {/* Actions List */}
+            <div className="space-y-2">
+              {/* Edit Message - Only for message owner and not location message */}
+              {actionMenuMsg.user_id === session.user.id && !getMapsUrlFromMessage(actionMenuMsg.content) && (
+                <button
+                  onClick={() => {
+                    const target = actionMenuMsg;
+                    setActionMenuMsg(null);
+                    startEditMessage(target);
+                  }}
+                  className={`w-full h-12 px-4 rounded-2xl flex items-center gap-3 transition-all active:scale-[0.98] ${
+                    isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-xl bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
+                    <Edit2 size={15} strokeWidth={2.5} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold leading-tight">Edit Message</p>
+                    <p className={`text-[10px] ${mutedText}`}>Update your message text</p>
+                  </div>
+                </button>
+              )}
+
+              {/* Copy Text */}
+              <button
+                onClick={() => {
+                  const mapsUrl = getMapsUrlFromMessage(actionMenuMsg.content);
+                  const textToCopy = mapsUrl || actionMenuMsg.content;
+                  navigator.clipboard.writeText(textToCopy);
+                  toast.success(mapsUrl ? "Location link copied!" : "Message copied!");
+                  setActionMenuMsg(null);
+                }}
+                className={`w-full h-12 px-4 rounded-2xl flex items-center gap-3 transition-all active:scale-[0.98] ${
+                  isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                  <Copy size={15} strokeWidth={2.5} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold leading-tight">Copy Text</p>
+                  <p className={`text-[10px] ${mutedText}`}>Copy message to clipboard</p>
+                </div>
+              </button>
+
+              {/* Delete Message - Allowed for message owner or ride host */}
+              {(actionMenuMsg.user_id === session.user.id || isHost) && (
+                <button
+                  onClick={() => {
+                    const targetId = actionMenuMsg.id;
+                    setActionMenuMsg(null);
+                    deleteMessage(targetId);
+                  }}
+                  className="w-full h-12 px-4 rounded-2xl flex items-center gap-3 transition-all active:scale-[0.98] bg-red-500/10 hover:bg-red-500/15 text-red-400 border border-red-500/20"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                    <Trash2 size={15} strokeWidth={2.5} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold leading-tight text-red-400">Delete Message</p>
+                    <p className="text-[10px] text-red-400/70">
+                      {actionMenuMsg.user_id === session.user.id ? "Permanently remove this message" : "Remove message as ride host"}
+                    </p>
+                  </div>
+                </button>
+              )}
+            </div>
+
+            {/* Cancel Button */}
+            <button
+              onClick={() => setActionMenuMsg(null)}
+              className={`w-full h-11 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98] ${
+                isDark ? "bg-white/10 hover:bg-white/15 text-zinc-300" : "bg-black/5 hover:bg-black/10 text-zinc-700"
+              }`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
