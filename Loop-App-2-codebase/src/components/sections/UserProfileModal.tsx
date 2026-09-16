@@ -3,6 +3,7 @@
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { X, FileText, Phone, MessageCircle, ShieldCheck } from "lucide-react";
+import FastAvatar from "@/components/ui/FastAvatar";
 
 export interface UserProfileData {
   user_id?: string;
@@ -55,15 +56,15 @@ export default function UserProfileModal({
 
         {/* Profile Avatar / Initials */}
         <div className="w-24 h-24 rounded-[28px] bg-zinc-800 border-2 border-white/10 flex items-center justify-center shadow-xl overflow-hidden shrink-0 mt-1">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={user.display_name} className="w-full h-full object-cover rounded-[24px]" />
-          ) : (
-            <div className="w-full h-full bg-[#FFC554] flex items-center justify-center">
-              <span className="text-2xl font-black text-black">
-                {user.display_name.substring(0, 2).toUpperCase()}
-              </span>
-            </div>
-          )}
+          <FastAvatar
+            src={avatarUrl}
+            name={user.display_name}
+            sizeClassName="w-full h-full"
+            roundedClassName="rounded-[24px]"
+            priority={true}
+            initialsClassName="text-2xl font-black text-black"
+            fallbackBgClassName="bg-[#FFC554]"
+          />
         </div>
 
         {/* Identity Info */}

@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
+import FastAvatar from "@/components/ui/FastAvatar";
 import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 
@@ -773,21 +774,18 @@ export default function ChatView() {
                   phone_number: isMe ? profile.phone_number : m.profiles?.phone_number,
                   is_student_verified: isMe ? profile.is_student_verified : m.profiles?.is_student_verified,
                 })}
-                className="relative w-10 h-10 rounded-full border-2 border-white/20 shrink-0 bg-[#FFC554]/20 flex items-center justify-center cursor-pointer active:scale-90 transition-transform overflow-hidden shadow-md group"
+                className="cursor-pointer active:scale-90 transition-transform group shrink-0"
                 title={memberName}
               >
-                {hasAvatar ? (
-                  <img
-                    src={memberAvatar}
-                    alt={memberName}
-                    onError={() => setAvatarErrors((prev) => ({ ...prev, [m.user_id]: true }))}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs font-black text-[#FFC554] tracking-tight">
-                    {(memberName || "M").substring(0, 2).toUpperCase()}
-                  </span>
-                )}
+                <FastAvatar
+                  src={memberAvatar}
+                  name={memberName}
+                  sizeClassName="w-10 h-10"
+                  borderClassName="border-2 border-white/20 shadow-md"
+                  priority={true}
+                  initialsClassName="text-xs font-black text-[#FFC554] tracking-tight"
+                  fallbackBgClassName="bg-[#FFC554]/20"
+                />
               </div>
             );
           })}
@@ -924,15 +922,15 @@ export default function ChatView() {
                     })}
                     className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
                   >
-                    {senderAvatar ? (
-                      <img src={senderAvatar} alt={senderName} className="w-4 h-4 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full bg-[#FFC554]/20 flex items-center justify-center shrink-0">
-                        <span className="text-[8px] font-bold text-[#FFC554]">
-                          {(senderName || "U").substring(0, 1).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <FastAvatar
+                      src={senderAvatar}
+                      name={senderName}
+                      sizeClassName="w-4 h-4"
+                      roundedClassName="rounded-full"
+                      initialsText={(senderName || "U").substring(0, 1).toUpperCase()}
+                      initialsClassName="text-[8px] font-bold text-[#FFC554]"
+                      fallbackBgClassName="bg-[#FFC554]/20"
+                    />
                     <p className={`text-[10px] font-semibold ${isMe ? "text-[#FFC554]" : mutedText}`}>
                       {isMe ? "You" : msg.profiles?.display_name || "Member"}
                     </p>

@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import type { View, Loop, Profile, ThemeClasses } from "@/lib/types";
 import { registerServiceWorker, sendLocalNotification } from "./notifications";
 import { parseStudentEmail } from "./studentParser";
+import { preloadAvatars } from "./imageOptimization";
 
 interface LoopContextValue {
   // Session
@@ -129,7 +130,11 @@ export function LoopProvider({ session, children }: { session: Session; children
     if (typeof window !== "undefined") {
       try {
         const cached = localStorage.getItem(`loop_profile_${session.user.id}`);
-        if (cached) return JSON.parse(cached);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.avatar_url) preloadAvatars([parsed.avatar_url]);
+          return parsed;
+        }
       } catch {}
     }
     return { display_name: "", theme: "dark" };
@@ -366,6 +371,9 @@ export function LoopProvider({ session, children }: { session: Session; children
         is_student_verified: Boolean(isStudent),
       };
       setProfile(newProf);
+      if (newProf.avatar_url) {
+        preloadAvatars([newProf.avatar_url]);
+      }
       try {
         localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
       } catch {}
@@ -486,6 +494,12 @@ export function LoopProvider({ session, children }: { session: Session; children
           try {
             localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
           } catch {}
+        }
+        const creatorAvatars = formatted
+          .map((l: any) => l.creator?.avatar_url)
+          .filter(Boolean);
+        if (creatorAvatars.length > 0) {
+          preloadAvatars(creatorAvatars);
         }
       }
     } catch (err) {

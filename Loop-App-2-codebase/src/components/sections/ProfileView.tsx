@@ -19,6 +19,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import FastAvatar from "@/components/ui/FastAvatar";
+import { compressAvatarImage } from "@/lib/imageOptimization";
 import {
   getNotificationPermission,
   isNotificationEnabled,
@@ -37,6 +39,7 @@ export default function ProfileView() {
   const [tempPhone, setTempPhone] = useState(profile.phone_number || "");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [optimisticAvatarUrl, setOptimisticAvatarUrl] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
@@ -120,23 +123,26 @@ export default function ProfileView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      return toast.error("Image must be smaller than 5MB");
+    if (file.size > 15 * 1024 * 1024) {
+      return toast.error("Image must be smaller than 15MB");
     }
 
     setIsUploading(true);
     try {
-      const rawExt = file.name.split(".").pop() || "jpg";
-      const fileExt = rawExt.toLowerCase();
+      // 1. Instant client-side canvas compression (reduces 4MB+ phone photos to ~25KB WebP/JPEG)
+      const { file: compressedFile, previewUrl, fileExt, contentType } = await compressAvatarImage(file, 384, 0.82);
+
+      // 2. Instant Zero-Latency Optimistic Preview (0ms visual update)
+      setOptimisticAvatarUrl(previewUrl);
+
       const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
 
-      const inferredType = file.type || (fileExt === "png" ? "image/png" : fileExt === "webp" ? "image/webp" : fileExt === "gif" ? "image/gif" : "image/jpeg");
-
+      // 3. Fast background upload with 1-Year Immutable Caching
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, {
-          contentType: inferredType,
+        .upload(fileName, compressedFile, {
+          contentType,
+          cacheControl: "31536000, immutable",
           upsert: true,
         });
 
@@ -144,17 +150,21 @@ export default function ProfileView() {
 
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       await updateProfile({ avatar_url: publicUrl });
       toast.success("Profile photo updated!");
     } catch (err: any) {
       console.error("Avatar upload error:", err);
+      setOptimisticAvatarUrl(null); // Revert optimistic preview on error
       toast.error(err?.message || "Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
+      e.target.value = "";
     }
   };
+
+  const activeAvatar = optimisticAvatarUrl || profile.avatar_url;
 
   return (
     <div className="flex-1 flex flex-col space-y-3.5 pt-1 pb-4 min-w-0">
@@ -167,17 +177,15 @@ export default function ProfileView() {
               isDark ? "bg-[#18181B] border-white/15" : "bg-[#EAE5DC] border-black/10"
             } border-2 flex items-center justify-center shadow-lg overflow-hidden`}
           >
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.display_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className={`text-2xl font-black ${isDark ? "text-white" : "text-black"}`}>
-                {profile.display_name?.substring(0, 2).toUpperCase() || "U"}
-              </span>
-            )}
+            <FastAvatar
+              src={activeAvatar}
+              name={profile.display_name}
+              sizeClassName="w-full h-full"
+              roundedClassName="rounded-[24px]"
+              priority={true}
+              initialsClassName={`text-2xl font-black ${isDark ? "text-white" : "text-black"}`}
+              fallbackBgClassName={isDark ? "bg-[#18181B]" : "bg-[#EAE5DC]"}
+            />
           </div>
 
           {/* Camera Upload Button */}

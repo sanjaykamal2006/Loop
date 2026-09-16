@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck, IndianRupee } from "lucide-react";
 import type { TrustedVehicle } from "@/lib/types";
 import ExpectedFaresModal from "./ExpectedFaresModal";
+import FastAvatar from "@/components/ui/FastAvatar";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
 
 
@@ -185,13 +186,15 @@ export default function TrustedVehiclesView() {
                   </div>
 
                   <div className="flex items-center gap-1.5 mt-2">
-                    {v.profiles?.avatar_url ? (
-                      <img src={v.profiles.avatar_url} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full bg-white/10 flex items-center justify-center text-[7px] font-bold">
-                        {v.profiles?.display_name?.substring(0, 1).toUpperCase()}
-                      </div>
-                    )}
+                    <FastAvatar
+                      src={v.profiles?.avatar_url}
+                      name={v.profiles?.display_name || "Student"}
+                      sizeClassName="w-3.5 h-3.5"
+                      roundedClassName="rounded-full"
+                      initialsText={(v.profiles?.display_name || "S").substring(0, 1).toUpperCase()}
+                      initialsClassName="text-[7px] font-bold"
+                      fallbackBgClassName="bg-white/10"
+                    />
                     <p className="text-[9px] uppercase tracking-wider font-bold opacity-60 truncate">
                       Added by {isOwner ? "You" : v.profiles?.display_name || "Student"}
                     </p>

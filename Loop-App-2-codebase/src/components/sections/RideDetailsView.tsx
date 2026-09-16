@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
+import FastAvatar from "@/components/ui/FastAvatar";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatDepartureFull } from "@/lib/dateFormatter";
@@ -434,15 +435,14 @@ export default function RideDetailsView() {
                       is_student_verified: isStudentVerified,
                     })}
                   >
-                    {avatar ? (
-                      <img src={avatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#FFC554]/20 border border-[#FFC554]/30 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-black text-[#FFC554]">
-                          {displayName.substring(0, 2).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <FastAvatar
+                      src={avatar}
+                      name={displayName}
+                      sizeClassName="w-8 h-8"
+                      borderClassName="border border-white/10"
+                      initialsClassName="text-xs font-black text-[#FFC554]"
+                      fallbackBgClassName="bg-[#FFC554]/20 border border-[#FFC554]/30"
+                    />
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="text-sm font-bold leading-tight break-words">{displayName}</span>
