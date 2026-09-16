@@ -9,6 +9,7 @@ import { formatLocation } from "@/lib/locationFormatter";
 import { X, Clock, MapPin, Edit3, Calendar } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDepartureFull, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -36,6 +37,52 @@ export default function EditLoopModal({
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
+
+  const rawTime24 = React.useMemo(() => {
+    if (!hour || !minute) return "";
+    let h = parseInt(hour, 10);
+    if (ampm === "PM" && h < 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  }, [hour, minute, ampm]);
+
+  const hasTime = Boolean(hour && minute);
+  const formattedTimeDisplay = hasTime
+    ? `${hour.padStart(2, "0")}:${minute.padStart(2, "0")} ${ampm}`
+    : "Select Departure Time";
+
+  const handleOpenTimePicker = () => {
+    triggerHaptic(8);
+    if (timeInputRef.current) {
+      try {
+        if ("showPicker" in HTMLInputElement.prototype) {
+          timeInputRef.current.showPicker();
+        } else {
+          timeInputRef.current.focus();
+        }
+      } catch {
+        timeInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) {
+      setHour("");
+      setMinute("");
+      return;
+    }
+    const [hStr, mStr] = val.split(":");
+    const h = parseInt(hStr, 10);
+    const newAmpm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    setHour(String(h12).padStart(2, "0"));
+    setMinute(mStr.padStart(2, "0"));
+    setAmpm(newAmpm);
+    triggerHaptic(8);
+  };
 
   const handleOpenDatePicker = () => {
     if (dateInputRef.current) {
@@ -313,48 +360,40 @@ export default function EditLoopModal({
           <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
             <Clock size={11} className="text-[#FFC554]" /> Departure Time
           </label>
-          <div className="flex gap-2 items-center">
-            <div className={`flex-1 flex items-center h-11 ${bg} border ${border} rounded-[18px] px-3 focus-within:border-[#FFC554] transition-colors`}>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={2}
-                value={hour}
-                onChange={(e) => handleHourChange(e.target.value)}
-                placeholder="HH"
-                className="w-8 text-center text-sm font-black bg-transparent outline-none placeholder:opacity-30"
-              />
-              <span className={`font-black ${mutedText} mx-1`}>:</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={2}
-                value={minute}
-                onChange={(e) => handleMinuteChange(e.target.value)}
-                placeholder="MM"
-                className="w-8 text-center text-sm font-black bg-transparent outline-none placeholder:opacity-30"
-              />
+          <div
+            onClick={handleOpenTimePicker}
+            className={`w-full h-11 ${bg} border ${
+              hasTime ? "border-[#FFC554]" : border
+            } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Clock size={15} className={hasTime ? "text-[#FFC554]" : mutedText} />
+              <span className={`text-xs font-bold ${hasTime ? (isDark ? "text-white" : "text-black") : mutedText}`}>
+                {formattedTimeDisplay}
+              </span>
             </div>
-
-            {/* AM/PM Switch */}
-            <div className={`flex p-1 ${bg} border ${border} rounded-[18px] h-11`}>
-              {(["AM", "PM"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setAmpm(mode)}
-                  className={`px-3 rounded-[14px] text-[11px] font-black transition-all ${
-                    ampm === mode
-                      ? "bg-[#FFC554] text-black shadow-sm"
-                      : `${mutedText} hover:text-white`
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
+            <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+              hasTime
+                ? "bg-[#FFC554] text-black shadow-sm"
+                : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+            }`}>
+              {hasTime ? "Change" : "Select"}
+            </span>
+            <input
+              ref={timeInputRef}
+              type="time"
+              value={rawTime24}
+              onChange={handleTimeChange}
+              onClick={(e) => {
+                e.stopPropagation();
+                try {
+                  if ("showPicker" in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                } catch {}
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar, Clock } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -22,6 +22,66 @@ export default function CreateView() {
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
+
+  const rawTime24 = React.useMemo(() => {
+    if (!hour || !minute) return "";
+    let h = parseInt(hour, 10);
+    if (ampm === "PM" && h < 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  }, [hour, minute, ampm]);
+
+  const hasTime = Boolean(hour && minute);
+  const formattedTimeDisplay = hasTime
+    ? `${hour.padStart(2, "0")}:${minute.padStart(2, "0")} ${ampm}`
+    : "Select Departure Time";
+
+  const handleOpenTimePicker = () => {
+    triggerHaptic(8);
+    if (timeInputRef.current) {
+      try {
+        if ("showPicker" in HTMLInputElement.prototype) {
+          timeInputRef.current.showPicker();
+        } else {
+          timeInputRef.current.focus();
+        }
+      } catch {
+        timeInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val) {
+      setHour("");
+      setMinute("");
+      return;
+    }
+    const [hStr, mStr] = val.split(":");
+    const h = parseInt(hStr, 10);
+    const newAmpm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    setHour(String(h12).padStart(2, "0"));
+    setMinute(mStr.padStart(2, "0"));
+    setAmpm(newAmpm);
+    triggerHaptic(8);
+  };
+
+  const setQuickTimeOffset = (offsetMinutes: number) => {
+    triggerHaptic(8);
+    const now = new Date(Date.now() + offsetMinutes * 60 * 1000);
+    const h = now.getHours();
+    const newAmpm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    setHour(String(h12).padStart(2, "0"));
+    setMinute(String(now.getMinutes()).padStart(2, "0"));
+    setAmpm(newAmpm);
+    if (!travelDate) {
+      setTravelDate(todayStr);
+    }
+  };
 
   const handleOpenDatePicker = () => {
     triggerHaptic(8);
@@ -242,39 +302,61 @@ export default function CreateView() {
 
       {/* Starting Time */}
       <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Time</label>
-        <div className={`${cardBg} border ${border} rounded-[20px] p-2.5 px-3 flex items-center justify-between`}>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={hour}
-              onChange={(e) => handleHourChange(e.target.value)}
-              onBlur={padTime}
-              placeholder="HH"
-              className={`w-9 h-9 ${bg} border ${border} rounded-xl text-center font-black text-sm outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
-            />
-            <span className="font-black text-[#FFC554] text-base">:</span>
-            <input
-              type="text"
-              value={minute}
-              onChange={(e) => handleMinuteChange(e.target.value)}
-              onBlur={padTime}
-              placeholder="MM"
-              className={`w-9 h-9 ${bg} border ${border} rounded-xl text-center font-black text-sm outline-none focus:border-[#FFC554] placeholder:text-gray-500 placeholder:font-bold`}
-            />
-          </div>
-          <div className={`flex ${bg} p-0.5 rounded-xl border ${border}`}>
-            {(["AM", "PM"] as const).map((p) => (
+        <div className="flex items-center justify-between ml-1">
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
+            Starting Time
+          </label>
+          <div className="flex items-center gap-1">
+            {[
+              { label: "+15m", mins: 15 },
+              { label: "+30m", mins: 30 },
+              { label: "+1h", mins: 60 },
+            ].map((chip) => (
               <button
-                key={p}
+                key={chip.label}
                 type="button"
-                onClick={() => setAmpm(p)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all ${ampm === p ? "bg-[#FFC554] text-black shadow-sm" : mutedText}`}
+                onClick={() => setQuickTimeOffset(chip.mins)}
+                className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${border} ${cardBg} ${mutedText} hover:text-[#FFC554] hover:border-[#FFC554]/50 active:scale-95 transition-all`}
               >
-                {p}
+                {chip.label}
               </button>
             ))}
           </div>
+        </div>
+        <div
+          onClick={handleOpenTimePicker}
+          className={`w-full h-11 ${cardBg} border ${
+            hasTime ? `border-[#FFC554] ${isDark ? "text-white" : "text-zinc-900"}` : `${border} ${mutedText}`
+          } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Clock size={16} className={hasTime ? "text-[#FFC554]" : mutedText} />
+            <span className={`text-xs font-bold ${hasTime ? (isDark ? "text-white" : "text-black") : mutedText}`}>
+              {formattedTimeDisplay}
+            </span>
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+            hasTime
+              ? "bg-[#FFC554] text-black shadow-sm"
+              : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+          }`}>
+            {hasTime ? "Change" : "Select"}
+          </span>
+          <input
+            ref={timeInputRef}
+            type="time"
+            value={rawTime24}
+            onChange={handleTimeChange}
+            onClick={(e) => {
+              e.stopPropagation();
+              try {
+                if ("showPicker" in HTMLInputElement.prototype) {
+                  e.currentTarget.showPicker();
+                }
+              } catch {}
+            }}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          />
         </div>
       </div>
 
