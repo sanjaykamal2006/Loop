@@ -158,7 +158,7 @@ export default function EditLoopModal({
     const formattedDest = formatLocation(dest);
     if (!formattedStart.trim()) return toast.error("Starting Point is required");
     if (!formattedDest.trim()) return toast.error("Destination is required");
-    if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
+    if (!hour.trim() || !minute.trim()) return toast.error("Time of Travel is required");
     if (isSaving) return;
 
     setIsSaving(true);
@@ -355,10 +355,10 @@ export default function EditLoopModal({
           </div>
         </div>
 
-        {/* Departure Time */}
+        {/* Time of Travel */}
         <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
-            <Clock size={11} className="text-[#FFC554]" /> Departure Time
+          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1.5`}>
+            <Clock size={11} className="text-[#FFC554]" /> Time of Travel
           </label>
           <div
             onClick={handleOpenTimePicker}
@@ -368,9 +368,20 @@ export default function EditLoopModal({
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Clock size={15} className={hasTime ? "text-[#FFC554]" : mutedText} />
-              <span className={`text-xs font-bold ${hasTime ? (isDark ? "text-white" : "text-black") : mutedText}`}>
-                {formattedTimeDisplay}
-              </span>
+              {hasTime ? (
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+                    {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
+                  </span>
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40 uppercase tracking-wider">
+                    {ampm}
+                  </span>
+                </div>
+              ) : (
+                <span className={`text-xs font-bold ${mutedText}`}>
+                  Pick a Time (from clock)
+                </span>
+              )}
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
               hasTime

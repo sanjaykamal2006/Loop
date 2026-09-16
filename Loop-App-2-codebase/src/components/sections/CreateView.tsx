@@ -69,20 +69,6 @@ export default function CreateView() {
     triggerHaptic(8);
   };
 
-  const setQuickTimeOffset = (offsetMinutes: number) => {
-    triggerHaptic(8);
-    const now = new Date(Date.now() + offsetMinutes * 60 * 1000);
-    const h = now.getHours();
-    const newAmpm = h >= 12 ? "PM" : "AM";
-    const h12 = h % 12 || 12;
-    setHour(String(h12).padStart(2, "0"));
-    setMinute(String(now.getMinutes()).padStart(2, "0"));
-    setAmpm(newAmpm);
-    if (!travelDate) {
-      setTravelDate(todayStr);
-    }
-  };
-
   const handleOpenDatePicker = () => {
     triggerHaptic(8);
     if (dateInputRef.current) {
@@ -170,7 +156,7 @@ export default function CreateView() {
     if (isFemaleOnly && profile.gender !== "female") {
       return toast.error("Applicable for female travellers only");
     }
-    if (!hour.trim() || !minute.trim()) return toast.error("Starting Time is required");
+    if (!hour.trim() || !minute.trim()) return toast.error("Time of Travel is required");
     if (isCreatingLoop) return;
 
     setIsCreatingLoop(true);
@@ -300,29 +286,11 @@ export default function CreateView() {
         </div>
       </div>
 
-      {/* Starting Time */}
+      {/* Time of Travel */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between ml-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
-            Starting Time
-          </label>
-          <div className="flex items-center gap-1">
-            {[
-              { label: "+15m", mins: 15 },
-              { label: "+30m", mins: 30 },
-              { label: "+1h", mins: 60 },
-            ].map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => setQuickTimeOffset(chip.mins)}
-                className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${border} ${cardBg} ${mutedText} hover:text-[#FFC554] hover:border-[#FFC554]/50 active:scale-95 transition-all`}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1.5`}>
+          <Clock size={11} className="text-[#FFC554]" /> Time of Travel
+        </label>
         <div
           onClick={handleOpenTimePicker}
           className={`w-full h-11 ${cardBg} border ${
@@ -331,9 +299,20 @@ export default function CreateView() {
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <Clock size={16} className={hasTime ? "text-[#FFC554]" : mutedText} />
-            <span className={`text-xs font-bold ${hasTime ? (isDark ? "text-white" : "text-black") : mutedText}`}>
-              {formattedTimeDisplay}
-            </span>
+            {hasTime ? (
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+                  {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40 uppercase tracking-wider">
+                  {ampm}
+                </span>
+              </div>
+            ) : (
+              <span className={`text-xs font-bold ${mutedText}`}>
+                Pick a Time (from clock)
+              </span>
+            )}
           </div>
           <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
             hasTime
