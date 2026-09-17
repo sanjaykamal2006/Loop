@@ -228,7 +228,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                 className={`p-3 rounded-2xl ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} border ${border} flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.email.bg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.email.color}`}>
+                  <div className={`w-8 h-8 rounded-xl ${isDark ? CREATOR_LINKS.email.bg : "bg-rose-500/15"} flex items-center justify-center shrink-0 ${isDark ? CREATOR_LINKS.email.color : "text-[#881337]"}`}>
                     <Mail size={16} />
                   </div>
                   <div className="flex items-center gap-1">

@@ -323,7 +323,11 @@ export default function ChatListView() {
         </p>
         <button
           onClick={() => setView("home")}
-          className="mt-6 px-6 py-2.5 rounded-full bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider active:scale-95 shadow-lg shadow-[#FFC554]/15 hover:brightness-105 transition-all cursor-pointer"
+          className={`mt-6 px-6 py-2.5 rounded-full ${
+            isDark
+              ? "bg-[#FFC554] text-black shadow-lg shadow-[#FFC554]/15"
+              : "bg-[#881337] text-white shadow-lg shadow-[#881337]/20"
+          } font-black text-xs uppercase tracking-wider active:scale-95 hover:brightness-105 transition-all cursor-pointer`}
         >
           Explore Campus Rides
         </button>
@@ -342,7 +346,9 @@ export default function ChatListView() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search conversations..."
-            className={`w-full h-9 pl-9 pr-9 rounded-[16px] ${cardBg} border ${border} text-xs font-bold outline-none focus:border-[#FFC554] transition-colors`}
+            className={`w-full h-9 pl-9 pr-9 rounded-[16px] ${cardBg} border ${border} text-xs font-bold outline-none ${
+              isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+            } transition-colors`}
             autoFocus
           />
           {searchQuery && (
@@ -392,17 +398,17 @@ export default function ChatListView() {
               isDark
                 ? "bg-[#121214] border-white/10 hover:border-white/20"
                 : "bg-white border-black/[0.08] shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
-            } ${isUnread ? "ring-1 ring-[#FFC554]/60" : ""}`}
+            } ${isUnread ? (isDark ? "ring-1 ring-[#FFC554]/60" : "ring-1 ring-[#881337]/60") : ""}`}
           >
             {/* Top Row: Icon + Destination + Time + Chevron */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                {/* Yellow Tinted Icon Badge (Compact w-9 h-9) */}
+                {/* Destination Icon Badge (Compact w-9 h-9) */}
                 <div
                   className={`w-9 h-9 rounded-[14px] flex items-center justify-center shrink-0 transition-colors ${
                     isDark
                       ? "bg-[#281c08] text-[#FFC554] border border-[#FFC554]/20"
-                      : "bg-[#FFF0CE] text-[#8B5A10] border border-[#FDE68A]"
+                      : "bg-[#881337]/10 text-[#881337] border border-[#881337]/20"
                   }`}
                 >
                   {getDestinationIcon(loop.destination, loop.vehicle_type)}
@@ -415,7 +421,7 @@ export default function ChatListView() {
                       {loop.destination}
                     </h3>
                     {isUnread && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#FFC554] animate-pulse shrink-0" />
+                      <span className={`w-1.5 h-1.5 rounded-full ${isDark ? "bg-[#FFC554]" : "bg-[#881337]"} animate-pulse shrink-0`} />
                     )}
                   </div>
                   <p className={`text-[10px] font-medium ${mutedText} mt-0.5`}>

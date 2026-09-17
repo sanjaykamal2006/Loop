@@ -191,7 +191,7 @@ export default function AppHeader() {
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
-                  <Languages size={15} className="text-amber-400" />
+                  <Languages size={15} className={isDark ? "text-amber-400" : "text-[#881337]"} />
                   <span>Telugu Auto Phrases</span>
                 </button>
 
