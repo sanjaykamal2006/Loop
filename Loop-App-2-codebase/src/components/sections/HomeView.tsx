@@ -34,7 +34,7 @@ const LoopCard = React.memo(function LoopCard({
   return (
     <div
       onClick={onSelect}
-      style={{ "--stagger-delay": `${Math.min(index, 6) * 35}ms` } as React.CSSProperties}
+      style={{ "--stagger-delay": `${Math.min(index, 8) * 45}ms` } as React.CSSProperties}
       className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30 animate-card-enter`}
     >
       {/* Left Squircle Icon Container */}

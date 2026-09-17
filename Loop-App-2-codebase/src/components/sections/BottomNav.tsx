@@ -13,7 +13,7 @@ export default function BottomNav() {
   if (view === "chat" || view === "ride-details" || view === "changelog") return null;
 
   const handleNavClick = (v: View) => {
-    triggerHaptic(12);
+    triggerHaptic(14);
     if (v === "create") {
       const isProfileComplete = Boolean(
         profile.gender && 
@@ -99,7 +99,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-2 pb-[max(0.85rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
         isDark
           ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
           : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
@@ -117,20 +117,24 @@ export default function BottomNav() {
               key={v}
               onClick={() => handleNavClick(v)}
               aria-label={`${label} tab`}
-              className="flex flex-col items-center justify-center flex-1 py-1 relative select-none cursor-pointer group active:scale-[0.93] transition-transform"
+              className="flex flex-col items-center justify-center flex-1 py-0.5 relative select-none cursor-pointer group active:scale-[0.91] transition-transform duration-100"
             >
-              {/* Icon Container with refined micro-settle physics */}
+              {/* Icon Container with refined micro-settle physics & active pill backdrop */}
               <div
                 key={`${v}-${isActive}`}
-                className={`relative flex items-center justify-center ${
-                  isActive ? "animate-tab-settle" : "group-hover:scale-105"
+                className={`relative px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  isActive
+                    ? isDark
+                      ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
+                      : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
+                    : "group-hover:bg-white/5"
                 }`}
               >
                 {icon(isActive)}
 
                 {/* Unread Chat Radar Badge */}
                 {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
-                  <span className="absolute -top-0.5 -right-1 flex h-2.5 w-2.5">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
                     <span
                       className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                         isDark ? "bg-[#FFC554]" : "bg-[#881337]"
@@ -152,8 +156,8 @@ export default function BottomNav() {
                 className={`text-[11px] sm:text-xs tracking-tight mt-0.5 transition-colors duration-200 ${
                   isActive
                     ? isDark
-                      ? "text-white font-bold"
-                      : "text-zinc-950 font-bold"
+                      ? "text-white font-black"
+                      : "text-zinc-950 font-black"
                     : isDark
                     ? "text-zinc-500 font-medium"
                     : "text-zinc-400 font-medium"
@@ -162,14 +166,14 @@ export default function BottomNav() {
                 {label}
               </span>
 
-              {/* Subtle active indicator dot */}
+              {/* Dynamic Active Indicator Pill */}
               <span
-                className={`w-1 h-1 rounded-full mt-0.5 transition-all duration-300 ${
+                className={`h-0.5 rounded-full mt-0.5 transition-all duration-300 ${
                   isActive
                     ? isDark
-                      ? "bg-[#FFC554] opacity-100 shadow-[0_0_6px_#FFC554]"
-                      : "bg-[#881337] opacity-100 shadow-[0_0_6px_rgba(136,19,55,0.5)]"
-                    : "opacity-0 scale-50"
+                      ? "w-3.5 bg-[#FFC554] opacity-100 shadow-[0_0_6px_#FFC554]"
+                      : "w-3.5 bg-[#881337] opacity-100 shadow-[0_0_6px_rgba(136,19,55,0.5)]"
+                    : "w-0 opacity-0"
                 }`}
               />
             </button>

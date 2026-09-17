@@ -388,7 +388,7 @@ export default function ChatListView() {
         return (
           <div
             key={loop.id}
-            style={{ "--stagger-delay": `${Math.min(idx, 6) * 35}ms` } as React.CSSProperties}
+            style={{ "--stagger-delay": `${Math.min(idx, 8) * 45}ms` } as React.CSSProperties}
             onClick={() => {
               if (isUnread) markLoopAsRead(loop.id);
               setSelectedLoop(loop);
