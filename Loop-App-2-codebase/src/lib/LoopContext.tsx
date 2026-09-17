@@ -271,7 +271,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     text: isDark ? "text-white" : "text-[#1C1917]",
     border: isDark ? "border-[#27272A]" : "border-[#DFD9CE]",
     cardBg: isDark ? "bg-[#121212]" : "bg-[#FAF8F5]",
-    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#78716C]",
+    mutedText: isDark ? "text-[#A1A1AA]" : "text-[#57534E]",
     accentText: isDark ? "text-[#FFC554]" : "text-[#881337]",
     accentBg: isDark ? "bg-[#FFC554]" : "bg-[#881337]",
     accentBgSubtle: isDark ? "bg-[#FFC554]/15" : "bg-[#881337]/10",

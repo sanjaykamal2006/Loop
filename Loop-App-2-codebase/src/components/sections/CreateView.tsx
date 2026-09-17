@@ -302,15 +302,19 @@ export default function CreateView() {
           </button>
         </div>
       )}
-      {/* Unified Route & Schedule Card */}
-      <div className={`relative ${cardBg} border ${border} rounded-[28px] shadow-sm overflow-hidden`}>
+      {/* Route Card (From & To) */}
+      <div className={`relative ${cardBg} border ${border} rounded-[24px] shadow-sm overflow-hidden`}>
         {/* Row 1: Starting Point */}
-        <div className="relative px-4 sm:px-5 py-3.5 sm:py-4 pr-14 flex items-center gap-3.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
-            <AutoRickshawIcon size={24} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+        <div className="relative px-4 sm:px-5 py-3.5 pr-14 flex items-center gap-3.5">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            isDark ? "bg-white/5 text-zinc-300" : "bg-black/5 text-zinc-700"
+          }`}>
+            <AutoRickshawIcon size={22} strokeWidth={1.8} />
           </div>
           <div className="flex-1 min-w-0">
-            <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+            <label className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider block leading-tight ${
+              isDark ? "text-zinc-400" : "text-stone-600"
+            }`}>
               Starting Point
             </label>
             <input
@@ -318,37 +322,41 @@ export default function CreateView() {
               onChange={(e) => setStartPoint(e.target.value)}
               onBlur={() => setStartPoint(formatLocation(startPoint))}
               placeholder="Where from?"
-              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-base sm:text-[17px] font-black ${
-                isDark ? "text-white" : "text-zinc-900"
-              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs sm:placeholder:text-sm`}
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-bold ${
+                isDark ? "text-white placeholder:text-zinc-400" : "text-zinc-900 placeholder:text-stone-500"
+              }`}
             />
           </div>
         </div>
 
         {/* Divider with Circular Swap Button */}
-        <div className="relative w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]">
+        <div className="relative w-full border-b border-black/[0.06] dark:border-white/[0.08]">
           <button
             type="button"
             onClick={handleSwapLocations}
             aria-label="Swap starting point and destination"
-            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-sm ${
+            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-sm cursor-pointer ${
               isDark
                 ? "bg-[#1c1c1e] border border-white/15 text-[#FFC554] hover:border-[#FFC554]/50"
                 : "bg-white border border-black/10 text-[#881337] hover:border-[#881337]/50"
             }`}
           >
-            <ArrowUpDown size={15} strokeWidth={2.4} />
+            <ArrowUpDown size={14} strokeWidth={2.4} />
           </button>
         </div>
 
         {/* Row 2: Destination */}
-        <div className="relative px-4 sm:px-5 py-3.5 sm:py-4 pr-14 flex items-center gap-3.5 sm:gap-4">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 relative">
-            <AutoRickshawIcon size={24} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
-            <Flag size={10} strokeWidth={2.6} className={`absolute bottom-0 right-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
+        <div className="relative px-4 sm:px-5 py-3.5 pr-14 flex items-center gap-3.5">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ${
+            isDark ? "bg-white/5 text-zinc-300" : "bg-black/5 text-zinc-700"
+          }`}>
+            <AutoRickshawIcon size={22} strokeWidth={1.8} />
+            <Flag size={10} strokeWidth={2.6} className={`absolute bottom-1 right-1 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+            <label className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider block leading-tight ${
+              isDark ? "text-zinc-400" : "text-stone-600"
+            }`}>
               Destination
             </label>
             <input
@@ -356,45 +364,38 @@ export default function CreateView() {
               onChange={(e) => setDest(e.target.value)}
               onBlur={() => setDest(formatLocation(dest))}
               placeholder="Where to?"
-              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-base sm:text-[17px] font-black ${
-                isDark ? "text-white" : "text-zinc-900"
-              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs sm:placeholder:text-sm`}
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-bold ${
+                isDark ? "text-white placeholder:text-zinc-400" : "text-zinc-900 placeholder:text-stone-500"
+              }`}
             />
           </div>
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]" />
-
-        {/* Row 3: Date of Journey */}
+      {/* Schedule Card (Date & Time Side-by-Side) */}
+      <div className={`relative ${cardBg} border ${border} rounded-[22px] shadow-sm overflow-hidden grid grid-cols-2 divide-x divide-black/[0.06] dark:divide-white/[0.08]`}>
+        {/* Date Column */}
         <div
           onClick={handleOpenDatePicker}
-          className="relative px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
+          className="relative p-3.5 sm:p-4 cursor-pointer active:bg-black/[0.03] dark:active:bg-white/[0.04] transition-colors"
         >
-          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
-              <Calendar size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
-            </div>
-            <div>
-              <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
-                Date of Journey
-              </label>
-              <p className={`text-[15px] sm:text-base font-black mt-0.5 ${
-                travelDate ? (isDark ? "text-white" : "text-zinc-900") : mutedText
-              }`}>
-                {travelDate ? formatJourneyDate(travelDate) : "Select Journey Date"}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <Calendar size={15} strokeWidth={2.2} className={travelDate ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : (isDark ? "text-zinc-400" : "text-stone-500")} />
+            <span className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider ${
+              isDark ? "text-zinc-400" : "text-stone-600"
+            }`}>
+              Date
+            </span>
           </div>
-          
-          <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shrink-0 ${
-            travelDate
-              ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
-              : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
-          }`}>
-            {travelDate ? "Change" : "Select"}
-          </span>
-
+          <div className="mt-1.5">
+            <p className={`text-sm sm:text-[15px] font-bold truncate ${
+              travelDate
+                ? (isDark ? "text-white font-black" : "text-zinc-950 font-black")
+                : (isDark ? "text-zinc-200" : "text-stone-800")
+            }`}>
+              {travelDate ? formatJourneyDate(travelDate) : "Select Date"}
+            </p>
+          </div>
           <input
             ref={dateInputRef}
             type="date"
@@ -413,51 +414,41 @@ export default function CreateView() {
           />
         </div>
 
-        {/* Divider */}
-        <div className="w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]" />
-
-        {/* Row 4: Time of Travel */}
+        {/* Time Column */}
         <div
           onClick={handleOpenTimePicker}
-          className="relative px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
+          className="relative p-3.5 sm:p-4 cursor-pointer active:bg-black/[0.03] dark:active:bg-white/[0.04] transition-colors"
         >
-          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
-              <Clock size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
-            </div>
-            <div>
-              <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
-                Time of Travel
-              </label>
-              {hasTime ? (
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`text-[15px] sm:text-base font-black ${isDark ? "text-white" : "text-zinc-900"}`}>
-                    {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
-                  </span>
-                  <span className={`text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                    isDark
-                      ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
-                      : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
-                  }`}>
-                    {ampm}
-                  </span>
-                </div>
-              ) : (
-                <p className={`text-[15px] sm:text-base font-black mt-0.5 ${mutedText}`}>
-                  Select Departure Time
-                </p>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            <Clock size={15} strokeWidth={2.2} className={hasTime ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : (isDark ? "text-zinc-400" : "text-stone-500")} />
+            <span className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider ${
+              isDark ? "text-zinc-400" : "text-stone-600"
+            }`}>
+              Time
+            </span>
           </div>
-
-          <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shrink-0 ${
-            hasTime
-              ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
-              : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
-          }`}>
-            {hasTime ? "Change" : "Select"}
-          </span>
-
+          <div className="mt-1.5 flex items-center gap-1.5">
+            {hasTime ? (
+              <>
+                <span className={`text-sm sm:text-[15px] font-black ${isDark ? "text-white" : "text-zinc-950"}`}>
+                  {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
+                </span>
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                  isDark
+                    ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
+                    : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
+                }`}>
+                  {ampm}
+                </span>
+              </>
+            ) : (
+              <p className={`text-sm sm:text-[15px] font-bold ${
+                isDark ? "text-zinc-200" : "text-stone-800"
+              }`}>
+                Select Time
+              </p>
+            )}
+          </div>
           <input
             ref={timeInputRef}
             type="time"
@@ -540,7 +531,7 @@ export default function CreateView() {
                   className={`flex-1 h-9 sm:h-10 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs cursor-pointer ${
                     isSelected
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black" : "bg-[#881337] border-[#881337] text-white shadow-sm font-black")
-                      : `${bg} ${border} ${mutedText} font-bold`
+                      : `${cardBg} ${border} ${isDark ? "text-zinc-300" : "text-stone-700"} font-bold`
                   }`}
                 >
                   <v.Icon size={15} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
@@ -572,7 +563,7 @@ export default function CreateView() {
                 className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                   limit === n
                     ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
-                    : `${border} ${cardBg} ${mutedText}`
+                    : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                 }`}
               >
                 {n}
@@ -612,7 +603,7 @@ export default function CreateView() {
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
-                      : `${border} ${cardBg} ${mutedText}`
+                      : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
                   {n}
@@ -628,7 +619,7 @@ export default function CreateView() {
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
-                      : `${border} ${cardBg} ${mutedText}`
+                      : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
                   {n}
