@@ -280,10 +280,10 @@ export default function CreateView() {
   };
 
   return (
-    <div className="space-y-2.5 pt-1 pb-4">
+    <div className="space-y-3 sm:space-y-3.5 pt-1.5 pb-2">
       {/* Return Trip Banner */}
       {isReturnTrip && (
-        <div className="flex items-center justify-between px-3.5 py-2 rounded-[16px] bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-bold animate-fade-in shadow-sm">
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[18px] bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-bold animate-fade-in shadow-sm">
           <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
             <Repeat size={12} strokeWidth={2.5} />
             <span>Return Ride (Auto-Reversed Route)</span>
@@ -302,15 +302,15 @@ export default function CreateView() {
           </button>
         </div>
       )}
-      {/* Unified Route & Schedule Card (MakeMyTrip / Train style) */}
-      <div className={`relative ${cardBg} border ${border} rounded-[26px] shadow-sm overflow-hidden`}>
+      {/* Unified Route & Schedule Card */}
+      <div className={`relative ${cardBg} border ${border} rounded-[28px] shadow-sm overflow-hidden`}>
         {/* Row 1: Starting Point */}
-        <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-            <AutoRickshawIcon size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+        <div className="relative px-4 sm:px-5 py-3.5 sm:py-4 pr-14 flex items-center gap-3.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
+            <AutoRickshawIcon size={24} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
           </div>
           <div className="flex-1 min-w-0">
-            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+            <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
               Starting Point
             </label>
             <input
@@ -318,9 +318,9 @@ export default function CreateView() {
               onChange={(e) => setStartPoint(e.target.value)}
               onBlur={() => setStartPoint(formatLocation(startPoint))}
               placeholder="Where from?"
-              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-black ${
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-base sm:text-[17px] font-black ${
                 isDark ? "text-white" : "text-zinc-900"
-              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs`}
+              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs sm:placeholder:text-sm`}
             />
           </div>
         </div>
@@ -331,24 +331,24 @@ export default function CreateView() {
             type="button"
             onClick={handleSwapLocations}
             aria-label="Swap starting point and destination"
-            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-sm ${
+            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-sm ${
               isDark
                 ? "bg-[#1c1c1e] border border-white/15 text-[#FFC554] hover:border-[#FFC554]/50"
                 : "bg-white border border-black/10 text-[#881337] hover:border-[#881337]/50"
             }`}
           >
-            <ArrowUpDown size={14} strokeWidth={2.4} />
+            <ArrowUpDown size={15} strokeWidth={2.4} />
           </button>
         </div>
 
         {/* Row 2: Destination */}
-        <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 relative">
-            <AutoRickshawIcon size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
-            <Flag size={9} strokeWidth={2.6} className={`absolute bottom-0 right-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
+        <div className="relative px-4 sm:px-5 py-3.5 sm:py-4 pr-14 flex items-center gap-3.5 sm:gap-4">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 relative">
+            <AutoRickshawIcon size={24} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            <Flag size={10} strokeWidth={2.6} className={`absolute bottom-0 right-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+            <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
               Destination
             </label>
             <input
@@ -356,9 +356,9 @@ export default function CreateView() {
               onChange={(e) => setDest(e.target.value)}
               onBlur={() => setDest(formatLocation(dest))}
               placeholder="Where to?"
-              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-black ${
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-base sm:text-[17px] font-black ${
                 isDark ? "text-white" : "text-zinc-900"
-              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs`}
+              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs sm:placeholder:text-sm`}
             />
           </div>
         </div>
@@ -369,17 +369,17 @@ export default function CreateView() {
         {/* Row 3: Date of Journey */}
         <div
           onClick={handleOpenDatePicker}
-          className="relative px-4 py-2.5 sm:py-3 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
+          className="relative px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-              <Calendar size={20} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
+              <Calendar size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
             </div>
             <div>
-              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+              <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
                 Date of Journey
               </label>
-              <p className={`text-sm sm:text-[15px] font-black mt-0.5 ${
+              <p className={`text-[15px] sm:text-base font-black mt-0.5 ${
                 travelDate ? (isDark ? "text-white" : "text-zinc-900") : mutedText
               }`}>
                 {travelDate ? formatJourneyDate(travelDate) : "Select Journey Date"}
@@ -387,7 +387,7 @@ export default function CreateView() {
             </div>
           </div>
           
-          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+          <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shrink-0 ${
             travelDate
               ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
               : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
@@ -419,22 +419,22 @@ export default function CreateView() {
         {/* Row 4: Time of Travel */}
         <div
           onClick={handleOpenTimePicker}
-          className="relative px-4 py-2.5 sm:py-3 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
+          className="relative px-4 sm:px-5 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-              <Clock size={20} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0">
+              <Clock size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
             </div>
             <div>
-              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+              <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
                 Time of Travel
               </label>
               {hasTime ? (
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`text-sm sm:text-[15px] font-black ${isDark ? "text-white" : "text-zinc-900"}`}>
+                  <span className={`text-[15px] sm:text-base font-black ${isDark ? "text-white" : "text-zinc-900"}`}>
                     {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
                   </span>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                  <span className={`text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
                     isDark
                       ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
                       : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
@@ -443,14 +443,14 @@ export default function CreateView() {
                   </span>
                 </div>
               ) : (
-                <p className={`text-sm sm:text-[15px] font-black mt-0.5 ${mutedText}`}>
+                <p className={`text-[15px] sm:text-base font-black mt-0.5 ${mutedText}`}>
                   Select Departure Time
                 </p>
               )}
             </div>
           </div>
 
-          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
+          <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shrink-0 ${
             hasTime
               ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
               : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
@@ -477,21 +477,21 @@ export default function CreateView() {
       </div>
 
       {/* Offering a Ride Toggle Card with Compact Vehicle Pills */}
-      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] space-y-2.5 transition-all ${
+      <div className={`p-4 sm:p-4.5 px-4.5 ${cardBg} border ${border} rounded-[24px] space-y-2.5 transition-all ${
         isDriver ? (isDark ? "border-[#FFC554]/50 shadow-sm" : "border-[#881337]/40 shadow-sm") : ""
       }`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
+          <div className="flex items-center gap-3.5">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
               isDriver 
                 ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm") 
                 : (isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40")
             }`}>
-              <SteeringWheelIcon size={18} />
+              <SteeringWheelIcon size={20} />
             </div>
             <div className="space-y-0.5">
-              <span className="text-xs font-black tracking-tight uppercase block leading-tight">Offering a Ride</span>
-              <p className={`text-[10px] font-bold ${mutedText} leading-tight`}>Offer a lift with your vehicle</p>
+              <span className="text-xs sm:text-[13px] font-black tracking-tight uppercase block leading-tight">Offering a Ride</span>
+              <p className={`text-[10px] sm:text-[11px] font-bold ${mutedText} leading-tight`}>Offer a lift with your vehicle</p>
             </div>
           </div>
           <button
@@ -506,19 +506,19 @@ export default function CreateView() {
                 setLimit(4);
               }
             }}
-            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${
+            className={`w-12 h-7 rounded-full p-0.5 transition-colors duration-200 shrink-0 cursor-pointer ${
               isDriver 
                 ? (isDark ? "bg-[#FFC554]" : "bg-[#881337]") 
                 : (isDark ? "bg-zinc-800" : "bg-zinc-300")
             }`}
           >
-            <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-5" : "translate-x-0"}`} />
+            <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-5" : "translate-x-0"}`} />
           </button>
         </div>
 
         {/* Compact 1-Row Vehicle Selection Pills */}
         {isDriver && (
-          <div className="pt-1.5 border-t border-white/5 flex gap-1.5 animate-fade-in">
+          <div className="pt-2 border-t border-white/5 flex gap-2 animate-fade-in">
             {[
               { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
               { type: "bike", label: "Bike (1)", Icon: MotorcycleIcon },
@@ -537,14 +537,14 @@ export default function CreateView() {
                       setLimit(3);
                     }
                   }}
-                  className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
+                  className={`flex-1 h-9 sm:h-10 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs cursor-pointer ${
                     isSelected
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black" : "bg-[#881337] border-[#881337] text-white shadow-sm font-black")
                       : `${bg} ${border} ${mutedText} font-bold`
                   }`}
                 >
-                  <v.Icon size={14} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
-                  <span className="text-[10px] font-black uppercase tracking-wider">{v.label}</span>
+                  <v.Icon size={15} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
+                  <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{v.label}</span>
                 </button>
               );
             })}
@@ -554,22 +554,22 @@ export default function CreateView() {
 
       {/* Available Seats / Capacity */}
       {isDriver && vehicleType === "car" ? (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between ml-1">
-            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
+            <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
               Passenger Seats to Offer
             </label>
-            <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+            <span className={`text-[11px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
             </span>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setLimit(n)}
-                className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                   limit === n
                     ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
                     : `${border} ${cardBg} ${mutedText}`
@@ -581,35 +581,35 @@ export default function CreateView() {
           </div>
         </div>
       ) : isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
-        <div className={`p-3 ${cardBg} border ${border} rounded-[18px] flex items-center justify-between`}>
-          <div className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 rounded-lg ${
+        <div className={`p-3.5 ${cardBg} border ${border} rounded-[20px] flex items-center justify-between`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl ${
               isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
             } flex items-center justify-center shrink-0`}>
-              <Users size={14} />
+              <Users size={16} />
             </div>
             <div>
               <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
-              <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
+              <p className="text-xs sm:text-sm font-black">1 Passenger Seat (Pillion)</p>
             </div>
           </div>
-          <span className={`text-[10px] font-bold ${
+          <span className={`text-[10px] sm:text-[11px] font-bold ${
             isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"
-          } px-2.5 py-1 rounded-full`}>
+          } px-3 py-1 rounded-full`}>
             Driver + 1 Rider
           </span>
         </div>
       ) : !isDriver ? (
-        <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Total Group Size</label>
-          <div className="space-y-1.5">
-            <div className="flex gap-1.5">
+        <div className="space-y-1.5">
+          <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Total Group Size</label>
+          <div className="space-y-2">
+            <div className="flex gap-2">
               {[2, 3, 4, 5, 6].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                  className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
                       : `${border} ${cardBg} ${mutedText}`
@@ -619,13 +619,13 @@ export default function CreateView() {
                 </button>
               ))}
             </div>
-            <div className="flex gap-1.5 px-4">
+            <div className="flex gap-2 px-3 sm:px-4">
               {[7, 8, 9, 10].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                  className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
                       : `${border} ${cardBg} ${mutedText}`
@@ -642,15 +642,15 @@ export default function CreateView() {
       {/* Female Only Option */}
       <div 
         onClick={handleToggleFemaleOnly}
-        className={`flex items-center justify-between p-3 px-3.5 ${cardBg} border ${border} rounded-[20px] cursor-pointer active:scale-[0.99] transition-all ${isFemaleOnly ? "border-pink-500/50" : ""}`}
+        className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] cursor-pointer active:scale-[0.99] transition-all ${isFemaleOnly ? "border-pink-500/50" : ""}`}
       >
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
-            <Users size={16} strokeWidth={2.5} />
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
+            <Users size={17} strokeWidth={2.5} />
           </div>
           <div>
-            <span className="text-xs font-black tracking-tight uppercase">Female Only</span>
-            <p className={`text-[9px] font-bold ${mutedText}`}>Visible to women only</p>
+            <span className="text-xs sm:text-[13px] font-black tracking-tight uppercase">Female Only</span>
+            <p className={`text-[10px] font-bold ${mutedText}`}>Visible to women only</p>
           </div>
         </div>
         <button
@@ -659,9 +659,9 @@ export default function CreateView() {
             e.stopPropagation();
             handleToggleFemaleOnly();
           }}
-          className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
+          className={`w-12 h-7 rounded-full p-0.5 transition-colors duration-200 shrink-0 cursor-pointer ${isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
         >
-          <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-5" : "translate-x-0"}`} />
+          <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${isFemaleOnly ? "translate-x-5" : "translate-x-0"}`} />
         </button>
       </div>
 
@@ -669,11 +669,11 @@ export default function CreateView() {
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className={`w-full h-12 ${
+        className={`w-full h-13 sm:h-14 ${
           isDark 
             ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black" 
             : "bg-[#881337] hover:bg-[#700f2b] text-white"
-        } font-black rounded-[20px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all`}
+        } font-black rounded-[22px] text-xs sm:text-[13px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer`}
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>
