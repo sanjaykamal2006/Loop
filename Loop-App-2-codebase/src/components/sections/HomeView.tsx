@@ -17,7 +17,6 @@ interface LoopCardProps {
   border: string;
   timeFormatted: string;
   onSelect: () => void;
-  onAddReturn?: (loop: any) => void;
 }
 
 const LoopCard = React.memo(function LoopCard({
@@ -29,7 +28,6 @@ const LoopCard = React.memo(function LoopCard({
   border,
   timeFormatted,
   onSelect,
-  onAddReturn,
 }: LoopCardProps) {
   return (
     <div
@@ -83,25 +81,6 @@ const LoopCard = React.memo(function LoopCard({
                 Female
               </span>
             )}
-
-            {/* Quick 1-tap '+ Return' button for Host if this is an outbound ride */}
-            {isHost && loop.purpose !== "return" && onAddReturn && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddReturn(loop);
-                }}
-                className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-1 active:scale-95 transition-all shadow-sm ${
-                  isDark
-                    ? "bg-[#FFC554]/20 hover:bg-[#FFC554]/30 text-[#FFC554] border border-[#FFC554]/40"
-                    : "bg-[#881337]/10 hover:bg-[#881337]/20 text-[#881337] border border-[#881337]/30"
-                }`}
-              >
-                <Repeat size={8} strokeWidth={2.5} />
-                <span>+ Return</span>
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -120,20 +99,10 @@ const LoopCard = React.memo(function LoopCard({
 });
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, setCreatePrefill } = useLoop();
+  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
-
-  const handleAddReturn = (loop: any) => {
-    triggerHaptic(10);
-    setCreatePrefill({
-      startPoint: loop.destination,
-      destination: loop.start_point,
-      isReturn: true,
-    });
-    setView("create");
-  };
 
   const handleCreateClick = () => {
     triggerHaptic(12);
@@ -270,7 +239,6 @@ export default function HomeView() {
             setSelectedLoop(loop);
             setView("ride-details");
           }}
-          onAddReturn={handleAddReturn}
         />
       ))}
     </div>

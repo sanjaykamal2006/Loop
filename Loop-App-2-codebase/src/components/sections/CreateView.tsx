@@ -9,6 +9,7 @@ import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/date
 import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
+import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
 
 export default function CreateView() {
   const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
@@ -22,6 +23,8 @@ export default function CreateView() {
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
   const [isReturnTrip, setIsReturnTrip] = useState(false);
+  const [createdLoopInfo, setCreatedLoopInfo] = useState<PrimaryLoopDetails | null>(null);
+  const [showReturnModal, setShowReturnModal] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
 
@@ -226,19 +229,47 @@ export default function CreateView() {
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
-        toast.success(isReturnTrip ? "Return ride created! 🔄" : isDriver ? "Ride offer created!" : "Loop created!");
 
-        setStartPoint("");
-        setDest("");
-        setHour("");
-        setMinute("");
-        setTravelDate("");
-        setIsDriver(false);
-        setIsReturnTrip(false);
-        setCreatePrefill(null);
-        setView("home");
-        fetchLoops(true);
-        fetchUserMemberships(true);
+        if (isReturnTrip) {
+          toast.success("Return ride created! 🔄");
+          setStartPoint("");
+          setDest("");
+          setHour("");
+          setMinute("");
+          setTravelDate("");
+          setIsDriver(false);
+          setIsReturnTrip(false);
+          setCreatePrefill(null);
+          setView("home");
+          fetchLoops(true);
+          fetchUserMemberships(true);
+        } else {
+          toast.success(isDriver ? "Ride offer created!" : "Loop created!");
+          const primaryInfo: PrimaryLoopDetails = {
+            startPoint: formattedStart,
+            destination: formattedDest,
+            travelDate,
+            hour,
+            minute,
+            ampm,
+            limit: finalLimit,
+            isFemaleOnly,
+            isDriver,
+            vehicleType: isDriver ? vehicleType : null,
+          };
+          setCreatedLoopInfo(primaryInfo);
+          setShowReturnModal(true);
+
+          setStartPoint("");
+          setDest("");
+          setHour("");
+          setMinute("");
+          setTravelDate("");
+          setIsDriver(false);
+          setCreatePrefill(null);
+          fetchLoops(true);
+          fetchUserMemberships(true);
+        }
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -645,6 +676,16 @@ export default function CreateView() {
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>
+
+      {/* Return Trip Modal */}
+      <ReturnTripModal
+        isOpen={showReturnModal}
+        onClose={() => {
+          setShowReturnModal(false);
+          setView("home");
+        }}
+        primaryLoop={createdLoopInfo}
+      />
     </div>
   );
 }
