@@ -4,15 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users, Calendar, Clock } from "lucide-react";
+import { Users, Calendar, Clock, Repeat } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
-import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
 
 export default function CreateView() {
-  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded } = useLoop();
+  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState("");
@@ -22,10 +21,17 @@ export default function CreateView() {
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
-  const [createdLoopInfo, setCreatedLoopInfo] = useState<PrimaryLoopDetails | null>(null);
-  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [isReturnTrip, setIsReturnTrip] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (createPrefill) {
+      if (createPrefill.startPoint) setStartPoint(createPrefill.startPoint);
+      if (createPrefill.destination) setDest(createPrefill.destination);
+      if (createPrefill.isReturn) setIsReturnTrip(true);
+    }
+  }, [createPrefill]);
 
   const rawTime24 = React.useMemo(() => {
     if (!hour || !minute) return "";
@@ -195,6 +201,7 @@ export default function CreateView() {
           vehicle_type: isDriver ? vehicleType : null,
           expires_at: expiresAt.toISOString(),
           status: "open",
+          purpose: isReturnTrip ? "return" : null,
         })
         .select()
         .single();
@@ -204,20 +211,7 @@ export default function CreateView() {
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
-        toast.success(isDriver ? "Ride offer created!" : "Loop created!");
-
-        const createdDetails: PrimaryLoopDetails = {
-          startPoint: formattedStart,
-          destination: formattedDest,
-          travelDate: travelDate,
-          hour: hour,
-          minute: minute,
-          ampm: ampm,
-          limit: finalLimit,
-          isFemaleOnly: isFemaleOnly,
-          isDriver: isDriver,
-          vehicleType: isDriver ? vehicleType : null,
-        };
+        toast.success(isReturnTrip ? "Return ride created! 🔄" : isDriver ? "Ride offer created!" : "Loop created!");
 
         setStartPoint("");
         setDest("");
@@ -225,11 +219,11 @@ export default function CreateView() {
         setMinute("");
         setTravelDate("");
         setIsDriver(false);
+        setIsReturnTrip(false);
+        setCreatePrefill(null);
+        setView("home");
         fetchLoops(true);
         fetchUserMemberships(true);
-
-        setCreatedLoopInfo(createdDetails);
-        setShowReturnModal(true);
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -240,6 +234,27 @@ export default function CreateView() {
 
   return (
     <div className="space-y-2.5 pt-1 pb-4">
+      {/* Return Trip Banner */}
+      {isReturnTrip && (
+        <div className="flex items-center justify-between px-3.5 py-2 rounded-[16px] bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-bold animate-fade-in shadow-sm">
+          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
+            <Repeat size={12} strokeWidth={2.5} />
+            <span>Return Ride (Auto-Reversed Route)</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setIsReturnTrip(false);
+              setCreatePrefill(null);
+              setStartPoint("");
+              setDest("");
+            }}
+            className="text-[9px] uppercase font-black tracking-wider text-zinc-400 hover:text-white px-2 py-0.5 rounded-full bg-white/5"
+          >
+            Clear
+          </button>
+        </div>
+      )}
       {/* Starting Point */}
       <div className="space-y-1">
         <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
@@ -533,13 +548,6 @@ export default function CreateView() {
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>
-
-      {/* Return Trip Modal */}
-      <ReturnTripModal
-        isOpen={showReturnModal}
-        onClose={() => setShowReturnModal(false)}
-        primaryLoop={createdLoopInfo}
-      />
     </div>
   );
 }

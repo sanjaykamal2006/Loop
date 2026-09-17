@@ -4,28 +4,32 @@ import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
 import { getDepartureDateBadge } from "@/lib/dateFormatter";
-import { Users, Clock, MapPin, Search, X, CarFront } from "lucide-react";
+import { Users, Clock, MapPin, Search, X, CarFront, Repeat } from "lucide-react";
 import { SteeringWheelIcon, VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 
 interface LoopCardProps {
   loop: any;
   isJoined: boolean;
+  isHost: boolean;
   isDark: boolean;
   cardBg: string;
   border: string;
   timeFormatted: string;
   onSelect: () => void;
+  onAddReturn?: (loop: any) => void;
 }
 
 const LoopCard = React.memo(function LoopCard({
   loop,
   isJoined,
+  isHost,
   isDark,
   cardBg,
   border,
   timeFormatted,
   onSelect,
+  onAddReturn,
 }: LoopCardProps) {
   return (
     <div
@@ -52,17 +56,47 @@ const LoopCard = React.memo(function LoopCard({
         </div>
 
         {/* Badges sub-row */}
-        {(isJoined || loop.is_female_only) && (
-          <div className="flex items-center gap-1.5 mt-1">
-            {isJoined && (
+        {(isJoined || loop.is_female_only || loop.purpose === "return" || isHost) && (
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            {/* RETURN BADGE with icon and text */}
+            {loop.purpose === "return" && (
+              <span className="text-[8px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/35 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-1">
+                <Repeat size={8} strokeWidth={2.5} />
+                <span>Return</span>
+              </span>
+            )}
+
+            {isHost && (
+              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
+                Host
+              </span>
+            )}
+
+            {isJoined && !isHost && (
               <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/30"}`}>
                 Joined
               </span>
             )}
+
             {loop.is_female_only && (
               <span className="text-[8px] font-black uppercase tracking-wider bg-pink-500/15 text-pink-400 border border-pink-500/25 px-1.5 py-0.5 rounded-full shrink-0">
                 Female
               </span>
+            )}
+
+            {/* Quick 1-tap '+ Return' button for Host if this is an outbound ride */}
+            {isHost && loop.purpose !== "return" && onAddReturn && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddReturn(loop);
+                }}
+                className="text-[8px] font-black uppercase tracking-wider bg-[#FFC554]/20 hover:bg-[#FFC554]/30 text-[#FFC554] border border-[#FFC554]/40 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-1 active:scale-95 transition-all shadow-sm"
+              >
+                <Repeat size={8} strokeWidth={2.5} />
+                <span>+ Return</span>
+              </button>
             )}
           </div>
         )}
@@ -82,10 +116,20 @@ const LoopCard = React.memo(function LoopCard({
 });
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
+  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, setCreatePrefill } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleAddReturn = (loop: any) => {
+    triggerHaptic(10);
+    setCreatePrefill({
+      startPoint: loop.destination,
+      destination: loop.start_point,
+      isReturn: true,
+    });
+    setView("create");
+  };
 
   const handleCreateClick = () => {
     triggerHaptic(12);
@@ -208,6 +252,7 @@ export default function HomeView() {
           key={loop.id}
           loop={loop}
           isJoined={userJoinedLoops.includes(loop.id)}
+          isHost={userLoops.includes(loop.id)}
           isDark={isDark}
           cardBg={cardBg}
           border={border}
@@ -217,6 +262,7 @@ export default function HomeView() {
             setSelectedLoop(loop);
             setView("ride-details");
           }}
+          onAddReturn={handleAddReturn}
         />
       ))}
     </div>

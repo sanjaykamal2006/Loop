@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck, Repeat } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -34,6 +34,7 @@ export default function RideDetailsView() {
     formatTime,
     theme,
     setChatSource,
+    setCreatePrefill,
   } = useLoop();
   const { bg, border, cardBg, mutedText } = theme;
 
@@ -270,8 +271,16 @@ export default function RideDetailsView() {
         <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
           <MapPin size={18} strokeWidth={2.5} />
         </div>
-        <div>
-          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Destination</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Destination</p>
+            {selectedLoop.purpose === "return" && (
+              <span className="text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/35 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1">
+                <Repeat size={10} strokeWidth={2.5} />
+                <span>Return Ride</span>
+              </span>
+            )}
+          </div>
           <h3 className="font-black text-base uppercase tracking-tight">{selectedLoop.destination}</h3>
         </div>
       </div>
@@ -576,6 +585,24 @@ export default function RideDetailsView() {
               >
                 <Edit3 size={13} strokeWidth={2.5} />
                 Edit Ride Details
+              </button>
+            )}
+
+            {isCreator && selectedLoop.purpose !== "return" && (
+              <button
+                onClick={() => {
+                  triggerHaptic(10);
+                  setCreatePrefill({
+                    startPoint: selectedLoop.destination,
+                    destination: selectedLoop.start_point,
+                    isReturn: true,
+                  });
+                  setView("create");
+                }}
+                className={`w-full py-3 ${cardBg} border border-indigo-500/30 hover:border-indigo-500/60 rounded-[20px] text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
+              >
+                <Repeat size={13} strokeWidth={2.5} />
+                Plan Return Ride
               </button>
             )}
 

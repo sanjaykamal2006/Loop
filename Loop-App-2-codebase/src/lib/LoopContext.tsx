@@ -58,6 +58,10 @@ interface LoopContextValue {
   // Messages & notifications
   unreadLoopIds: string[];
   markLoopAsRead: (loopId: string) => void;
+
+  // Return trip prefill
+  createPrefill: { startPoint?: string; destination?: string; isReturn?: boolean } | null;
+  setCreatePrefill: (p: { startPoint?: string; destination?: string; isReturn?: boolean } | null) => void;
 }
 
 const LoopContext = createContext<LoopContextValue | null>(null);
@@ -153,6 +157,7 @@ export function LoopProvider({ session, children }: { session: Session; children
   const markLoopAsRead = useCallback((loopId: string) => {
     setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
   }, []);
+  const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
 
   const userJoinedLoopsRef = useRef(userJoinedLoops);
   useEffect(() => {
@@ -1046,6 +1051,8 @@ export function LoopProvider({ session, children }: { session: Session; children
     setChatSource,
     unreadLoopIds,
     markLoopAsRead,
+    createPrefill,
+    setCreatePrefill,
   };
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;
