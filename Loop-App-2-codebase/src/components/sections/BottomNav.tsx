@@ -45,7 +45,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.5 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#D97706]"
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -61,7 +61,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 3 : 2.1}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#D97706]"
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -77,7 +77,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.5 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#D97706]"
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -93,7 +93,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.5 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#D97706]"
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -138,14 +138,14 @@ export default function BottomNav() {
                   <span className="absolute -top-0.5 -right-1 flex h-2.5 w-2.5">
                     <span
                       className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                        isDark ? "bg-[#FFC554]" : "bg-[#D97706]"
+                        isDark ? "bg-[#FFC554]" : "bg-[#881337]"
                       }`}
                     />
                     <span
                       className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
                         isDark
                           ? "bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]"
-                          : "bg-[#D97706] border border-white"
+                          : "bg-[#881337] border border-white"
                       }`}
                     />
                   </span>

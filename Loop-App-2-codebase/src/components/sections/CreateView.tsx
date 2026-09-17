@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users, Calendar, Clock, Repeat } from "lucide-react";
+import { Users, Calendar, Clock, Repeat, TrainFront, Flag, ArrowUpDown } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -24,6 +24,21 @@ export default function CreateView() {
   const [isReturnTrip, setIsReturnTrip] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSwapLocations = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic(10);
+    const temp = startPoint;
+    setStartPoint(dest);
+    setDest(temp);
+  };
+
+  const formatJourneyDate = (dateStr: string) => {
+    if (!dateStr) return "Pick a Date";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   useEffect(() => {
     if (createPrefill) {
@@ -255,52 +270,99 @@ export default function CreateView() {
           </button>
         </div>
       )}
-      {/* Starting Point */}
-      <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
-        <input
-          value={startPoint}
-          onChange={(e) => setStartPoint(e.target.value)}
-          onBlur={() => setStartPoint(formatLocation(startPoint))}
-          placeholder="Where from?"
-          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
-        />
-      </div>
+      {/* Unified Route & Schedule Card (MakeMyTrip / Train style) */}
+      <div className={`relative ${cardBg} border ${border} rounded-[26px] shadow-sm overflow-hidden`}>
+        {/* Row 1: Starting Point */}
+        <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+            <TrainFront size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+              Starting Point
+            </label>
+            <input
+              value={startPoint}
+              onChange={(e) => setStartPoint(e.target.value)}
+              onBlur={() => setStartPoint(formatLocation(startPoint))}
+              placeholder="Where from?"
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-black ${
+                isDark ? "text-white" : "text-zinc-900"
+              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs`}
+            />
+          </div>
+        </div>
 
-      {/* Destination */}
-      <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
-        <input
-          value={dest}
-          onChange={(e) => setDest(e.target.value)}
-          onBlur={() => setDest(formatLocation(dest))}
-          placeholder="Where to?"
-          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
-        />
-      </div>
+        {/* Divider with Circular Swap Button */}
+        <div className="relative w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]">
+          <button
+            type="button"
+            onClick={handleSwapLocations}
+            aria-label="Swap starting point and destination"
+            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-sm ${
+              isDark
+                ? "bg-[#1c1c1e] border border-white/15 text-[#FFC554] hover:border-[#FFC554]/50"
+                : "bg-white border border-black/10 text-[#881337] hover:border-[#881337]/50"
+            }`}
+          >
+            <ArrowUpDown size={14} strokeWidth={2.4} />
+          </button>
+        </div>
 
-      {/* Date of Travel */}
-      <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Date of Travel</label>
+        {/* Row 2: Destination */}
+        <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 relative">
+            <TrainFront size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            <Flag size={9} strokeWidth={2.6} className={`absolute bottom-0 right-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+              Destination
+            </label>
+            <input
+              value={dest}
+              onChange={(e) => setDest(e.target.value)}
+              onBlur={() => setDest(formatLocation(dest))}
+              placeholder="Where to?"
+              className={`w-full bg-transparent border-0 outline-none p-0 mt-0.5 text-[15px] sm:text-base font-black ${
+                isDark ? "text-white" : "text-zinc-900"
+              } placeholder:text-zinc-500 placeholder:font-normal placeholder:text-xs`}
+            />
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]" />
+
+        {/* Row 3: Date of Journey */}
         <div
           onClick={handleOpenDatePicker}
-          className={`w-full h-11 ${cardBg} border ${
-            travelDate ? `border-[#FFC554] ${isDark ? "text-white" : "text-zinc-900"}` : `${border} ${mutedText}`
-          } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
+          className="relative px-4 py-2.5 sm:py-3 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Calendar size={16} className={travelDate ? "text-[#FFC554]" : mutedText} />
-            <span className={`text-xs font-bold ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
-              {travelDate ? formatDDMMYYYY(travelDate) : "Pick a Date (DD/MM/YYYY)"}
-            </span>
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+              <Calendar size={20} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            </div>
+            <div>
+              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+                Date of Journey
+              </label>
+              <p className={`text-sm sm:text-[15px] font-black mt-0.5 ${
+                travelDate ? (isDark ? "text-white" : "text-zinc-900") : mutedText
+              }`}>
+                {travelDate ? formatJourneyDate(travelDate) : "Select Journey Date"}
+              </p>
+            </div>
           </div>
+          
           <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
             travelDate
-              ? "bg-[#FFC554] text-black shadow-sm"
-              : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+              ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
+              : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
           }`}>
             {travelDate ? "Change" : "Select"}
           </span>
+
           <input
             ref={dateInputRef}
             type="date"
@@ -318,43 +380,52 @@ export default function CreateView() {
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />
         </div>
-      </div>
 
-      {/* Time of Travel */}
-      <div className="space-y-1">
-        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1.5`}>
-          <Clock size={11} className="text-[#FFC554]" /> Time of Travel
-        </label>
+        {/* Divider */}
+        <div className="w-full border-b border-white/[0.08] dark:border-white/[0.08] border-black/[0.06]" />
+
+        {/* Row 4: Time of Travel */}
         <div
           onClick={handleOpenTimePicker}
-          className={`w-full h-11 ${cardBg} border ${
-            hasTime ? `border-[#FFC554] ${isDark ? "text-white" : "text-zinc-900"}` : `${border} ${mutedText}`
-          } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden shadow-sm`}
+          className="relative px-4 py-2.5 sm:py-3 flex items-center justify-between cursor-pointer active:bg-white/[0.03] dark:active:bg-white/[0.03] active:bg-black/[0.03] transition-colors"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Clock size={16} className={hasTime ? "text-[#FFC554]" : mutedText} />
-            {hasTime ? (
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-                  {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
-                </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40 uppercase tracking-wider">
-                  {ampm}
-                </span>
-              </div>
-            ) : (
-              <span className={`text-xs font-bold ${mutedText}`}>
-                Pick a Time (from clock)
-              </span>
-            )}
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+              <Clock size={20} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            </div>
+            <div>
+              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
+                Time of Travel
+              </label>
+              {hasTime ? (
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className={`text-sm sm:text-[15px] font-black ${isDark ? "text-white" : "text-zinc-900"}`}>
+                    {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
+                  </span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                    isDark
+                      ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
+                      : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
+                  }`}>
+                    {ampm}
+                  </span>
+                </div>
+              ) : (
+                <p className={`text-sm sm:text-[15px] font-black mt-0.5 ${mutedText}`}>
+                  Select Departure Time
+                </p>
+              )}
+            </div>
           </div>
+
           <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
             hasTime
-              ? "bg-[#FFC554] text-black shadow-sm"
-              : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
+              ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
+              : (isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500")
           }`}>
             {hasTime ? "Change" : "Select"}
           </span>
+
           <input
             ref={timeInputRef}
             type="time"
@@ -364,7 +435,7 @@ export default function CreateView() {
               e.stopPropagation();
               try {
                 if ("showPicker" in HTMLInputElement.prototype) {
-                  e.currentTarget.showPicker();
+                  timeInputRef.current?.showPicker();
                 }
               } catch {}
             }}
@@ -374,10 +445,16 @@ export default function CreateView() {
       </div>
 
       {/* Offering a Ride Toggle Card with Compact Vehicle Pills */}
-      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] space-y-2.5 transition-all ${isDriver ? "border-[#FFC554]/50 shadow-sm" : ""}`}>
+      <div className={`p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] space-y-2.5 transition-all ${
+        isDriver ? (isDark ? "border-[#FFC554]/50 shadow-sm" : "border-[#881337]/40 shadow-sm") : ""
+      }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${isDriver ? "bg-[#FFC554] text-black shadow-sm" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
+              isDriver 
+                ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm") 
+                : (isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40")
+            }`}>
               <SteeringWheelIcon size={18} />
             </div>
             <div className="space-y-0.5">
@@ -397,7 +474,11 @@ export default function CreateView() {
                 setLimit(4);
               }
             }}
-            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${isDriver ? "bg-[#FFC554]" : isDark ? "bg-zinc-800" : "bg-zinc-300"}`}
+            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 ${
+              isDriver 
+                ? (isDark ? "bg-[#FFC554]" : "bg-[#881337]") 
+                : (isDark ? "bg-zinc-800" : "bg-zinc-300")
+            }`}
           >
             <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${isDriver ? "translate-x-5" : "translate-x-0"}`} />
           </button>
@@ -426,11 +507,11 @@ export default function CreateView() {
                   }}
                   className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
                     isSelected
-                      ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
+                      ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black" : "bg-[#881337] border-[#881337] text-white shadow-sm font-black")
                       : `${bg} ${border} ${mutedText} font-bold`
                   }`}
                 >
-                  <v.Icon size={14} strokeWidth={2.2} className={isSelected ? "text-black" : "text-[#FFC554]"} />
+                  <v.Icon size={14} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
                   <span className="text-[10px] font-black uppercase tracking-wider">{v.label}</span>
                 </button>
               );
@@ -446,7 +527,7 @@ export default function CreateView() {
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
               Passenger Seats to Offer
             </label>
-            <span className="text-[10px] font-bold text-[#FFC554]">
+            <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
             </span>
           </div>
@@ -458,7 +539,7 @@ export default function CreateView() {
                 onClick={() => setLimit(n)}
                 className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
                   limit === n
-                    ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                    ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
                     : `${border} ${cardBg} ${mutedText}`
                 }`}
               >
@@ -470,7 +551,9 @@ export default function CreateView() {
       ) : isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
         <div className={`p-3 ${cardBg} border ${border} rounded-[18px] flex items-center justify-between`}>
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
+            <div className={`w-7 h-7 rounded-lg ${
+              isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
+            } flex items-center justify-center shrink-0`}>
               <Users size={14} />
             </div>
             <div>
@@ -478,7 +561,9 @@ export default function CreateView() {
               <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2.5 py-1 rounded-full">
+          <span className={`text-[10px] font-bold ${
+            isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"
+          } px-2.5 py-1 rounded-full`}>
             Driver + 1 Rider
           </span>
         </div>
@@ -492,7 +577,11 @@ export default function CreateView() {
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
+                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                    limit === n 
+                      ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
+                      : `${border} ${cardBg} ${mutedText}`
+                  }`}
                 >
                   {n}
                 </button>
@@ -504,7 +593,11 @@ export default function CreateView() {
                   key={n}
                   type="button"
                   onClick={() => setLimit(n)}
-                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${limit === n ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : `${border} ${cardBg} ${mutedText}`}`}
+                  className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
+                    limit === n 
+                      ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
+                      : `${border} ${cardBg} ${mutedText}`
+                  }`}
                 >
                   {n}
                 </button>
@@ -544,7 +637,11 @@ export default function CreateView() {
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[20px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50"
+        className={`w-full h-12 ${
+          isDark 
+            ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black" 
+            : "bg-[#881337] hover:bg-[#700f2b] text-white"
+        } font-black rounded-[20px] text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all`}
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>

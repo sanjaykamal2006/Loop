@@ -80,6 +80,12 @@ export interface ThemeClasses {
   cardBg: string;
   mutedText: string;
   accentText: string;
+  accentBg: string;
+  accentBgSubtle: string;
+  accentBorder: string;
+  accentBorderSubtle: string;
+  primaryBtn: string;
+  accentColor: string;
 }
 
 export interface TrustedVehicle {

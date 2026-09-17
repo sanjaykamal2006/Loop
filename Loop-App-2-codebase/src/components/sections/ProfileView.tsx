@@ -219,7 +219,7 @@ export default function ProfileView() {
             )}
           </div>
 
-          <p className={`text-xs font-bold tracking-wide ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>
+          <p className={`text-xs font-bold tracking-wide ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
             {profile.reg_no || "Student / Tag"}
           </p>
           <p className={`text-[11px] font-medium ${mutedText} truncate`}>
@@ -232,7 +232,7 @@ export default function ProfileView() {
               <button
                 onClick={() => setIsEditingProfile(true)}
                 aria-label="Edit Profile"
-                className={`text-[11px] font-black flex items-center gap-1.5 px-3.5 py-1 rounded-full active:scale-95 transition-transform ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30" : "text-[#B45309] bg-[#B45309]/10 border border-[#B45309]/30"}`}
+                className={`text-[11px] font-black flex items-center gap-1.5 px-3.5 py-1 rounded-full active:scale-95 transition-transform ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/30"}`}
               >
                 <Edit2 size={11} />
                 <span>Edit Profile</span>
@@ -246,7 +246,7 @@ export default function ProfileView() {
       {isEditingProfile && (
         <div className={`p-4 ${cardBg} border ${border} rounded-[22px] space-y-3 shadow-sm animate-fade-in`}>
           <div className="flex items-center justify-between pb-1 border-b border-white/10">
-            <span className="text-xs font-black uppercase tracking-wider text-[#FFC554]">Edit Details</span>
+            <span className={`text-xs font-black uppercase tracking-wider ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Edit Details</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsEditingProfile(false)}
@@ -339,7 +339,7 @@ export default function ProfileView() {
           ) : (
             <button
               onClick={() => setIsEditingProfile(true)}
-              className={`text-xs font-bold hover:underline ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}
+              className={`text-xs font-bold hover:underline ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}
             >
               + Add WhatsApp
             </button>
@@ -494,7 +494,7 @@ export default function ProfileView() {
               </>
             ) : (
               <>
-                <Sun size={12} className={isDark ? "text-[#FFC554]" : "text-[#B45309]"} />
+                <Sun size={12} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                 <span>Light</span>
               </>
             )}

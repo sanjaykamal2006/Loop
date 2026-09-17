@@ -272,7 +272,13 @@ export function LoopProvider({ session, children }: { session: Session; children
     border: isDark ? "border-[#27272A]" : "border-[#DFD9CE]",
     cardBg: isDark ? "bg-[#121212]" : "bg-[#FAF8F5]",
     mutedText: isDark ? "text-[#A1A1AA]" : "text-[#78716C]",
-    accentText: isDark ? "text-[#FFC554]" : "text-[#B45309]",
+    accentText: isDark ? "text-[#FFC554]" : "text-[#881337]",
+    accentBg: isDark ? "bg-[#FFC554]" : "bg-[#881337]",
+    accentBgSubtle: isDark ? "bg-[#FFC554]/15" : "bg-[#881337]/10",
+    accentBorder: isDark ? "border-[#FFC554]" : "border-[#881337]",
+    accentBorderSubtle: isDark ? "border-[#FFC554]/30" : "border-[#881337]/30",
+    primaryBtn: isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white",
+    accentColor: isDark ? "#FFC554" : "#881337",
   };
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean, nextTheme: 'dark' | 'light' } | null>(null);

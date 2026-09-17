@@ -76,13 +76,15 @@ export default function AppHeader() {
               aria-label="Refresh rides"
               className={`w-9 h-9 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm shrink-0`}
             >
-              <RotateCw size={15} className={isRefreshing ? `animate-spin ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}` : "opacity-80"} />
+              <RotateCw size={15} className={isRefreshing ? `animate-spin ${isDark ? "text-[#FFC554]" : "text-[#881337]"}` : "opacity-80"} />
             </button>
             {!isInstalled && (
               <button
                 onClick={handleInstallClick}
                 aria-label="Install LOOP App"
-                className="h-9 px-3.5 rounded-full bg-[#FFC554] text-black font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0"
+                className={`h-9 px-3.5 rounded-full ${
+                  isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+                } font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0`}
               >
                 <Download size={13} strokeWidth={2.5} />
                 Install App
@@ -138,7 +140,7 @@ export default function AppHeader() {
           <div>
             <h1 className="text-3xl font-black tracking-tight">Chats</h1>
             <p className="text-xs font-medium opacity-60 mt-0.5">
-              Stay in the <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#B45309]"}`}>loop</span>
+              Stay in the <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>loop</span>
             </p>
           </div>
           <button
@@ -166,7 +168,7 @@ export default function AppHeader() {
               aria-label="Open settings menu"
               className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm`}
             >
-              <Settings size={18} className={`transition-transform duration-300 ${showSettingsMenu ? (isDark ? "text-[#FFC554] rotate-90" : "text-[#B45309] rotate-90") : ""}`} />
+              <Settings size={18} className={`transition-transform duration-300 ${showSettingsMenu ? (isDark ? "text-[#FFC554] rotate-90" : "text-[#881337] rotate-90") : ""}`} />
             </button>
 
             {showSettingsMenu && (

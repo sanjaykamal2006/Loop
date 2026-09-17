@@ -36,7 +36,7 @@ export default function RideDetailsView() {
     setChatSource,
     setCreatePrefill,
   } = useLoop();
-  const { bg, border, cardBg, mutedText } = theme;
+  const { isDark, bg, border, cardBg, mutedText } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() => {
     if (selectedLoop?.id && membersCache[selectedLoop.id]) {
@@ -268,7 +268,7 @@ export default function RideDetailsView() {
 
       {/* Destination */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
-        <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+        <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
           <MapPin size={18} strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
@@ -287,12 +287,12 @@ export default function RideDetailsView() {
 
       {/* Starting Time / Schedule */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
-        <div className="w-9 h-9 rounded-xl bg-[#FFC554]/10 flex items-center justify-center text-[#FFC554]">
+        <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
           <Clock size={18} strokeWidth={2.5} />
         </div>
         <div>
           <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Schedule</p>
-          <h3 className="font-black text-base sm:text-lg text-[#FFC554]">
+          <h3 className={`font-black text-base sm:text-lg ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
             {formatDepartureFull(selectedLoop.departure_time)}
           </h3>
         </div>
@@ -300,19 +300,19 @@ export default function RideDetailsView() {
 
       {/* Fare Splitter or Student Driver Personal Ride Info */}
       {selectedLoop.is_driver_offering ? (
-        <div className={`p-4 ${cardBg} border border-[#FFC554]/30 rounded-[28px] flex items-center justify-between shadow-sm`}>
+        <div className={`p-4 ${cardBg} ${isDark ? "border border-[#FFC554]/30" : "border border-[#881337]/30"} rounded-[28px] flex items-center justify-between shadow-sm`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFC554]/15 border border-[#FFC554]/25 flex items-center justify-center text-[#FFC554] shrink-0">
+            <div className={`w-10 h-10 rounded-2xl ${isDark ? "bg-[#FFC554]/15 border border-[#FFC554]/25 text-[#FFC554]" : "bg-[#881337]/10 border border-[#881337]/20 text-[#881337]"} flex items-center justify-center shrink-0`}>
               <SteeringWheelIcon size={20} />
             </div>
             <div>
               <p className={`text-[9px] font-black ${mutedText} uppercase tracking-wider`}>Student Driver</p>
-              <h4 className="font-black text-sm uppercase text-[#FFC554]">
+              <h4 className={`font-black text-sm uppercase ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
                 Personal {selectedLoop.vehicle_type || "Vehicle"} Drop
               </h4>
             </div>
           </div>
-          <span className={`text-[9px] font-black text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/25 px-2.5 py-1 rounded-full uppercase tracking-wider`}>
+          <span className={`text-[9px] font-black ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/25" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"} px-2.5 py-1 rounded-full uppercase tracking-wider`}>
             Coordinate in chat
           </span>
         </div>
@@ -324,7 +324,7 @@ export default function RideDetailsView() {
               <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
             </div>
             {isCreator && !isEditingFare && !isPast && (
-              <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black text-[#FFC554] uppercase tracking-wider active:scale-95`}>
+              <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"} uppercase tracking-wider active:scale-95`}>
                 {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
               </button>
             )}
@@ -564,7 +564,11 @@ export default function RideDetailsView() {
                 else joinLoop(selectedLoop);
               }}
               disabled={isJoining}
-              className="w-full h-12 bg-[#FFC554] text-black font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98]"
+              className={`w-full h-12 ${
+                isDark 
+                  ? "bg-[#FFC554] text-black" 
+                  : "bg-[#881337] text-white"
+              } font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all`}
             >
               {isJoining ? "Joining..." : isJoined ? "Open Chat" : "Join Loop"}
             </button>
@@ -581,7 +585,11 @@ export default function RideDetailsView() {
             {isCreator && (
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className={`w-full py-3 ${cardBg} border border-[#FFC554]/30 hover:border-[#FFC554]/60 rounded-[20px] text-[#FFC554] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
+                className={`w-full py-3 ${cardBg} ${
+                  isDark 
+                    ? "border border-[#FFC554]/30 hover:border-[#FFC554]/60 text-[#FFC554]" 
+                    : "border border-[#881337]/30 hover:border-[#881337]/60 text-[#881337]"
+                } rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
               >
                 <Edit3 size={13} strokeWidth={2.5} />
                 Edit Ride Details

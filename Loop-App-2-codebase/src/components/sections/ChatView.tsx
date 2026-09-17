@@ -872,7 +872,7 @@ export default function ChatView() {
             )}
           </div>
           {searchQuery && (
-            <span className={`text-[10px] font-bold shrink-0 ${matchingMsgIds.size > 0 ? (isDark ? "text-[#FFC554]" : "text-[#B45309]") : mutedText}`}>
+            <span className={`text-[10px] font-bold shrink-0 ${matchingMsgIds.size > 0 ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText}`}>
               {matchingMsgIds.size} {matchingMsgIds.size === 1 ? "match" : "matches"}
             </span>
           )}

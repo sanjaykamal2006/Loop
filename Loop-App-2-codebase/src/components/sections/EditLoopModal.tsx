@@ -331,7 +331,7 @@ export default function EditLoopModal({
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
               travelDate
-                ? "bg-[#FFC554] text-black shadow-sm"
+                ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
                 : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
             }`}>
               {travelDate ? "Change" : "Select"}
@@ -358,22 +358,26 @@ export default function EditLoopModal({
         {/* Time of Travel */}
         <div className="space-y-1">
           <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1.5`}>
-            <Clock size={11} className="text-[#FFC554]" /> Time of Travel
+            <Clock size={11} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} /> Time of Travel
           </label>
           <div
             onClick={handleOpenTimePicker}
             className={`w-full h-11 ${bg} border ${
-              hasTime ? "border-[#FFC554]" : border
+              hasTime ? (isDark ? "border-[#FFC554]" : "border-[#881337]") : border
             } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <Clock size={15} className={hasTime ? "text-[#FFC554]" : mutedText} />
+              <Clock size={15} className={hasTime ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText} />
               {hasTime ? (
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
                     {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
                   </span>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40 uppercase tracking-wider">
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                    isDark
+                      ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
+                      : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
+                  }`}>
                     {ampm}
                   </span>
                 </div>
@@ -385,7 +389,7 @@ export default function EditLoopModal({
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
               hasTime
-                ? "bg-[#FFC554] text-black shadow-sm"
+                ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
                 : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
             }`}>
               {hasTime ? "Change" : "Select"}
@@ -435,11 +439,11 @@ export default function EditLoopModal({
                     }}
                     className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
                       isSelected
-                        ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm"
+                        ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm" : "bg-[#881337] border-[#881337] text-white font-black shadow-sm")
                         : `${bg} ${border} ${mutedText} font-bold`
                     }`}
                   >
-                    <v.Icon size={14} strokeWidth={2.2} className={isSelected ? "text-black" : "text-[#FFC554]"} />
+                    <v.Icon size={14} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
                     <span className="text-[10px] font-black uppercase">{v.label}</span>
                   </button>
                 );
@@ -455,7 +459,7 @@ export default function EditLoopModal({
               <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
                 Passenger Seats to Offer
               </label>
-              <span className="text-[10px] font-bold text-[#FFC554]">
+              <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
                 {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
               </span>
             </div>
@@ -472,7 +476,7 @@ export default function EditLoopModal({
                       onClick={() => setLimit(n)}
                       className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
                         limit === n
-                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
                           : isDisabled
                           ? "opacity-25 cursor-not-allowed border-white/5"
                           : `${border} ${bg} ${mutedText}`
@@ -491,7 +495,7 @@ export default function EditLoopModal({
               <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
               <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
             </div>
-            <span className="text-[10px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-2.5 py-1 rounded-full">
+            <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"} px-2.5 py-1 rounded-full`}>
               Driver + 1 Rider
             </span>
           </div>
@@ -502,7 +506,7 @@ export default function EditLoopModal({
                 Total Group Size / Limit
               </label>
               {currentMemberCount > 1 && (
-                <span className="text-[9px] text-[#FFC554] font-bold">
+                <span className={`text-[9px] ${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-bold`}>
                   Min {minAllowedSeats} (Joined: {currentMemberCount})
                 </span>
               )}
@@ -520,7 +524,7 @@ export default function EditLoopModal({
                       onClick={() => setLimit(n)}
                       className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
                         limit === n
-                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
                           : isDisabled
                           ? "opacity-25 cursor-not-allowed border-white/5"
                           : `${border} ${bg} ${mutedText}`
@@ -543,7 +547,7 @@ export default function EditLoopModal({
                       onClick={() => setLimit(n)}
                       className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
                         limit === n
-                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
+                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
                           : isDisabled
                           ? "opacity-25 cursor-not-allowed border-white/5"
                           : `${border} ${bg} ${mutedText}`
@@ -588,7 +592,11 @@ export default function EditLoopModal({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full h-12 bg-[#FFC554] hover:bg-[#FFC554]/90 text-black font-black rounded-[22px] text-xs uppercase tracking-[0.18em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className={`w-full h-12 ${
+              isDark 
+                ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black" 
+                : "bg-[#881337] hover:bg-[#700f2b] text-white"
+            } font-black rounded-[22px] text-xs uppercase tracking-[0.18em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2`}
           >
             {isSaving ? "Saving Changes..." : "Save Changes"}
           </button>

@@ -296,7 +296,7 @@ export default function BuyCoffeeModal({
                   ? "bg-emerald-500/20 text-emerald-400"
                   : isDark
                   ? "bg-white/10 text-[#FFC554]"
-                  : "bg-black/5 text-[#B45309]"
+                  : "bg-black/5 text-[#881337]"
               }`}
             >
               {copied ? <Check size={10} strokeWidth={3} /> : <Copy size={10} strokeWidth={2.5} />}
