@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users, Calendar, Clock, ArrowUpDown } from "lucide-react";
+import { Users, Calendar, Clock } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
 import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -26,13 +26,6 @@ export default function CreateView() {
   const [showReturnModal, setShowReturnModal] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSwapLocations = () => {
-    triggerHaptic(8);
-    const temp = startPoint;
-    setStartPoint(dest);
-    setDest(temp);
-  };
 
   const rawTime24 = React.useMemo(() => {
     if (!hour || !minute) return "";
@@ -247,39 +240,28 @@ export default function CreateView() {
 
   return (
     <div className="space-y-2.5 pt-1 pb-4">
-      {/* Starting Point & Destination with Swap */}
-      <div className="relative space-y-2">
-        <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
-          <input
-            value={startPoint}
-            onChange={(e) => setStartPoint(e.target.value)}
-            onBlur={() => setStartPoint(formatLocation(startPoint))}
-            placeholder="Where from?"
-            className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 pr-12 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
-          />
-        </div>
+      {/* Starting Point */}
+      <div className="space-y-1">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Starting Point</label>
+        <input
+          value={startPoint}
+          onChange={(e) => setStartPoint(e.target.value)}
+          onBlur={() => setStartPoint(formatLocation(startPoint))}
+          placeholder="Where from?"
+          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
+        />
+      </div>
 
-        {/* Swap Button */}
-        <button
-          type="button"
-          onClick={handleSwapLocations}
-          aria-label="Swap starting point and destination"
-          className={`absolute right-3 top-[37px] z-10 w-7 h-7 rounded-full border ${border} ${cardBg} flex items-center justify-center text-[#FFC554] hover:border-[#FFC554] active:scale-90 shadow-md transition-all`}
-        >
-          <ArrowUpDown size={13} strokeWidth={2.5} />
-        </button>
-
-        <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
-          <input
-            value={dest}
-            onChange={(e) => setDest(e.target.value)}
-            onBlur={() => setDest(formatLocation(dest))}
-            placeholder="Where to?"
-            className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 pr-12 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
-          />
-        </div>
+      {/* Destination */}
+      <div className="space-y-1">
+        <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Destination</label>
+        <input
+          value={dest}
+          onChange={(e) => setDest(e.target.value)}
+          onBlur={() => setDest(formatLocation(dest))}
+          placeholder="Where to?"
+          className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-sm font-bold outline-none focus:border-[#FFC554] transition-colors`}
+        />
       </div>
 
       {/* Date of Travel */}
