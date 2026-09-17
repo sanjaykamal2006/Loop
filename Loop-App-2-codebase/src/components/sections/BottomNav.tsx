@@ -104,7 +104,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
         isDark
           ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
           : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
@@ -170,13 +170,6 @@ export default function BottomNav() {
           );
         })}
       </div>
-
-      {/* Native Home Indicator Pill Bar */}
-      <div
-        className={`w-28 h-1 rounded-full mx-auto mt-2 transition-colors ${
-          isDark ? "bg-white/15" : "bg-black/10"
-        }`}
-      />
     </nav>
   );
 }
