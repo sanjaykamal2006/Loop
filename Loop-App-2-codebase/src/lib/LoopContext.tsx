@@ -66,7 +66,9 @@ interface LoopContextValue {
 
   // Emergency SOS & Safety
   emergencyContact: EmergencyContact | null;
+  emergencyContacts: EmergencyContact[];
   saveEmergencyContact: (contact: EmergencyContact | null) => void;
+  saveEmergencyContacts: (contacts: EmergencyContact[]) => void;
   showSosModal: boolean;
   setShowSosModal: (show: boolean) => void;
   showEmergencyContactModal: boolean;
@@ -169,25 +171,38 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, []);
   const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
 
-  // Emergency SOS & Safety
-  const [emergencyContact, setEmergencyContact] = useState<EmergencyContact | null>(() => {
+  // Emergency SOS & Safety (Up to 3 Contacts)
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(() => {
     if (typeof window !== "undefined") {
       try {
-        const cached = localStorage.getItem(`loop_emergency_contact_${session.user.id}`);
-        if (cached) return JSON.parse(cached);
+        const cachedList = localStorage.getItem(`loop_emergency_contacts_${session.user.id}`);
+        if (cachedList) {
+          const parsed = JSON.parse(cachedList);
+          if (Array.isArray(parsed)) return parsed.slice(0, 3);
+        }
+        // Backward compatibility migration from single contact
+        const singleCached = localStorage.getItem(`loop_emergency_contact_${session.user.id}`);
+        if (singleCached) {
+          const parsedSingle = JSON.parse(singleCached);
+          if (parsedSingle && parsedSingle.phone) {
+            return [{ ...parsedSingle, id: parsedSingle.id || "c-1" }];
+          }
+        }
       } catch {}
     }
-    return null;
+    return [];
   });
   const [showSosModal, setShowSosModal] = useState(false);
   const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false);
 
-  const saveEmergencyContact = useCallback((contact: EmergencyContact | null) => {
-    setEmergencyContact(contact);
+  const saveEmergencyContacts = useCallback((contacts: EmergencyContact[]) => {
+    const trimmed = contacts.slice(0, 3);
+    setEmergencyContacts(trimmed);
     if (typeof window !== "undefined") {
       try {
-        if (contact) {
-          localStorage.setItem(`loop_emergency_contact_${session.user.id}`, JSON.stringify(contact));
+        localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(trimmed));
+        if (trimmed.length > 0) {
+          localStorage.setItem(`loop_emergency_contact_${session.user.id}`, JSON.stringify(trimmed[0]));
         } else {
           localStorage.removeItem(`loop_emergency_contact_${session.user.id}`);
         }
@@ -195,15 +210,25 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
   }, [session.user.id]);
 
+  const saveEmergencyContact = useCallback((contact: EmergencyContact | null) => {
+    if (contact) {
+      saveEmergencyContacts([contact]);
+    } else {
+      saveEmergencyContacts([]);
+    }
+  }, [saveEmergencyContacts]);
+
+  const emergencyContact = emergencyContacts[0] || null;
+
   const triggerSos = useCallback(() => {
     triggerHaptic(20);
-    if (!emergencyContact || !emergencyContact.phone) {
+    if (emergencyContacts.length === 0 || !emergencyContacts[0]?.phone) {
       toast.info("Please set an emergency contact first to use 1-tap SOS");
       setShowEmergencyContactModal(true);
     } else {
       setShowSosModal(true);
     }
-  }, [emergencyContact]);
+  }, [emergencyContacts]);
 
   const userJoinedLoopsRef = useRef(userJoinedLoops);
   useEffect(() => {
@@ -1106,7 +1131,9 @@ export function LoopProvider({ session, children }: { session: Session; children
     createPrefill,
     setCreatePrefill,
     emergencyContact,
+    emergencyContacts,
     saveEmergencyContact,
+    saveEmergencyContacts,
     showSosModal,
     setShowSosModal,
     showEmergencyContactModal,

@@ -24,6 +24,7 @@ export interface Loop {
 }
 
 export interface EmergencyContact {
+  id?: string;
   name: string;
   phone: string;
   relation?: string;
@@ -39,6 +40,7 @@ export interface Profile {
   phone_number?: string;
   is_student_verified?: boolean;
   emergency_contact?: EmergencyContact | null;
+  emergency_contacts?: EmergencyContact[];
 }
 
 export interface Message {

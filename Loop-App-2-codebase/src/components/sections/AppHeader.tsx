@@ -6,7 +6,18 @@ import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, 
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource, userJoinedLoops, activeLoops, triggerSos } = useLoop();
+  const {
+    view,
+    setView,
+    selectedLoop,
+    theme,
+    fetchLoops,
+    fetchUserMemberships,
+    chatSource,
+    userJoinedLoops,
+    activeLoops,
+    setShowEmergencyContactModal,
+  } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -124,34 +135,14 @@ export default function AppHeader() {
               <Plus size={20} className="rotate-45" />
             </button>
           )}
-          {view === "ride-details" && (
-            <button
-              onClick={triggerSos}
-              aria-label="Emergency SOS"
-              className="h-9 px-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-red-600/30 active:scale-90 transition-all cursor-pointer"
-            >
-              <ShieldAlert size={15} strokeWidth={2.6} />
-              <span>SOS</span>
-            </button>
-          )}
           {view === "chat" && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={triggerSos}
-                aria-label="Emergency SOS"
-                className="h-9 px-2.5 sm:px-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow-md shadow-red-600/30 active:scale-90 transition-all cursor-pointer"
-              >
-                <ShieldAlert size={14} strokeWidth={2.6} />
-                <span>SOS</span>
-              </button>
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
-                aria-label="Search messages"
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm cursor-pointer`}
-              >
-                <Search size={18} className="opacity-80" />
-              </button>
-            </div>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
+              aria-label="Search messages"
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm cursor-pointer`}
+            >
+              <Search size={18} className="opacity-80" />
+            </button>
           )}
         </div>
       )}
@@ -202,6 +193,17 @@ export default function AppHeader() {
                 >
                   <History size={15} className="text-purple-400" />
                   <span>Past Loops (History)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSettingsMenu(false);
+                    setShowEmergencyContactModal(true);
+                  }}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                >
+                  <ShieldAlert size={15} className="text-red-400" />
+                  <span>Emergency Contacts</span>
                 </button>
 
                 <button

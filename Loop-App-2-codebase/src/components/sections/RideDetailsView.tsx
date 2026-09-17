@@ -386,29 +386,6 @@ export default function RideDetailsView() {
         </button>
       </div>
 
-      {/* Emergency SOS Protection Card */}
-      {!isPast && (
-        <div className={`px-4 py-2.5 rounded-[22px] border border-red-500/25 bg-red-500/5 flex items-center justify-between shadow-xs`}>
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-xl bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center shrink-0">
-              <ShieldAlert size={15} strokeWidth={2.5} />
-            </div>
-            <div>
-              <p className="text-xs font-black tracking-tight text-red-400">Emergency SOS Protection</p>
-              <p className={`text-[10px] font-medium ${mutedText}`}>1-tap alert with live GPS pin to parents/friends</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={triggerSos}
-            aria-label="Trigger Emergency SOS"
-            className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm shadow-red-600/30 active:scale-95 transition-all cursor-pointer flex items-center gap-1 shrink-0"
-          >
-            <ShieldAlert size={12} strokeWidth={2.6} />
-            <span>SOS</span>
-          </button>
-        </div>
-      )}
 
       {/* Passengers */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
@@ -679,6 +656,18 @@ export default function RideDetailsView() {
               >
                 <LeaveIcon size={13} strokeWidth={2.5} />
                 Leave Loop
+              </button>
+            )}
+
+            {!isPast && (
+              <button
+                type="button"
+                onClick={triggerSos}
+                aria-label="Emergency SOS"
+                className="w-full py-3 bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 rounded-[20px] text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              >
+                <ShieldAlert size={14} strokeWidth={2.5} />
+                <span>Emergency SOS</span>
               </button>
             )}
           </>

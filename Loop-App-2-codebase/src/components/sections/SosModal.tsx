@@ -23,7 +23,7 @@ export default function SosModal() {
     showSosModal,
     setShowSosModal,
     setShowEmergencyContactModal,
-    emergencyContact,
+    emergencyContacts = [],
     selectedLoop,
     profile,
     theme,
@@ -33,6 +33,10 @@ export default function SosModal() {
   const [location, setLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locError, setLocError] = useState<string | null>(null);
+  const [selectedContactIdx, setSelectedContactIdx] = useState(0);
+
+  // Active targeted emergency contact
+  const currentContact = emergencyContacts[selectedContactIdx] || emergencyContacts[0] || null;
 
   // Auto-fetch real-time GPS coordinates as soon as SOS opens
   useEffect(() => {
@@ -101,20 +105,19 @@ export default function SosModal() {
   };
 
   const handleWhatsAppAlert = () => {
-    if (!emergencyContact?.phone) return;
+    if (!currentContact?.phone) return;
     triggerHaptic(15);
     const msg = buildSosMessage();
-    const cleanPhone = emergencyContact.phone.replace(/[^\d]/g, "");
+    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
     const waUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
   };
 
   const handleSmsAlert = () => {
-    if (!emergencyContact?.phone) return;
+    if (!currentContact?.phone) return;
     triggerHaptic(15);
     const msg = buildSosMessage();
-    const cleanPhone = emergencyContact.phone.replace(/[^\d]/g, "");
-    // Cross-platform SMS URL
+    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const smsUrl = isIOS
       ? `sms:+91${cleanPhone}&body=${encodeURIComponent(msg)}`
@@ -123,9 +126,9 @@ export default function SosModal() {
   };
 
   const handlePhoneCall = () => {
-    if (!emergencyContact?.phone) return;
+    if (!currentContact?.phone) return;
     triggerHaptic(15);
-    const cleanPhone = emergencyContact.phone.replace(/[^\d]/g, "");
+    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
     window.location.href = `tel:+91${cleanPhone}`;
   };
 
@@ -150,7 +153,6 @@ export default function SosModal() {
             <div>
               <div className="flex items-center gap-1.5">
                 <h2 className="text-lg font-black text-red-500 tracking-tight uppercase">Emergency SOS</h2>
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
               </div>
               <p className={`text-[11px] font-bold ${mutedText}`}>Instant safety alert dispatch</p>
             </div>
@@ -198,23 +200,46 @@ export default function SosModal() {
           )}
         </div>
 
+        {/* Multiple Contact Selector Tabs if > 1 */}
+        {emergencyContacts.length > 1 && (
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/20 border border-white/5">
+            {emergencyContacts.map((c, i) => (
+              <button
+                key={c.id || i}
+                type="button"
+                onClick={() => {
+                  triggerHaptic(6);
+                  setSelectedContactIdx(i);
+                }}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-black transition-all cursor-pointer truncate ${
+                  selectedContactIdx === i
+                    ? "bg-red-600 text-white shadow-xs"
+                    : `${isDark ? "text-zinc-400 hover:text-white" : "text-stone-600 hover:text-black"}`
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Target Emergency Contact Card */}
-        {emergencyContact && emergencyContact.phone ? (
+        {currentContact && currentContact.phone ? (
           <div className={`p-3 rounded-2xl border ${border} ${isDark ? "bg-white/5" : "bg-black/[0.03]"} flex items-center justify-between`}>
             <div>
-              <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>Emergency Contact</p>
+              <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>Target Contact</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-sm font-black tracking-tight">{emergencyContact.name}</span>
-                {emergencyContact.relation && (
+                <span className="text-sm font-black tracking-tight">{currentContact.name}</span>
+                {currentContact.relation && (
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                     isDark ? "bg-white/10 text-zinc-300" : "bg-black/10 text-stone-700"
                   }`}>
-                    {emergencyContact.relation}
+                    {currentContact.relation}
                   </span>
                 )}
               </div>
               <p className="text-xs font-mono font-bold text-red-400 mt-0.5">
-                +91 {emergencyContact.phone}
+                +91 {currentContact.phone}
               </p>
             </div>
             <button
@@ -222,10 +247,11 @@ export default function SosModal() {
                 setShowSosModal(false);
                 setShowEmergencyContactModal(true);
               }}
-              aria-label="Change contact"
-              className={`p-2 rounded-xl border ${border} ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"} active:scale-90 transition-all cursor-pointer`}
+              aria-label="Manage contacts"
+              className={`px-2.5 py-1.5 rounded-xl border ${border} ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"} active:scale-90 transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold`}
             >
-              <Edit3 size={14} className={mutedText} />
+              <Edit3 size={12} className={mutedText} />
+              <span className={mutedText}>Manage</span>
             </button>
           </div>
         ) : (
@@ -245,21 +271,21 @@ export default function SosModal() {
 
         {/* Action Buttons */}
         <div className="space-y-2 pt-1">
-          {/* 1. WhatsApp Alert (Preferred for rich formatted text + map link) */}
+          {/* 1. WhatsApp Alert */}
           <button
             onClick={handleWhatsAppAlert}
-            disabled={!emergencyContact?.phone}
+            disabled={!currentContact?.phone}
             className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Send size={16} strokeWidth={2.5} />
-            <span>Send SOS via WhatsApp</span>
+            <span>Send SOS {currentContact ? `to ${currentContact.name}` : ""} via WhatsApp</span>
           </button>
 
           {/* 2. SMS Alert */}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleSmsAlert}
-              disabled={!emergencyContact?.phone}
+              disabled={!currentContact?.phone}
               className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} disabled:opacity-50 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <MessageSquare size={15} />
@@ -269,7 +295,7 @@ export default function SosModal() {
             {/* 3. Direct Phone Call */}
             <button
               onClick={handlePhoneCall}
-              disabled={!emergencyContact?.phone}
+              disabled={!currentContact?.phone}
               className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} disabled:opacity-50 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <Phone size={15} />
