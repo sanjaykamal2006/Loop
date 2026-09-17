@@ -20,6 +20,8 @@ import TermsModal from "./TermsModal";
 import CreatorModal from "./CreatorModal";
 import TeluguGuideModal from "./TeluguGuideModal";
 import BuyCoffeeModal from "./BuyCoffeeModal";
+import EmergencyContactModal from "./EmergencyContactModal";
+import SosModal from "./SosModal";
 
 function AppContent() {
   const { view, selectedLoop, theme } = useLoop();
@@ -78,6 +80,8 @@ function AppContent() {
 
       <BottomNav />
       <GenderModal />
+      <EmergencyContactModal />
+      <SosModal />
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
       <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />

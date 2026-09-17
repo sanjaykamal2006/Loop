@@ -23,6 +23,12 @@ export interface Loop {
   } | null;
 }
 
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+  relation?: string;
+}
+
 export interface Profile {
   display_name: string;
   theme: "dark" | "light";
@@ -32,6 +38,7 @@ export interface Profile {
   bio?: string;
   phone_number?: string;
   is_student_verified?: boolean;
+  emergency_contact?: EmergencyContact | null;
 }
 
 export interface Message {

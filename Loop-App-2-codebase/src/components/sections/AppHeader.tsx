@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, Rocket } from "lucide-react";
+import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, Rocket, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
-  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource, userJoinedLoops, activeLoops } = useLoop();
+  const { view, setView, selectedLoop, theme, fetchLoops, fetchUserMemberships, chatSource, userJoinedLoops, activeLoops, triggerSos } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -124,14 +124,34 @@ export default function AppHeader() {
               <Plus size={20} className="rotate-45" />
             </button>
           )}
-          {view === "chat" && (
+          {view === "ride-details" && (
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
-              aria-label="Search messages"
-              className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm`}
+              onClick={triggerSos}
+              aria-label="Emergency SOS"
+              className="h-9 px-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-red-600/30 active:scale-90 transition-all cursor-pointer"
             >
-              <Search size={18} className="opacity-80" />
+              <ShieldAlert size={15} strokeWidth={2.6} />
+              <span>SOS</span>
             </button>
+          )}
+          {view === "chat" && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={triggerSos}
+                aria-label="Emergency SOS"
+                className="h-9 px-2.5 sm:px-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow-md shadow-red-600/30 active:scale-90 transition-all cursor-pointer"
+              >
+                <ShieldAlert size={14} strokeWidth={2.6} />
+                <span>SOS</span>
+              </button>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
+                aria-label="Search messages"
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm cursor-pointer`}
+              >
+                <Search size={18} className="opacity-80" />
+              </button>
+            </div>
           )}
         </div>
       )}

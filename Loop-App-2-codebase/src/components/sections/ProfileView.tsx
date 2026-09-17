@@ -16,6 +16,7 @@ import {
   X,
   AlertTriangle,
   Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -31,7 +32,17 @@ import {
 } from "@/lib/notifications";
 
 export default function ProfileView() {
-  const { session, profile, updateProfile, handleSignOut, theme, setView, toggleTheme } = useLoop();
+  const { 
+    session, 
+    profile, 
+    updateProfile, 
+    handleSignOut, 
+    theme, 
+    setView, 
+    toggleTheme,
+    emergencyContact,
+    setShowEmergencyContactModal,
+  } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   const [tempName, setTempName] = useState(profile.display_name);
@@ -394,6 +405,37 @@ export default function ProfileView() {
 
       {/* 4. Quick Actions & Preferences Card */}
       <div className={`${cardBg} border ${border} rounded-[24px] overflow-hidden shadow-sm divide-y ${isDark ? "divide-white/5" : "divide-black/5"}`}>
+        {/* Emergency SOS Contact */}
+        <button
+          onClick={() => {
+            triggerHaptic(8);
+            setShowEmergencyContactModal(true);
+          }}
+          className="w-full px-4.5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-red-500 shrink-0">
+              <ShieldAlert size={18} strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
+                  Emergency SOS Contact
+                </span>
+                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider bg-red-500/20 text-red-400">
+                  SOS
+                </span>
+              </div>
+              <p className={`text-[11px] font-medium ${mutedText}`}>
+                {emergencyContact?.phone
+                  ? `${emergencyContact.name} • +91 ${emergencyContact.phone}`
+                  : "Add parents / close friend for 1-tap SOS"}
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={16} className="opacity-40" />
+        </button>
+
         {/* Past Loops */}
         <button
           onClick={() => setView("past-loops")}

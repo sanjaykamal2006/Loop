@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search, Repeat } from "lucide-react";
+import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search, Repeat, ShieldAlert } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import FastAvatar from "@/components/ui/FastAvatar";
@@ -50,7 +50,7 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops, triggerSos } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
@@ -871,6 +871,15 @@ export default function ChatView() {
         </div>
         
         <div className="flex items-center gap-1.5 ml-2 shrink-0">
+          <button
+            onClick={triggerSos}
+            aria-label="Emergency SOS"
+            className="h-8 px-2 rounded-full bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm shadow-red-600/30 transition-all shrink-0 cursor-pointer"
+          >
+            <ShieldAlert size={12} strokeWidth={2.6} />
+            <span>SOS</span>
+          </button>
+
           <button
             onClick={handleShareLocation}
             disabled={isSharingLocation}

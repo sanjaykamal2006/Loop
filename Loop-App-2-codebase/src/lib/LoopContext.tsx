@@ -4,10 +4,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
-import type { View, Loop, Profile, ThemeClasses } from "@/lib/types";
+import type { View, Loop, Profile, ThemeClasses, EmergencyContact } from "@/lib/types";
 import { registerServiceWorker, sendLocalNotification } from "./notifications";
 import { parseStudentEmail } from "./studentParser";
 import { preloadAvatars } from "./imageOptimization";
+import { triggerHaptic } from "./haptics";
 
 interface LoopContextValue {
   // Session
@@ -62,6 +63,15 @@ interface LoopContextValue {
   // Return trip prefill
   createPrefill: { startPoint?: string; destination?: string; isReturn?: boolean } | null;
   setCreatePrefill: (p: { startPoint?: string; destination?: string; isReturn?: boolean } | null) => void;
+
+  // Emergency SOS & Safety
+  emergencyContact: EmergencyContact | null;
+  saveEmergencyContact: (contact: EmergencyContact | null) => void;
+  showSosModal: boolean;
+  setShowSosModal: (show: boolean) => void;
+  showEmergencyContactModal: boolean;
+  setShowEmergencyContactModal: (show: boolean) => void;
+  triggerSos: () => void;
 }
 
 const LoopContext = createContext<LoopContextValue | null>(null);
@@ -158,6 +168,42 @@ export function LoopProvider({ session, children }: { session: Session; children
     setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
   }, []);
   const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
+
+  // Emergency SOS & Safety
+  const [emergencyContact, setEmergencyContact] = useState<EmergencyContact | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`loop_emergency_contact_${session.user.id}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
+  const [showSosModal, setShowSosModal] = useState(false);
+  const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false);
+
+  const saveEmergencyContact = useCallback((contact: EmergencyContact | null) => {
+    setEmergencyContact(contact);
+    if (typeof window !== "undefined") {
+      try {
+        if (contact) {
+          localStorage.setItem(`loop_emergency_contact_${session.user.id}`, JSON.stringify(contact));
+        } else {
+          localStorage.removeItem(`loop_emergency_contact_${session.user.id}`);
+        }
+      } catch {}
+    }
+  }, [session.user.id]);
+
+  const triggerSos = useCallback(() => {
+    triggerHaptic(20);
+    if (!emergencyContact || !emergencyContact.phone) {
+      toast.info("Please set an emergency contact first to use 1-tap SOS");
+      setShowEmergencyContactModal(true);
+    } else {
+      setShowSosModal(true);
+    }
+  }, [emergencyContact]);
 
   const userJoinedLoopsRef = useRef(userJoinedLoops);
   useEffect(() => {
@@ -1059,6 +1105,13 @@ export function LoopProvider({ session, children }: { session: Session; children
     markLoopAsRead,
     createPrefill,
     setCreatePrefill,
+    emergencyContact,
+    saveEmergencyContact,
+    showSosModal,
+    setShowSosModal,
+    showEmergencyContactModal,
+    setShowEmergencyContactModal,
+    triggerSos,
   };
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;
