@@ -203,12 +203,39 @@ export function LoopProvider({ session, children }: { session: Session; children
         .order("created_at", { ascending: true })
         .limit(3);
 
-      if (!error && data && data.length > 0) {
-        setEmergencyContacts(data);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(data));
-          } catch {}
+      if (!error) {
+        if (data && data.length > 0) {
+          setEmergencyContacts(data);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(data));
+            } catch {}
+          }
+        } else if (typeof window !== "undefined") {
+          // If cloud table was just created, sync any existing local contacts up to the database
+          const cached = localStorage.getItem(`loop_emergency_contacts_${session.user.id}`);
+          if (cached) {
+            try {
+              const localList: EmergencyContact[] = JSON.parse(cached);
+              if (Array.isArray(localList) && localList.length > 0) {
+                const payload = localList.slice(0, 3).map((c) => ({
+                  user_id: session.user.id,
+                  name: c.name.trim(),
+                  phone: c.phone.trim(),
+                  relation: c.relation || "Parent",
+                }));
+                const { data: inserted, error: insertError } = await supabase
+                  .from("emergency_contacts")
+                  .insert(payload)
+                  .select("id, name, phone, relation");
+
+                if (!insertError && inserted && inserted.length > 0) {
+                  setEmergencyContacts(inserted);
+                  localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
+                }
+              }
+            } catch {}
+          }
         }
       }
     } catch (err) {
