@@ -13,6 +13,7 @@ import ProfileView from "./ProfileView";
 import RideDetailsView from "./RideDetailsView";
 import TrustedVehiclesView from "./TrustedVehiclesView";
 import PastLoopsView from "./PastLoopsView";
+import ChangelogView from "./ChangelogView";
 import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 import TermsModal from "./TermsModal";
@@ -54,8 +55,8 @@ function AppContent() {
     <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
       <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
 
-      {/* When in past-loops or trusted-vehicles, the view manages its own top bar / back button, or header can adapt */}
-      {view !== "past-loops" && <AppHeader />}
+      {/* When in past-loops or changelog, the view manages its own top bar / back button, or header can adapt */}
+      {view !== "past-loops" && view !== "changelog" && <AppHeader />}
 
       {/* Chat gets its own full-height container */}
       {view === "chat" ? (
@@ -63,7 +64,7 @@ function AppContent() {
       ) : (
         <main className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${
           "overflow-y-auto pb-24"
-        } ${view === "past-loops" ? "pt-5" : ""}`}>
+        } ${view === "past-loops" || view === "changelog" ? "pt-5" : ""}`}>
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
           {view === "chat-list" && <ChatListView />}
@@ -71,6 +72,7 @@ function AppContent() {
           {view === "ride-details" && (selectedLoop ? <RideDetailsView /> : <HomeView />)}
           {view === "trusted-vehicles" && <TrustedVehiclesView />}
           {view === "past-loops" && <PastLoopsView />}
+          {view === "changelog" && <ChangelogView />}
         </main>
       )}
 

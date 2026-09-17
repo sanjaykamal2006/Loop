@@ -1,4 +1,4 @@
-export type View = "home" | "create" | "chat-list" | "profile" | "ride-details" | "chat" | "trusted-vehicles" | "past-loops";
+export type View = "home" | "create" | "chat-list" | "profile" | "ride-details" | "chat" | "trusted-vehicles" | "past-loops" | "changelog";
 
 export interface Loop {
   id: string;

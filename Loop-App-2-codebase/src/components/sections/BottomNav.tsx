@@ -114,7 +114,7 @@ export default function BottomNav() {
         {items.map(({ v, icon, label, animClass }) => {
           const isActive =
             v === "profile"
-              ? view === "profile" || view === "trusted-vehicles" || view === "past-loops"
+              ? view === "profile" || view === "trusted-vehicles" || view === "past-loops" || view === "changelog"
               : view === v;
 
           return (
