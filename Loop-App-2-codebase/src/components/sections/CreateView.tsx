@@ -4,9 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Users, Calendar, Clock, Repeat, TrainFront, Flag, ArrowUpDown } from "lucide-react";
+import { Users, Calendar, Clock, Repeat, Flag, ArrowUpDown } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDDMMYYYY } from "@/lib/dateFormatter";
-import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
+import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon, AutoRickshawIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
 import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
@@ -306,7 +306,7 @@ export default function CreateView() {
         {/* Row 1: Starting Point */}
         <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-            <TrainFront size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            <AutoRickshawIcon size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
           </div>
           <div className="flex-1 min-w-0">
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] block leading-tight`}>
@@ -343,7 +343,7 @@ export default function CreateView() {
         {/* Row 2: Destination */}
         <div className="relative px-4 py-3 sm:py-3.5 pr-14 flex items-center gap-3.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 relative">
-            <TrainFront size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
+            <AutoRickshawIcon size={22} strokeWidth={1.8} className={isDark ? "text-zinc-300" : "text-zinc-700"} />
             <Flag size={9} strokeWidth={2.6} className={`absolute bottom-0 right-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
           </div>
           <div className="flex-1 min-w-0">
