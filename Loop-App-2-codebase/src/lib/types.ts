@@ -25,9 +25,11 @@ export interface Loop {
 
 export interface EmergencyContact {
   id?: string;
+  user_id?: string;
   name: string;
   phone: string;
   relation?: string;
+  created_at?: string;
 }
 
 export interface Profile {

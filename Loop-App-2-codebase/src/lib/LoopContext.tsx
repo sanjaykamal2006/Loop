@@ -195,7 +195,32 @@ export function LoopProvider({ session, children }: { session: Session; children
   const [showSosModal, setShowSosModal] = useState(false);
   const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false);
 
-  const saveEmergencyContacts = useCallback((contacts: EmergencyContact[]) => {
+  const fetchEmergencyContacts = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("emergency_contacts")
+        .select("id, name, phone, relation")
+        .order("created_at", { ascending: true })
+        .limit(3);
+
+      if (!error && data && data.length > 0) {
+        setEmergencyContacts(data);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(data));
+          } catch {}
+        }
+      }
+    } catch (err) {
+      // Offline fallback: continue with localStorage
+    }
+  }, [session.user.id]);
+
+  useEffect(() => {
+    fetchEmergencyContacts();
+  }, [fetchEmergencyContacts]);
+
+  const saveEmergencyContacts = useCallback(async (contacts: EmergencyContact[]) => {
     const trimmed = contacts.slice(0, 3);
     setEmergencyContacts(trimmed);
     if (typeof window !== "undefined") {
@@ -207,6 +232,34 @@ export function LoopProvider({ session, children }: { session: Session; children
           localStorage.removeItem(`loop_emergency_contact_${session.user.id}`);
         }
       } catch {}
+    }
+
+    // Cloud synchronization with Row Level Security (RLS)
+    try {
+      await supabase.from("emergency_contacts").delete().eq("user_id", session.user.id);
+      if (trimmed.length > 0) {
+        const payload = trimmed.map((c) => ({
+          user_id: session.user.id,
+          name: c.name.trim(),
+          phone: c.phone.trim(),
+          relation: c.relation || "Parent",
+        }));
+        const { data: inserted, error: insertError } = await supabase
+          .from("emergency_contacts")
+          .insert(payload)
+          .select("id, name, phone, relation");
+
+        if (!insertError && inserted && inserted.length > 0) {
+          setEmergencyContacts(inserted);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
+            } catch {}
+          }
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Emergency contacts database sync notice:", dbErr);
     }
   }, [session.user.id]);
 
