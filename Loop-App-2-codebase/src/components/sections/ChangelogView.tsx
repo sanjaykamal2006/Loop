@@ -4,22 +4,21 @@ import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { 
   ArrowLeft, 
-  Sparkles, 
   Repeat, 
   MapPin, 
   Palette, 
   Smartphone, 
   ShieldCheck, 
   Coins, 
-  MessageSquare,
-  Lock,
-  Rocket,
-  Search,
-  CheckCircle2,
-  Clock,
-  Zap,
-  Coffee,
-  KeyRound
+  MessageSquare, 
+  Lock, 
+  Rocket, 
+  Search, 
+  CheckCircle2, 
+  Clock, 
+  Zap, 
+  Coffee, 
+  KeyRound 
 } from "lucide-react";
 import { AutoRickshawIcon } from "@/components/ui/VehicleIcons";
 
@@ -177,11 +176,9 @@ export default function ChangelogView() {
   ];
 
   return (
-    <div className="flex flex-col min-h-full space-y-4 pb-12 animate-fade-in">
-      {/* Sticky Top Header */}
-      <div className={`sticky top-0 z-30 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3.5 ${
-        isDark ? "bg-black/95 border-b border-white/[0.06]" : "bg-[#F2EFE9]/95 border-b border-black/[0.06]"
-      } backdrop-blur-xl flex items-center justify-between`}>
+    <div className="space-y-4 pb-12 animate-fade-in">
+      {/* Top Header - Clean, non-overlapping header matching PastLoopsView */}
+      <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setView("profile")}
@@ -204,24 +201,7 @@ export default function ChangelogView() {
         </div>
       </div>
 
-      {/* Intro Banner */}
-      <div className={`p-4 rounded-[22px] border ${border} ${cardBg} relative overflow-hidden shadow-sm`}>
-        <div className="flex items-start gap-3 relative z-10">
-          <div className={`w-9 h-9 rounded-xl ${
-            isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
-          } flex items-center justify-center shrink-0`}>
-            <Sparkles size={18} strokeWidth={2.4} />
-          </div>
-          <div>
-            <h2 className="text-xs font-black uppercase tracking-wider">Evolution of LOOP</h2>
-            <p className={`text-[11px] font-medium ${mutedText} mt-0.5 leading-relaxed`}>
-              We ship purpose-driven updates to make campus and commuter ride-pooling safer, faster, and hassle-free. Here is what has been built from our GitHub releases.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Changelog Timeline Feed */}
+      {/* Changelog Timeline Feed - Directly below header with clean spacing */}
       <div className="space-y-4">
         {changelogData.map((entry) => (
           <div

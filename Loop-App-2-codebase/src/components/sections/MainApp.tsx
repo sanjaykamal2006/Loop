@@ -63,7 +63,7 @@ function AppContent() {
         selectedLoop ? <ChatView /> : <ChatListView />
       ) : (
         <main className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${
-          view === "changelog" ? "overflow-y-auto pb-10 pt-0" : "overflow-y-auto pb-24"
+          view === "changelog" ? "overflow-y-auto pb-10 pt-5" : "overflow-y-auto pb-24"
         } ${view === "past-loops" ? "pt-5" : ""}`}>
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
