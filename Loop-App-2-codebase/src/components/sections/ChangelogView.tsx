@@ -18,9 +18,12 @@ import {
   Clock, 
   Zap, 
   Coffee, 
-  KeyRound 
+  KeyRound,
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { AutoRickshawIcon } from "@/components/ui/VehicleIcons";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface ChangelogEntry {
   version: string;
@@ -42,10 +45,44 @@ export default function ChangelogView() {
 
   const changelogData: ChangelogEntry[] = [
     {
-      version: "v2.2",
-      codename: "The Coordination & Dual-Theme Release",
+      version: "v2.3",
+      codename: "Tactile Physics & Instant History",
       badge: "Latest",
       isLatest: true,
+      date: "September 2026",
+      summary: "Silky-smooth native motion physics, instant 0ms cached ride history with parallel queries, redesigned spacious buy coffee modal, and smart Indian phone sanitizer.",
+      features: [
+        {
+          icon: <Zap size={16} strokeWidth={2.4} />,
+          title: "Tactile Native Motion & Fluid Transitions",
+          description: "Perceptible 18px spring view transitions, 45ms staggered card waterfall cascades across Home, Chat, and History, and active rubber-band micro-settle physics on bottom tabs."
+        },
+        {
+          icon: <Clock size={16} strokeWidth={2.4} />,
+          title: "Instant 0ms Ride History (SWR Cache)",
+          description: "Zero-delay history loading powered by synchronous local caching and parallelized Supabase queries (Promise.all) with sleek pulsing skeleton shimmer cards."
+        },
+        {
+          icon: <Coffee size={16} strokeWidth={2.4} />,
+          title: "Redesigned 'Buy Creator a Coffee' Modal",
+          description: "Spacious, segmented modal with Instant Pay vs. Scan QR tabs, quick amount chips (₹20, ₹50 [Popular], ₹100, ₹200), and 1-tap UPI ID copy chip."
+        },
+        {
+          icon: <Smartphone size={16} strokeWidth={2.4} />,
+          title: "Smart Phone Number Sanitizer",
+          description: "Auto-cleans pasted phone numbers with +91 country codes, spaces, and formatting symbols to accurately extract the 10-digit mobile number for emergency contacts."
+        },
+        {
+          icon: <Layers size={16} strokeWidth={2.4} />,
+          title: "Next.js 16.3 + Turbopack & Security Audit",
+          description: "Pruned all unused packages, updated to native ESLint flat config, and enhanced performance with modern Turbopack compilation."
+        }
+      ]
+    },
+    {
+      version: "v2.2",
+      codename: "The Coordination & Dual-Theme Release",
+      badge: "Stable",
       date: "September 2026",
       summary: "Major upgrades for return journey planning, live GPS spot sharing in chat, and full dual-theme contrast.",
       features: [
@@ -177,11 +214,14 @@ export default function ChangelogView() {
 
   return (
     <div className="space-y-4 pb-12 animate-fade-in">
-      {/* Top Header - Clean, non-overlapping header matching PastLoopsView */}
+      {/* Top Header */}
       <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setView("profile")}
+            onClick={() => {
+              triggerHaptic(10);
+              setView("profile");
+            }}
             aria-label="Back to profile"
             className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm cursor-pointer`}
           >
@@ -189,24 +229,25 @@ export default function ChangelogView() {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black uppercase tracking-tight">What&apos;s New</h1>
+              <h1 className="text-xl font-black uppercase tracking-tight">Changelog</h1>
               <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
                 isDark ? "bg-[#FFC554]/20 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
               }`}>
-                v2.2
+                v2.3
               </span>
             </div>
-            <p className={`text-[11px] font-bold ${mutedText}`}>LOOP Product Updates & Changelog</p>
+            <p className={`text-[11px] font-bold ${mutedText}`}>LOOP Product Updates & Release Notes</p>
           </div>
         </div>
       </div>
 
-      {/* Changelog Timeline Feed - Directly below header with clean spacing */}
+      {/* Changelog Timeline Feed */}
       <div className="space-y-4">
-        {changelogData.map((entry) => (
+        {changelogData.map((entry, entryIdx) => (
           <div
             key={entry.version}
-            className={`p-4 sm:p-5 rounded-[24px] border ${border} ${cardBg} shadow-sm space-y-3.5 transition-all`}
+            style={{ "--stagger-delay": `${entryIdx * 50}ms` } as React.CSSProperties}
+            className={`p-4 sm:p-5 rounded-[24px] border ${border} ${cardBg} shadow-sm space-y-3.5 transition-all animate-card-enter`}
           >
             {/* Version Header */}
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3">

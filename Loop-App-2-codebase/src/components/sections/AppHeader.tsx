@@ -215,10 +215,10 @@ export default function AppHeader() {
                 >
                   <Rocket size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                   <div className="flex items-center gap-1.5">
-                    <span>What&apos;s New</span>
+                    <span>Changelog</span>
                     <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-md ${
                       isDark ? "bg-[#FFC554]/20 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
-                    }`}>v2.2</span>
+                    }`}>v2.3</span>
                   </div>
                 </button>
 

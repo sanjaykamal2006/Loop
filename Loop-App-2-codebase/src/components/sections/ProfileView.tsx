@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Sparkles,
   ShieldAlert,
+  Rocket,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -428,7 +429,10 @@ export default function ProfileView() {
 
         {/* Trusted Drivers */}
         <button
-          onClick={() => setView("trusted-vehicles")}
+          onClick={() => {
+            triggerHaptic(10);
+            setView("trusted-vehicles");
+          }}
           className="w-full px-4.5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left cursor-pointer"
         >
           <div className="flex items-center gap-3">
@@ -438,6 +442,32 @@ export default function ProfileView() {
             <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
               Trusted Drivers
             </span>
+          </div>
+          <ChevronRight size={16} className="opacity-40" />
+        </button>
+
+        {/* Changelog */}
+        <button
+          onClick={() => {
+            triggerHaptic(10);
+            setView("changelog");
+          }}
+          className="w-full px-4.5 py-3.5 sm:py-4 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center shrink-0`}>
+              <Rocket size={18} strokeWidth={2.5} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
+                Changelog
+              </span>
+              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
+                isDark ? "bg-[#FFC554]/20 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
+              }`}>
+                v2.3
+              </span>
+            </div>
           </div>
           <ChevronRight size={16} className="opacity-40" />
         </button>
