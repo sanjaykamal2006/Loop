@@ -104,10 +104,10 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-2.5 pb-5 px-4 backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
         isDark
-          ? "bg-black/95 border-t border-white/[0.08] shadow-[0_-8px_30px_rgba(0,0,0,0.6)]"
-          : "bg-white/95 border-t border-black/[0.06] shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
+          ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
+          : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
       }`}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">

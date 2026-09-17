@@ -13,7 +13,13 @@ import {
   Coins, 
   MessageSquare,
   Lock,
-  Rocket
+  Rocket,
+  Search,
+  CheckCircle2,
+  Clock,
+  Zap,
+  Coffee,
+  KeyRound
 } from "lucide-react";
 import { AutoRickshawIcon } from "@/components/ui/VehicleIcons";
 
@@ -38,21 +44,21 @@ export default function ChangelogView() {
   const changelogData: ChangelogEntry[] = [
     {
       version: "v2.2",
-      codename: "The Coordination Release",
+      codename: "The Coordination & Dual-Theme Release",
       badge: "Latest",
       isLatest: true,
       date: "September 2026",
-      summary: "Major enhancements for return journeys, live spot coordination, and full dual-theme support.",
+      summary: "Major upgrades for return journey planning, live GPS spot sharing in chat, and full dual-theme contrast.",
       features: [
         {
           icon: <Repeat size={16} strokeWidth={2.4} />,
           title: "Return Trip Coordination",
-          description: "Schedule your return journey directly when planning a ride. Co-riders receive an in-chat return banner with one-tap access."
+          description: "Schedule your return journey directly when planning a ride. Co-riders receive an interactive in-chat return banner with 1-tap joining."
         },
         {
           icon: <MapPin size={16} strokeWidth={2.4} />,
           title: "Live Spot Sharing in Chat",
-          description: "Tap 'Spot' inside loop chat to instantly share your exact pickup point pin so group members find each other without confusion."
+          description: "Tap 'Spot' inside loop chat to instantly share your exact pickup GPS pin so group members meet without confusion."
         },
         {
           icon: <Palette size={16} strokeWidth={2.4} />,
@@ -60,19 +66,34 @@ export default function ChangelogView() {
           description: "Toggle between classic Midnight Black (Yellow accents) and Paper White (Royal Maroon accents) in Profile settings."
         },
         {
+          icon: <Zap size={16} strokeWidth={2.4} />,
+          title: "Unified Transit Card & Quick Swap",
+          description: "Re-engineered From/To transit card with 1-tap location swapping, vehicle selection, and auto-rickshaw icons."
+        },
+        {
           icon: <Smartphone size={16} strokeWidth={2.4} />,
-          title: "One-Handed Mobile Experience",
+          title: "One-Handed Mobile UX",
           description: "Enlarged touch targets, pill inputs, and streamlined single-screen layouts designed for zero vertical scrolling."
         }
       ]
     },
     {
       version: "v2.1",
-      codename: "Smart Mobility & Safety",
+      codename: "Rich Chat & Mobility Fleet",
       badge: "Stable",
       date: "August 2026",
-      summary: "Expanded multi-modal vehicle options, community fare transparency, and enhanced safety filters.",
+      summary: "In-chat message search, mobile-first message actions, expanded auto-rickshaw fleet, and expected fares.",
       features: [
+        {
+          icon: <Search size={16} strokeWidth={2.4} />,
+          title: "In-Chat Message Search",
+          description: "Search conversations in active ride chats with real-time keyword highlighting, match counters, and quick navigation."
+        },
+        {
+          icon: <MessageSquare size={16} strokeWidth={2.4} />,
+          title: "Long-Press Message Action Sheet",
+          description: "Hold any message to edit, copy, or delete with native mobile haptics and author verification."
+        },
         {
           icon: <AutoRickshawIcon size={16} strokeWidth={2.2} />,
           title: "Auto-Rickshaws & Share Autos",
@@ -85,39 +106,78 @@ export default function ChangelogView() {
         },
         {
           icon: <Coins size={16} strokeWidth={2.4} />,
-          title: "Expected Fares Guide",
-          description: "Community-verified benchmark fares for local routes to eliminate bargaining uncertainty."
+          title: "Expected Fares Directory",
+          description: "Community-verified benchmark fares for local transit points and campus routes to eliminate bargaining uncertainty."
         },
         {
-          icon: <MessageSquare size={16} strokeWidth={2.4} />,
-          title: "Real-Time Group Coordination",
-          description: "Fast in-app chat for each loop with sender tags, unread badges, and hold-to-manage options."
+          icon: <Clock size={16} strokeWidth={2.4} />,
+          title: "Native Time of Travel Picker",
+          description: "Fast departure time selector with prominent AM/PM pill badges and quick time-shift chips."
         }
       ]
     },
     {
       version: "v2.0",
-      codename: "Purpose-Built LOOP",
+      codename: "Security Fortress & Lightning Speed",
       badge: "Milestone",
       date: "July 2026",
-      summary: "The ground-up rebuild of LOOP as an ultra-fast, temporary coordination platform.",
+      summary: "Database security hardening, client-side photo compression, instant caching, and creator tipping.",
+      features: [
+        {
+          icon: <Lock size={16} strokeWidth={2.4} />,
+          title: "Fortress Security Architecture",
+          description: "Strict Row-Level Security (RLS), atomic seat allocation triggers, phone number isolation, and IDOR protection."
+        },
+        {
+          icon: <Zap size={16} strokeWidth={2.4} />,
+          title: "FastAvatar & Image Compression",
+          description: "Zero-latency photo loading with client-side canvas compression, initials fallback, and service worker caching."
+        },
+        {
+          icon: <CheckCircle2 size={16} strokeWidth={2.4} />,
+          title: "15s SWR Caching & Optimistic UI",
+          description: "Instant chat message delivery with local optimistic rendering and background tab lifecycle management."
+        },
+        {
+          icon: <Coffee size={16} strokeWidth={2.4} />,
+          title: "Buy Creator a Coffee (UPI)",
+          description: "Direct 1-tap UPI deep-links supporting GPay, PhonePe, Paytm, and BHIM to keep LOOP free and fast."
+        },
+        {
+          icon: <ShieldCheck size={16} strokeWidth={2.4} />,
+          title: "DPDP Act Compliant Privacy",
+          description: "Minimalist, temporary coordination that disappears when rides conclude, with 1-tap account deletion."
+        }
+      ]
+    },
+    {
+      version: "v1.0",
+      codename: "The Genesis of LOOP",
+      badge: "Foundation",
+      date: "June 2026",
+      summary: "The initial launch of purpose-based campus coordination to eliminate chaotic chat groups.",
       features: [
         {
           icon: <Rocket size={16} strokeWidth={2.4} />,
-          title: "Zero-Distraction Rides",
-          description: "Purpose-based travel pools that automatically expire and archive once your journey concludes."
+          title: "Zero-Distraction Ephemeral Pools",
+          description: "Purpose-based travel groups that automatically expire and archive once your journey concludes."
         },
         {
-          icon: <Lock size={16} strokeWidth={2.4} />,
-          title: "Privacy-First Architecture",
-          description: "DPDP Act compliant data handling with encrypted authentication and one-tap account deletion."
+          icon: <KeyRound size={16} strokeWidth={2.4} />,
+          title: "OTP Verification & Rate Limiting",
+          description: "One-time 6-digit email OTP verification, verified registration numbers, and brute-force protection."
+        },
+        {
+          icon: <MapPin size={16} strokeWidth={2.4} />,
+          title: "Campus to Transit Hub Pooling",
+          description: "Direct coordination between campus gates, railway stations, bus terminals, and airports."
         }
       ]
     }
   ];
 
   return (
-    <div className="flex flex-col h-full space-y-4 animate-fade-in">
+    <div className="flex flex-col min-h-full space-y-4 pb-36 animate-fade-in">
       {/* Top Header */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-3">
@@ -153,14 +213,14 @@ export default function ChangelogView() {
           <div>
             <h2 className="text-xs font-black uppercase tracking-wider">Evolution of LOOP</h2>
             <p className={`text-[11px] font-medium ${mutedText} mt-0.5 leading-relaxed`}>
-              We ship purpose-driven updates to make your daily commutes safer, faster, and hassle-free. Here is what has been built for you.
+              We ship purpose-driven updates to make campus and commuter ride-pooling safer, faster, and hassle-free. Here is what has been built from our GitHub releases.
             </p>
           </div>
         </div>
       </div>
 
       {/* Changelog Timeline Feed */}
-      <div className="space-y-4 pb-4">
+      <div className="space-y-4">
         {changelogData.map((entry) => (
           <div
             key={entry.version}
@@ -237,7 +297,7 @@ export default function ChangelogView() {
           Have an idea or feature request for LOOP?
         </p>
         <p className={`text-[10px] ${mutedText} mt-0.5`}>
-          Built by Sanjay Kamal. Connect or drop feedback from the About Creator menu!
+          Built with care by Sanjay Kamal. Tap About Creator to share feedback!
         </p>
       </div>
     </div>
