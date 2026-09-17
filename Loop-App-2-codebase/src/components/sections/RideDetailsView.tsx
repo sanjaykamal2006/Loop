@@ -616,6 +616,18 @@ export default function RideDetailsView() {
               </button>
             )}
 
+            {!isPast && (
+              <button
+                type="button"
+                onClick={triggerSos}
+                aria-label="Emergency SOS"
+                className="w-full py-3 bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 rounded-[20px] text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              >
+                <ShieldAlert size={14} strokeWidth={2.5} />
+                <span>Emergency SOS</span>
+              </button>
+            )}
+
             {isCreator && (
               showDeleteConfirm ? (
                 <div className="flex gap-2 animate-fade-in">
@@ -656,18 +668,6 @@ export default function RideDetailsView() {
               >
                 <LeaveIcon size={13} strokeWidth={2.5} />
                 Leave Loop
-              </button>
-            )}
-
-            {!isPast && (
-              <button
-                type="button"
-                onClick={triggerSos}
-                aria-label="Emergency SOS"
-                className="w-full py-3 bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 rounded-[20px] text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
-              >
-                <ShieldAlert size={14} strokeWidth={2.5} />
-                <span>Emergency SOS</span>
               </button>
             )}
           </>
