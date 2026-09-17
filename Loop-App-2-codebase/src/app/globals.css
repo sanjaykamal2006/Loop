@@ -71,46 +71,77 @@ input:-webkit-autofill:active {
   flex-direction: column;
 }
 
-/* Zomato V14 Micro-Interactions */
-@keyframes pin-bounce {
-  0% { transform: translateY(0) scale(1); }
-  25% { transform: translateY(-6px) scale(1.18); }
-  50% { transform: translateY(1px) scale(0.94); }
-  75% { transform: translateY(-2px) scale(1.04); }
-  100% { transform: translateY(0) scale(1); }
+/* Majestic, Physics-Based Motion System */
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.animate-pin-bounce {
-  animation: pin-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes plus-pop {
-  0% { transform: scale(1) rotate(0deg); }
-  35% { transform: scale(1.28) rotate(90deg); }
-  65% { transform: scale(0.92) rotate(90deg); }
-  100% { transform: scale(1) rotate(90deg); }
-}
-.animate-plus-pop {
-  animation: plus-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+.animate-view-fade-in {
+  animation: view-fade-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes chat-wiggle {
-  0% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.18) rotate(-9deg); }
-  50% { transform: scale(1.1) rotate(7deg); }
-  75% { transform: scale(1.03) rotate(-3deg); }
-  100% { transform: scale(1) rotate(0deg); }
+@keyframes modal-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
-.animate-chat-wiggle {
-  animation: chat-wiggle 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+.animate-modal-scale-up {
+  animation: modal-scale-up 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes profile-pop {
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-up {
+  animation: scale-up 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-card-enter {
+  animation: card-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+@keyframes tab-settle {
   0% { transform: scale(1); }
-  30% { transform: scale(1.22) translateY(-3px); }
-  60% { transform: scale(0.95) translateY(1px); }
-  80% { transform: scale(1.04) translateY(-1px); }
-  100% { transform: scale(1) translateY(0); }
+  45% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
-.animate-profile-pop {
-  animation: profile-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+.animate-tab-settle {
+  animation: tab-settle 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes indicator-glow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.animate-indicator-glow {
+  animation: indicator-glow 2.4s ease-in-out infinite;
 }

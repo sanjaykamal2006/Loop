@@ -381,20 +381,21 @@ export default function ChatListView() {
         </div>
       ) : (
         /* Compact Chat Cards */
-        filteredLoops.map((loop) => {
+        filteredLoops.map((loop, idx) => {
         const isUnread = unreadLoopIds?.includes(loop.id);
         const latestMsg = recentMessages[loop.id];
 
         return (
           <div
             key={loop.id}
+            style={{ "--stagger-delay": `${Math.min(idx, 6) * 35}ms` } as React.CSSProperties}
             onClick={() => {
               if (isUnread) markLoopAsRead(loop.id);
               setSelectedLoop(loop);
               setChatSource("chat-list");
               setView("chat");
             }}
-            className={`p-3 px-3.5 rounded-[20px] border transition-all cursor-pointer active:scale-[0.98] ${
+            className={`p-3 px-3.5 rounded-[20px] border transition-all cursor-pointer active:scale-[0.985] animate-card-enter ${
               isDark
                 ? "bg-[#121214] border-white/10 hover:border-white/20"
                 : "bg-white border-black/[0.08] shadow-[0_2px_10px_rgba(0,0,0,0.02)]"

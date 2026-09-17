@@ -16,6 +16,7 @@ interface LoopCardProps {
   cardBg: string;
   border: string;
   timeFormatted: string;
+  index: number;
   onSelect: () => void;
 }
 
@@ -27,12 +28,14 @@ const LoopCard = React.memo(function LoopCard({
   cardBg,
   border,
   timeFormatted,
+  index,
   onSelect,
 }: LoopCardProps) {
   return (
     <div
       onClick={onSelect}
-      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30`}
+      style={{ "--stagger-delay": `${Math.min(index, 6) * 35}ms` } as React.CSSProperties}
+      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.98] border ${border} relative transition-all hover:border-[#FFC554]/30 animate-card-enter`}
     >
       {/* Left Squircle Icon Container */}
       <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
@@ -224,10 +227,11 @@ export default function HomeView() {
         </div>
       )}
 
-      {feedLoops.map((loop) => (
+      {feedLoops.map((loop, idx) => (
         <LoopCard
           key={loop.id}
           loop={loop}
+          index={idx}
           isJoined={userJoinedLoops.includes(loop.id)}
           isHost={userLoops.includes(loop.id)}
           isDark={isDark}

@@ -33,16 +33,14 @@ export default function BottomNav() {
     v: View;
     icon: (isActive: boolean) => React.ReactNode;
     label: string;
-    animClass: string;
   }[] = [
     {
       v: "home",
       label: "Home",
-      animClass: "animate-pin-bounce",
       icon: (isActive) => (
         <MapPin
-          size={23}
-          strokeWidth={isActive ? 2.5 : 1.9}
+          size={22}
+          strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
               ? isDark ? "text-[#FFC554]" : "text-[#881337]"
@@ -54,10 +52,9 @@ export default function BottomNav() {
     {
       v: "create",
       label: "Create",
-      animClass: "animate-plus-pop",
       icon: (isActive) => (
         <Plus
-          size={24}
+          size={23}
           strokeWidth={isActive ? 3 : 2.1}
           className={`transition-colors duration-200 ${
             isActive
@@ -70,11 +67,10 @@ export default function BottomNav() {
     {
       v: "chat-list",
       label: "Chat",
-      animClass: "animate-chat-wiggle",
       icon: (isActive) => (
         <MessageSquare
-          size={22}
-          strokeWidth={isActive ? 2.5 : 1.9}
+          size={21}
+          strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
               ? isDark ? "text-[#FFC554]" : "text-[#881337]"
@@ -86,11 +82,10 @@ export default function BottomNav() {
     {
       v: "profile",
       label: "Profile",
-      animClass: "animate-profile-pop",
       icon: (isActive) => (
         <Users
-          size={23}
-          strokeWidth={isActive ? 2.5 : 1.9}
+          size={22}
+          strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
               ? isDark ? "text-[#FFC554]" : "text-[#881337]"
@@ -104,14 +99,14 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-2 pb-[max(0.85rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
         isDark
           ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
           : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
       }`}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
-        {items.map(({ v, icon, label, animClass }) => {
+        {items.map(({ v, icon, label }) => {
           const isActive =
             v === "profile"
               ? view === "profile" || view === "trusted-vehicles" || view === "past-loops"
@@ -122,13 +117,13 @@ export default function BottomNav() {
               key={v}
               onClick={() => handleNavClick(v)}
               aria-label={`${label} tab`}
-              className="flex flex-col items-center justify-center flex-1 py-1 relative select-none cursor-pointer group active:scale-95 transition-transform"
+              className="flex flex-col items-center justify-center flex-1 py-1 relative select-none cursor-pointer group active:scale-[0.93] transition-transform"
             >
-              {/* Icon Container with Zomato V14 spring animation */}
+              {/* Icon Container with refined micro-settle physics */}
               <div
                 key={`${v}-${isActive}`}
                 className={`relative flex items-center justify-center ${
-                  isActive ? animClass : "group-hover:scale-105"
+                  isActive ? "animate-tab-settle" : "group-hover:scale-105"
                 }`}
               >
                 {icon(isActive)}
@@ -154,7 +149,7 @@ export default function BottomNav() {
 
               {/* Title Case Label */}
               <span
-                className={`text-[11px] sm:text-xs tracking-tight mt-1 transition-colors duration-200 ${
+                className={`text-[11px] sm:text-xs tracking-tight mt-0.5 transition-colors duration-200 ${
                   isActive
                     ? isDark
                       ? "text-white font-bold"
@@ -166,6 +161,17 @@ export default function BottomNav() {
               >
                 {label}
               </span>
+
+              {/* Subtle active indicator dot */}
+              <span
+                className={`w-1 h-1 rounded-full mt-0.5 transition-all duration-300 ${
+                  isActive
+                    ? isDark
+                      ? "bg-[#FFC554] opacity-100 shadow-[0_0_6px_#FFC554]"
+                      : "bg-[#881337] opacity-100 shadow-[0_0_6px_rgba(136,19,55,0.5)]"
+                    : "opacity-0 scale-50"
+                }`}
+              />
             </button>
           );
         })}

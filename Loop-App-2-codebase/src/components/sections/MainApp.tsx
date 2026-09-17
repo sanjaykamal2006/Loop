@@ -62,11 +62,16 @@ function AppContent() {
 
       {/* Chat gets its own full-height container */}
       {view === "chat" ? (
-        selectedLoop ? <ChatView /> : <ChatListView />
+        <div key="view-chat" className="flex-1 flex flex-col min-h-0 animate-view-fade-in">
+          {selectedLoop ? <ChatView /> : <ChatListView />}
+        </div>
       ) : (
-        <main className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${
-          view === "changelog" ? "overflow-y-auto pb-10 pt-5" : "overflow-y-auto pb-24"
-        } ${view === "past-loops" ? "pt-5" : ""}`}>
+        <main 
+          key={`view-${view}`}
+          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col animate-view-fade-in ${
+            view === "changelog" ? "overflow-y-auto pb-10 pt-5" : "overflow-y-auto pb-24"
+          } ${view === "past-loops" ? "pt-5" : ""}`}
+        >
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
           {view === "chat-list" && <ChatListView />}
