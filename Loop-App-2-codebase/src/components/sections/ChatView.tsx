@@ -123,6 +123,7 @@ export default function ChatView() {
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
   const channelRef = useRef<any>(null);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -691,7 +692,6 @@ export default function ChatView() {
   if (!selectedLoop) return null;
 
   const isHost = selectedLoop?.creator_id === session.user.id;
-  const [isSharingLocation, setIsSharingLocation] = useState(false);
 
   const getMapsUrlFromMessage = (content: string): string | null => {
     if (!content) return null;
