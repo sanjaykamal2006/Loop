@@ -10,7 +10,7 @@ export default function BottomNav() {
   const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds } = useLoop();
   const { isDark } = theme;
 
-  if (view === "chat" || view === "ride-details") return null;
+  if (view === "chat" || view === "ride-details" || view === "changelog") return null;
 
   const handleNavClick = (v: View) => {
     triggerHaptic(12);
@@ -114,7 +114,7 @@ export default function BottomNav() {
         {items.map(({ v, icon, label, animClass }) => {
           const isActive =
             v === "profile"
-              ? view === "profile" || view === "trusted-vehicles" || view === "past-loops" || view === "changelog"
+              ? view === "profile" || view === "trusted-vehicles" || view === "past-loops"
               : view === v;
 
           return (

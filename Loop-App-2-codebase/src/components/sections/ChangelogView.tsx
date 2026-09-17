@@ -177,9 +177,11 @@ export default function ChangelogView() {
   ];
 
   return (
-    <div className="flex flex-col min-h-full space-y-4 pb-36 animate-fade-in">
-      {/* Top Header */}
-      <div className="flex items-center justify-between pt-1">
+    <div className="flex flex-col min-h-full space-y-4 pb-12 animate-fade-in">
+      {/* Sticky Top Header */}
+      <div className={`sticky top-0 z-30 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3.5 ${
+        isDark ? "bg-black/95 border-b border-white/[0.06]" : "bg-[#F2EFE9]/95 border-b border-black/[0.06]"
+      } backdrop-blur-xl flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setView("profile")}
