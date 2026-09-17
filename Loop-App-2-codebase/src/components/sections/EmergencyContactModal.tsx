@@ -5,6 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { ShieldAlert, X, Phone, User, HeartHandshake, Plus, Trash2, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import type { EmergencyContact } from "@/lib/types";
 
 export default function EmergencyContactModal() {
@@ -26,15 +27,25 @@ export default function EmergencyContactModal() {
 
   const relations = ["Parent", "Friend", "Guardian", "Sibling", "Roommate"];
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(sanitizeIndianPhoneNumber(e.target.value));
+  };
+
+  const handlePhonePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text");
+    const cleaned = sanitizeIndianPhoneNumber(pasted);
+    if (cleaned.length === 10) {
+      e.preventDefault();
+      setPhone(cleaned);
+    }
+  };
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     triggerHaptic(12);
 
     const cleanName = name.trim();
-    let cleanPhone = phone.trim().replace(/[^\d]/g, "");
-    if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
-      cleanPhone = cleanPhone.slice(2);
-    }
+    const cleanPhone = sanitizeIndianPhoneNumber(phone);
 
     if (!cleanName) {
       return toast.error("Please enter contact name (e.g. Mom, Dad, Roommate)");
@@ -43,7 +54,7 @@ export default function EmergencyContactModal() {
       return toast.error("Please enter a valid 10-digit mobile number");
     }
 
-    if (emergencyContacts.some((c) => c.phone.replace(/[^\d]/g, "") === cleanPhone)) {
+    if (emergencyContacts.some((c) => sanitizeIndianPhoneNumber(c.phone) === cleanPhone)) {
       return toast.error("This phone number is already in your emergency contacts");
     }
 
@@ -253,9 +264,9 @@ export default function EmergencyContactModal() {
                       <input
                         type="tel"
                         inputMode="numeric"
-                        maxLength={10}
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                        onChange={handlePhoneChange}
+                        onPaste={handlePhonePaste}
                         placeholder="9876543210"
                         className="flex-1 bg-transparent text-xs sm:text-sm font-mono font-bold outline-none placeholder:text-zinc-500 tracking-wider"
                       />

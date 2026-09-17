@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import { Plus, X, Phone, User, Info, ArrowLeft, ShieldCheck, IndianRupee } from "lucide-react";
 import type { TrustedVehicle } from "@/lib/types";
+import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import ExpectedFaresModal from "./ExpectedFaresModal";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
@@ -51,8 +52,9 @@ export default function TrustedVehiclesView() {
       toast.error("You can only add up to 5 trusted drivers.");
       return;
     }
-    if (!name.trim() || !phone.trim() || !type) {
-      toast.error("Please fill all fields.");
+    const cleanPhone = sanitizeIndianPhoneNumber(phone);
+    if (!name.trim() || !cleanPhone || cleanPhone.length !== 10 || !type) {
+      toast.error("Please enter driver name, vehicle type, and a valid 10-digit phone number.");
       return;
     }
 
@@ -61,7 +63,7 @@ export default function TrustedVehiclesView() {
       .insert({
         user_id: session.user.id,
         driver_name: name.trim(),
-        phone_number: phone.trim(),
+        phone_number: cleanPhone,
         vehicle_type: type
       })
       .select("id, user_id, driver_name, phone_number, vehicle_type, created_at, profiles:user_id(display_name, avatar_url)")
@@ -291,8 +293,16 @@ export default function TrustedVehiclesView() {
                   <input 
                     type="tel"
                     value={phone} 
-                    onChange={e => setPhone(e.target.value)} 
-                    placeholder="Driver's Number" 
+                    onChange={e => setPhone(sanitizeIndianPhoneNumber(e.target.value))} 
+                    onPaste={e => {
+                      const pasted = e.clipboardData.getData("text");
+                      const cleaned = sanitizeIndianPhoneNumber(pasted);
+                      if (cleaned.length === 10) {
+                        e.preventDefault();
+                        setPhone(cleaned);
+                      }
+                    }}
+                    placeholder="9876543210" 
                     className="flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-40"
                   />
                 </div>

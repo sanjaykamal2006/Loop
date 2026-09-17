@@ -23,6 +23,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { compressAvatarImage } from "@/lib/imageOptimization";
+import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import {
   getNotificationPermission,
   isNotificationEnabled,
@@ -111,8 +112,7 @@ export default function ProfileView() {
     if (!tempName.trim()) return toast.error("Display name cannot be empty");
     if (!tempRegNo.trim()) return toast.error("Org / College / Tag cannot be empty");
 
-    let cleanPhone = tempPhone.trim().replace(/[^\d+]/g, "");
-    if (cleanPhone.startsWith("+91")) cleanPhone = cleanPhone.slice(3);
+    const cleanPhone = sanitizeIndianPhoneNumber(tempPhone);
     if (cleanPhone && cleanPhone.length !== 10) {
       return toast.error("Please enter a valid 10-digit mobile/WhatsApp number");
     }
@@ -317,9 +317,16 @@ export default function ProfileView() {
               </span>
               <input
                 type="tel"
-                maxLength={10}
                 value={tempPhone}
-                onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setTempPhone(sanitizeIndianPhoneNumber(e.target.value))}
+                onPaste={(e) => {
+                  const pasted = e.clipboardData.getData("text");
+                  const cleaned = sanitizeIndianPhoneNumber(pasted);
+                  if (cleaned.length === 10) {
+                    e.preventDefault();
+                    setTempPhone(cleaned);
+                  }
+                }}
                 placeholder="9876543210"
                 className={`flex-1 h-11 px-4 rounded-xl ${isDark ? "bg-white/5 text-white" : "bg-black/[0.04] text-zinc-900"} border ${border} text-xs sm:text-[13px] font-bold outline-none ${isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"}`}
               />
