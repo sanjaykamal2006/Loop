@@ -62,8 +62,8 @@ export default function UserProfileModal({
             sizeClassName="w-full h-full"
             roundedClassName="rounded-[24px]"
             priority={true}
-            initialsClassName="text-2xl font-black text-black"
-            fallbackBgClassName="bg-[#FFC554]"
+            initialsClassName={`text-2xl font-black ${isDark ? "text-black" : "text-white"}`}
+            fallbackBgClassName={isDark ? "bg-[#FFC554]" : "bg-[#881337]"}
           />
         </div>
 
@@ -78,7 +78,11 @@ export default function UserProfileModal({
               </span>
             )}
             {user.reg_no && (
-              <span className="text-[10px] bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${
+                isDark
+                  ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30"
+                  : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
+              }`}>
                 {formatTag(user.reg_no, user.user_id === currentUserId)}
               </span>
             )}
@@ -134,7 +138,11 @@ export default function UserProfileModal({
         {/* Dismiss Button */}
         <button
           onClick={onClose}
-          className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform"
+          className={`w-full py-3 ${
+            isDark
+              ? "bg-[#FFC554] text-black shadow-[#FFC554]/10"
+              : "bg-[#881337] text-white shadow-[#881337]/20"
+          } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform`}
         >
           Done
         </button>

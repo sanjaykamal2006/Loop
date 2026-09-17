@@ -65,13 +65,13 @@ export function Toaster() {
         }}
       >
         {activeToast.type === "success" && (
-          <CheckCircle2 size={20} className="text-[#FFC554] shrink-0" />
+          <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
         )}
         {activeToast.type === "error" && (
           <AlertCircle size={20} className="text-red-400 shrink-0" />
         )}
         {activeToast.type === "info" && (
-          <Info size={20} className="text-[#FFC554] shrink-0" />
+          <Info size={20} className="text-sky-400 shrink-0" />
         )}
         <span className="text-sm font-bold text-white tracking-wide text-center">
           {activeToast.message}

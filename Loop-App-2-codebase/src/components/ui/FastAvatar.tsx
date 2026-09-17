@@ -26,8 +26,8 @@ export default function FastAvatar({
   className = "",
   priority = false,
   initialsText,
-  initialsClassName = "text-xs font-black text-[#FFC554]",
-  fallbackBgClassName = "bg-[#FFC554]/20",
+  initialsClassName = "text-xs font-black text-inherit opacity-90",
+  fallbackBgClassName = "bg-zinc-500/20",
   title,
 }: FastAvatarProps) {
   const cleanSrc = src?.trim();

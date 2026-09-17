@@ -202,7 +202,7 @@ export default function AppHeader() {
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
-                  <Sparkles size={15} className="text-[#FFC554]" />
+                  <Sparkles size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                   <span>About Creator</span>
                 </button>
 
@@ -213,7 +213,7 @@ export default function AppHeader() {
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
-                  <Coffee size={15} className="text-[#FFC554]" />
+                  <Coffee size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                   <span>Buy Creator a Coffee</span>
                 </button>
 
@@ -224,7 +224,7 @@ export default function AppHeader() {
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
-                  <ShieldCheck size={15} className="text-[#FFC554]" />
+                  <ShieldCheck size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                   <span>Terms & Privacy Policy</span>
                 </button>
               </div>

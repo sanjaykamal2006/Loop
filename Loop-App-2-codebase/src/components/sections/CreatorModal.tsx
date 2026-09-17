@@ -67,8 +67,8 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-[#FFC554]" />
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#FFC554]">
+            <Sparkles size={16} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+            <h2 className={`text-xs font-black uppercase tracking-widest ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               About Creator
             </h2>
           </div>
@@ -85,7 +85,9 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         <div className="py-4 flex flex-col items-center text-center space-y-4">
           {/* Creator Avatar with subtle ambient glow */}
           <div className="relative group">
-            <div className="absolute -inset-1 rounded-[32px] bg-gradient-to-tr from-[#FFC554]/40 to-white/15 blur-sm opacity-80 group-hover:opacity-100 transition duration-500" />
+            <div className={`absolute -inset-1 rounded-[32px] bg-gradient-to-tr ${
+              isDark ? "from-[#FFC554]/40 to-white/15" : "from-[#881337]/30 to-black/10"
+            } blur-sm opacity-80 group-hover:opacity-100 transition duration-500`} />
             <div className="relative w-24 h-24 rounded-[28px] overflow-hidden border-2 border-white/25 shadow-2xl shrink-0 bg-black">
               <img src="/creator.jpg" alt="Sanjay Kamal" className="w-full h-full object-cover" />
             </div>
@@ -95,7 +97,9 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           <div>
             <div className="flex items-center justify-center gap-1.5">
               <h3 className="text-xl font-black uppercase tracking-tight">Sanjay Kamal</h3>
-              <BadgeCheck size={19} className="text-[#FFC554] shrink-0 fill-[#FFC554]/20" />
+              <BadgeCheck size={19} className={`shrink-0 ${
+                isDark ? "text-[#FFC554] fill-[#FFC554]/20" : "text-[#881337] fill-[#881337]/20"
+              }`} />
             </div>
             <p className={`text-[11px] font-bold ${mutedText} mt-0.5 uppercase tracking-wider`}>
               Builder & Architect of LOOP
@@ -108,8 +112,12 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
               <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${mutedText}`}>
                 Connect with me
               </span>
-              <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FFC554] animate-pulse" />
+              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                isDark
+                  ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30"
+                  : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? "bg-[#FFC554]" : "bg-[#881337]"}`} />
                 App Opener
               </span>
             </div>
@@ -135,11 +143,15 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                     >
                       {copiedKey === "instagram" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                     </button>
-                    <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#FFC554] transition-colors" />
+                    <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
+                      isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                    }`} />
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">Instagram</p>
+                  <p className={`text-xs font-black truncate transition-colors ${
+                    isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                  }`}>Instagram</p>
                   <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.instagram.handle}</p>
                 </div>
               </a>
@@ -164,11 +176,15 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                     >
                       {copiedKey === "linkedin" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                     </button>
-                    <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#FFC554] transition-colors" />
+                    <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
+                      isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                    }`} />
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">LinkedIn</p>
+                  <p className={`text-xs font-black truncate transition-colors ${
+                    isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                  }`}>LinkedIn</p>
                   <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.linkedin.handle}</p>
                 </div>
               </a>
@@ -193,11 +209,15 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                     >
                       {copiedKey === "github" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                     </button>
-                    <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#FFC554] transition-colors" />
+                    <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
+                      isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                    }`} />
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">GitHub</p>
+                  <p className={`text-xs font-black truncate transition-colors ${
+                    isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                  }`}>GitHub</p>
                   <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.github.handle}</p>
                 </div>
               </a>
@@ -220,11 +240,15 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                     >
                       {copiedKey === "email" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                     </button>
-                    <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#FFC554] transition-colors" />
+                    <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
+                      isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                    }`} />
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black truncate group-hover:text-[#FFC554] transition-colors">Email</p>
+                  <p className={`text-xs font-black truncate transition-colors ${
+                    isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+                  }`}>Email</p>
                   <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.email.handle}</p>
                 </div>
               </a>
@@ -240,18 +264,26 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
               onClose();
               window.dispatchEvent(new CustomEvent("open-buy-coffee-modal"));
             }}
-            className="w-full py-3 px-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-between active:scale-[0.98] transition-all hover:bg-amber-500/25 cursor-pointer shadow-sm"
+            className={`w-full py-3 px-4 rounded-2xl border flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer shadow-sm ${
+              isDark
+                ? "bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25"
+                : "bg-rose-500/15 border-rose-500/30 hover:bg-rose-500/25"
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-[#FFC554] text-black flex items-center justify-center shrink-0">
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
+                isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+              }`}>
                 <Coffee size={14} strokeWidth={2.5} />
               </div>
               <div className="text-left">
-                <p className="text-xs font-black text-[#FFC554]">Buy Creator a Coffee</p>
+                <p className={`text-xs font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Buy Creator a Coffee</p>
                 <p className={`text-[10px] font-medium ${mutedText}`}>Support LOOP development</p>
               </div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-[#FFC554] text-black shadow-xs">
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full shadow-xs ${
+              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+            }`}>
               Tip UPI
             </span>
           </button>

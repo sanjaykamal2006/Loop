@@ -128,7 +128,9 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             {/* Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
+                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${
+                  isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
+                }`}>
                   <IndianRupee size={18} strokeWidth={2.5} />
                 </div>
                 <div>
@@ -148,12 +150,14 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             {/* Experience Prompt Banner with Middle Add Button */}
             <div className={`my-3 p-4 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-[24px] space-y-3 text-center shrink-0`}>
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold">
-                <Sparkles size={14} className="text-[#FFC554]" />
-                <span>Add an expected fare from <strong className="text-[#FFC554]">A to B</strong> based on your experience</span>
+                <Sparkles size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                <span>Add an expected fare from <strong className={isDark ? "text-[#FFC554]" : "text-[#881337]"}>A to B</strong> based on your experience</span>
               </div>
               <button
                 onClick={() => setViewMode("add")}
-                className="w-full py-3 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md flex items-center justify-center gap-2 transition-transform"
+                className={`w-full py-3 ${
+                  isDark ? "bg-[#FFC554] text-black shadow-[#FFC554]/10" : "bg-[#881337] text-white shadow-[#881337]/20"
+                } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md flex items-center justify-center gap-2 transition-transform`}
               >
                 <Plus size={16} strokeWidth={3} />
                 + Add Expected Fare
@@ -194,15 +198,15 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
                     >
                       <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex items-center gap-2 text-xs font-black">
-                          <MapPin size={12} className="text-[#FFC554] shrink-0" />
+                          <MapPin size={12} className={`shrink-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
                           <span className="truncate">{f.from_location}</span>
                           <ArrowRight size={11} className="shrink-0 opacity-40" />
-                          <span className="truncate text-[#FFC554]">{f.to_location}</span>
+                          <span className={`truncate ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>{f.to_location}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[10px] font-bold opacity-60 uppercase tracking-wider">
                           <div className="flex items-center gap-1">
-                            {renderVehicleIcon(f.vehicle_type, "w-3 h-3 text-[#FFC554]")}
+                            {renderVehicleIcon(f.vehicle_type, `w-3 h-3 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`)}
                             <span>{f.vehicle_type || "Auto"}</span>
                           </div>
                           <span>•</span>
@@ -211,7 +215,11 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="px-3 py-1 rounded-full text-xs font-black text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30 shadow-sm">
+                        <span className={`px-3 py-1 rounded-full text-xs font-black shadow-sm ${
+                          isDark
+                            ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/30"
+                            : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"
+                        }`}>
                           ₹{f.expected_fare}
                         </span>
 
@@ -286,7 +294,9 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
                     onClick={() => setVType(t.id as any)}
                     className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border transition-all ${
                       vType === t.id
-                        ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md font-black"
+                        ? isDark
+                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md font-black"
+                          : "bg-[#881337] border-[#881337] text-white shadow-md font-black"
                         : `${isDark ? "bg-white/5" : "bg-black/5"} border-transparent ${mutedText}`
                     }`}
                   >
@@ -315,7 +325,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             <div className="space-y-1.5">
               <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>To (Destination)</label>
               <div className={`flex items-center gap-2.5 px-3.5 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
-                <MapPin size={16} className="text-[#FFC554]" />
+                <MapPin size={16} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                 <input
                   value={toLoc}
                   onChange={(e) => setToLoc(e.target.value)}
@@ -329,7 +339,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             <div className="space-y-1.5">
               <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Expected Fare (₹)</label>
               <div className={`flex items-center gap-2 px-3.5 py-3 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl`}>
-                <span className="text-sm font-black text-[#FFC554]">₹</span>
+                <span className={`text-sm font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>₹</span>
                 <input
                   type="number"
                   value={fareAmount}
@@ -345,7 +355,11 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
               <button
                 onClick={handleAddFare}
                 disabled={isSubmitting}
-                className="w-full py-3.5 bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-lg disabled:opacity-50 transition-transform"
+                className={`w-full py-3.5 ${
+                  isDark
+                    ? "bg-[#FFC554] text-black shadow-[#FFC554]/10"
+                    : "bg-[#881337] text-white shadow-[#881337]/20"
+                } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-lg disabled:opacity-50 transition-transform`}
               >
                 {isSubmitting ? "Saving..." : "Save Expected Fare"}
               </button>

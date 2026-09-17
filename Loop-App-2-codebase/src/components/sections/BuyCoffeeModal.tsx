@@ -85,10 +85,12 @@ export default function BuyCoffeeModal({
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-amber-500/15 flex items-center justify-center text-[#FFC554]">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+              isDark ? "bg-amber-500/15 text-[#FFC554]" : "bg-rose-500/15 text-[#881337]"
+            }`}>
               <Coffee size={15} strokeWidth={2.5} />
             </div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#FFC554]">
+            <h2 className={`text-xs font-black uppercase tracking-widest ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               Support Creator
             </h2>
           </div>
@@ -108,10 +110,14 @@ export default function BuyCoffeeModal({
           {/* Creator Mini Hero */}
           <div className="flex flex-col items-center">
             <div className="relative">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-[#FFC554] shadow-lg">
+              <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shadow-lg ${
+                isDark ? "bg-amber-500/15 border-amber-500/30 text-[#FFC554]" : "bg-rose-500/15 border-rose-500/30 text-[#881337]"
+              }`}>
                 <Coffee size={28} strokeWidth={2.2} />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#FFC554] text-black flex items-center justify-center shadow-md">
+              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-md ${
+                isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+              }`}>
                 <Heart size={11} fill="currentColor" />
               </div>
             </div>
@@ -120,7 +126,7 @@ export default function BuyCoffeeModal({
               Buy Creator a Coffee
             </h3>
             <p className={`text-[11px] font-medium ${mutedText} mt-0.5 max-w-[260px] leading-relaxed`}>
-              LOOP is built by <span className="font-bold text-[#FFC554]">Sanjay Kamal</span> (VIT-AP). Tips keep servers fast & free!
+              LOOP is built by <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Sanjay Kamal</span> (VIT-AP). Tips keep servers fast & free!
             </p>
           </div>
 
@@ -143,7 +149,9 @@ export default function BuyCoffeeModal({
                     }}
                     className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer relative ${
                       isSelected
-                        ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md scale-[1.02]"
+                        ? isDark
+                          ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md scale-[1.02]"
+                          : "bg-[#881337] border-[#881337] text-white shadow-md scale-[1.02]"
                         : isDark
                         ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
                         : "bg-black/5 border-black/10 text-zinc-900 hover:bg-black/10"
@@ -152,7 +160,9 @@ export default function BuyCoffeeModal({
                     <div className="text-xs">{p.emoji}</div>
                     <div className="text-xs font-black">₹{p.amount}</div>
                     {p.popular && !isSelected && (
-                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase px-1 rounded bg-[#FFC554] text-black shadow-xs">
+                      <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase px-1 rounded shadow-xs ${
+                        isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+                      }`}>
                         Popular
                       </span>
                     )}
@@ -166,7 +176,7 @@ export default function BuyCoffeeModal({
               {isCustom ? (
                 <div className="flex items-center gap-2">
                   <div className={`flex-1 h-9 px-3 rounded-xl border ${border} ${cardBg} flex items-center gap-1.5`}>
-                    <span className="text-xs font-black text-[#FFC554]">₹</span>
+                    <span className={`text-xs font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>₹</span>
                     <input
                       type="number"
                       min="1"
@@ -205,7 +215,9 @@ export default function BuyCoffeeModal({
             <a
               href={getUpiUrl()}
               onClick={() => handlePayClick()}
-              className="w-full py-3.5 px-4 rounded-2xl bg-[#FFC554] text-black font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform cursor-pointer"
+              className={`w-full py-3.5 px-4 rounded-2xl ${
+                isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+              } font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform cursor-pointer`}
             >
               <span>Pay ₹{finalAmount} Now</span>
               <ExternalLink size={14} strokeWidth={2.5} />
@@ -216,27 +228,27 @@ export default function BuyCoffeeModal({
               <a
                 href={getUpiUrl("com.google.android.apps.nbu.paisa.user")}
                 onClick={() => handlePayClick("com.google.android.apps.nbu.paisa.user")}
-                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                  isDark ? "text-white" : "text-zinc-900"
-                }`}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} ${
+                  isDark ? "hover:border-[#FFC554]/40 text-white" : "hover:border-[#881337]/40 text-zinc-900"
+                } active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer`}
               >
                 Google Pay
               </a>
               <a
                 href={getUpiUrl("com.phonepe.app")}
                 onClick={() => handlePayClick("com.phonepe.app")}
-                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                  isDark ? "text-white" : "text-zinc-900"
-                }`}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} ${
+                  isDark ? "hover:border-[#FFC554]/40 text-white" : "hover:border-[#881337]/40 text-zinc-900"
+                } active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer`}
               >
                 PhonePe
               </a>
               <a
                 href={getUpiUrl("net.one97.paytm")}
                 onClick={() => handlePayClick("net.one97.paytm")}
-                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} hover:border-[#FFC554]/40 active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
-                  isDark ? "text-white" : "text-zinc-900"
-                }`}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-[10px] font-black border ${border} ${cardBg} ${
+                  isDark ? "hover:border-[#FFC554]/40 text-white" : "hover:border-[#881337]/40 text-zinc-900"
+                } active:scale-95 transition-all text-center flex items-center justify-center gap-1 cursor-pointer`}
               >
                 Paytm
               </a>
@@ -251,7 +263,9 @@ export default function BuyCoffeeModal({
                 triggerHaptic(5);
                 setShowQr(!showQr);
               }}
-              className={`text-xs font-bold flex items-center justify-center gap-1.5 mx-auto ${mutedText} hover:text-[#FFC554] transition-colors cursor-pointer`}
+              className={`text-xs font-bold flex items-center justify-center gap-1.5 mx-auto ${mutedText} ${
+                isDark ? "hover:text-[#FFC554]" : "hover:text-[#881337]"
+              } transition-colors cursor-pointer`}
             >
               <QrCode size={13} />
               <span>{showQr ? "Hide QR Code" : "Show QR Code to Scan"}</span>

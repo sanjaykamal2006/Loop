@@ -53,7 +53,9 @@ export default function GenderModal() {
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl relative overflow-y-auto scrollbar-hide`}>
         <div className="space-y-1.5 text-center">
-          <div className="w-12 h-12 bg-[#FFC554]/10 rounded-[20px] flex items-center justify-center text-[#FFC554] mx-auto mb-1 border border-[#FFC554]/20 shadow-md">
+          <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center mx-auto mb-1 border shadow-md ${
+            isDark ? "bg-[#FFC554]/10 text-[#FFC554] border-[#FFC554]/20" : "bg-[#881337]/10 text-[#881337] border-[#881337]/25"
+          }`}>
             <Users size={24} strokeWidth={2.5} />
           </div>
           <h2 className="text-lg font-black tracking-tight uppercase">Complete Profile</h2>
@@ -71,7 +73,9 @@ export default function GenderModal() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40`}
+              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none ${
+                isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+              } transition-colors placeholder:opacity-40`}
             />
           </div>
 
@@ -82,7 +86,9 @@ export default function GenderModal() {
               value={regNo}
               onChange={(e) => setRegNo(e.target.value)}
               placeholder="e.g. Google, VIT-AP, Designer"
-              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none focus:border-[#FFC554] transition-colors placeholder:opacity-40`}
+              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none ${
+                isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+              } transition-colors placeholder:opacity-40`}
             />
           </div>
 
@@ -93,7 +99,13 @@ export default function GenderModal() {
                 <button
                   key={g}
                   onClick={() => setGender(g as "male" | "female")}
-                  className={`w-full h-10 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === g ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+                  className={`w-full h-10 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${
+                    gender === g
+                      ? isDark
+                        ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
+                        : "bg-[#881337] border-[#881337] text-white shadow-md"
+                      : `${border} ${cardBg} ${mutedText}`
+                  }`}
                 >
                   <div className={`w-1.5 h-1.5 rounded-full ${g === "female" ? "bg-pink-500" : "bg-blue-500"}`} />
                   {g}
@@ -102,7 +114,13 @@ export default function GenderModal() {
             </div>
             <button
               onClick={() => setGender("unspecified")}
-              className={`w-full h-10 mt-1.5 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${gender === "unspecified" ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md" : `${border} ${cardBg} ${mutedText}`}`}
+              className={`w-full h-10 mt-1.5 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${
+                gender === "unspecified"
+                  ? isDark
+                    ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
+                    : "bg-[#881337] border-[#881337] text-white shadow-md"
+                  : `${border} ${cardBg} ${mutedText}`
+              }`}
             >
               <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
               Prefer not to say
@@ -113,7 +131,11 @@ export default function GenderModal() {
         <button
           onClick={handleSave}
           disabled={isSubmitting}
-          className={`w-full h-11 bg-[#FFC554] text-black rounded-[18px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg shadow-[#FFC554]/10 ${isSubmitting ? 'opacity-50' : ''}`}
+          className={`w-full h-11 ${
+            isDark
+              ? "bg-[#FFC554] text-black shadow-[#FFC554]/10"
+              : "bg-[#881337] text-white shadow-[#881337]/20"
+          } rounded-[18px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg ${isSubmitting ? 'opacity-50' : ''}`}
         >
           {isSubmitting ? 'Saving...' : 'Save & Continue'}
         </button>

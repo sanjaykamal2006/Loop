@@ -854,8 +854,8 @@ export default function ChatView() {
                   sizeClassName="w-10 h-10"
                   borderClassName="border-2 border-white/20 shadow-md"
                   priority={true}
-                  initialsClassName="text-xs font-black text-[#FFC554] tracking-tight"
-                  fallbackBgClassName="bg-[#FFC554]/20"
+                  initialsClassName={`text-xs font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"} tracking-tight`}
+                  fallbackBgClassName={isDark ? "bg-[#FFC554]/20" : "bg-[#881337]/15"}
                 />
               </div>
             );
@@ -875,7 +875,11 @@ export default function ChatView() {
             onClick={handleShareLocation}
             disabled={isSharingLocation}
             aria-label="Share current location pin"
-            className="h-8 px-2.5 rounded-full bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm hover:bg-[#FFC554]/25 transition-all shrink-0"
+            className={`h-8 px-2.5 rounded-full ${
+              isDark
+                ? "bg-[#FFC554]/15 text-[#FFC554] border-[#FFC554]/30 hover:bg-[#FFC554]/25"
+                : "bg-[#881337]/10 text-[#881337] border-[#881337]/25 hover:bg-[#881337]/20"
+            } text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm transition-all shrink-0`}
           >
             <MapPin size={12} strokeWidth={2.5} className={isSharingLocation ? "animate-pulse" : ""} />
             <span>{isSharingLocation ? "..." : "Spot"}</span>
@@ -903,7 +907,9 @@ export default function ChatView() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search messages in chat..."
               autoFocus
-              className={`w-full h-8 pl-9 pr-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none focus:border-[#FFC554] transition-colors`}
+              className={`w-full h-8 pl-9 pr-8 rounded-full ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-xs font-medium outline-none ${
+                isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+              } transition-colors`}
             />
             {searchQuery && (
               <button
@@ -938,7 +944,11 @@ export default function ChatView() {
             <button
               onClick={loadMoreMessages}
               disabled={isLoadingMore}
-              className="text-[11px] font-bold text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20 px-3 py-1 rounded-full hover:bg-[#FFC554]/20 transition-all active:scale-95 disabled:opacity-50"
+              className={`text-[11px] font-bold ${
+                isDark
+                  ? "text-[#FFC554] bg-[#FFC554]/10 border-[#FFC554]/20 hover:bg-[#FFC554]/20"
+                  : "text-[#881337] bg-[#881337]/10 border-[#881337]/25 hover:bg-[#881337]/20"
+              } border px-3 py-1 rounded-full transition-all active:scale-95 disabled:opacity-50`}
             >
               {isLoadingMore ? "Loading older messages..." : "↑ Load older messages"}
             </button>
@@ -999,10 +1009,10 @@ export default function ChatView() {
                       sizeClassName="w-4 h-4"
                       roundedClassName="rounded-full"
                       initialsText={(senderName || "U").substring(0, 1).toUpperCase()}
-                      initialsClassName="text-[8px] font-bold text-[#FFC554]"
-                      fallbackBgClassName="bg-[#FFC554]/20"
+                      initialsClassName={`text-[8px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}
+                      fallbackBgClassName={isDark ? "bg-[#FFC554]/20" : "bg-[#881337]/15"}
                     />
-                    <p className={`text-[10px] font-semibold ${isMe ? "text-[#FFC554]" : mutedText}`}>
+                    <p className={`text-[10px] font-semibold ${isMe ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText}`}>
                       {isMe ? "You" : msg.profiles?.display_name || "Member"}
                     </p>
                   </div>
@@ -1022,7 +1032,7 @@ export default function ChatView() {
                     />
                     <button
                       onClick={saveEditMessage}
-                      className="w-7 h-7 rounded-lg bg-[#FFC554] text-black flex items-center justify-center shrink-0 active:scale-90"
+                      className={`w-7 h-7 rounded-lg ${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} flex items-center justify-center shrink-0 active:scale-90`}
                     >
                       <Check size={13} strokeWidth={3} />
                     </button>
@@ -1040,7 +1050,9 @@ export default function ChatView() {
                     } ${
                       isSearchActive
                         ? isMatch
-                          ? "ring-2 ring-[#FFC554] rounded-[20px] shadow-[0_0_12px_rgba(255,197,84,0.35)] scale-[1.01] transition-all"
+                          ? isDark
+                            ? "ring-2 ring-[#FFC554] rounded-[20px] shadow-[0_0_12px_rgba(255,197,84,0.35)] scale-[1.01] transition-all"
+                            : "ring-2 ring-[#881337] rounded-[20px] shadow-[0_0_12px_rgba(136,19,55,0.25)] scale-[1.01] transition-all"
                           : "opacity-35 transition-opacity"
                         : ""
                     }`}
@@ -1068,7 +1080,7 @@ export default function ChatView() {
                             <div
                               className={`px-4 py-3 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
                                 isMe
-                                  ? `bg-[#FFC554] text-black rounded-[20px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                                  ? `${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[20px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
                                   : `${cardBg} border ${border} ${text} rounded-[20px] rounded-tl-[4px]`
                               }`}
                             >
@@ -1081,7 +1093,7 @@ export default function ChatView() {
                                 }}
                                 className={`mt-2.5 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider active:scale-95 transition-all shadow-sm ${
                                   isMe
-                                    ? "bg-black text-white hover:bg-zinc-800"
+                                    ? isDark ? "bg-black text-white hover:bg-zinc-800" : "bg-white text-black hover:bg-zinc-100"
                                     : isDark
                                     ? "bg-[#FFC554] text-black hover:bg-[#FFC554]/90"
                                     : "bg-[#881337] text-white hover:bg-[#700f2b]"
@@ -1098,7 +1110,7 @@ export default function ChatView() {
                           <div
                             className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
                               isMe
-                                ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                                ? `${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
                                 : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
                             }`}
                           >
@@ -1125,8 +1137,8 @@ export default function ChatView() {
                       >
                         {/* Main Content: Accent Circle + Title + Subtitle */}
                         <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-full bg-[#FFC554] flex items-center justify-center shrink-0 shadow-sm">
-                            <Navigation size={18} className="fill-zinc-950 text-zinc-950" />
+                          <div className={`w-10 h-10 rounded-full ${isDark ? "bg-[#FFC554]" : "bg-[#881337]"} flex items-center justify-center shrink-0 shadow-sm`}>
+                            <Navigation size={18} className={isDark ? "fill-zinc-950 text-zinc-950" : "fill-white text-white"} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-1">
@@ -1221,7 +1233,7 @@ export default function ChatView() {
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="w-10 h-10 bg-[#FFC554] text-black rounded-[16px] flex items-center justify-center active:scale-90 shrink-0 disabled:opacity-40"
+            className={`w-10 h-10 ${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[16px] flex items-center justify-center active:scale-90 shrink-0 disabled:opacity-40`}
           >
             <Send size={15} strokeWidth={2.5} />
           </button>
@@ -1246,7 +1258,7 @@ export default function ChatView() {
             {/* Message Quote Preview */}
             <div className={`p-3 rounded-2xl ${isDark ? "bg-white/5 border border-white/5" : "bg-black/5 border border-black/5"} space-y-1`}>
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${actionMenuMsg.user_id === session.user.id ? "text-[#FFC554]" : mutedText}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${actionMenuMsg.user_id === session.user.id ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText}`}>
                   {actionMenuMsg.user_id === session.user.id ? "You" : actionMenuMsg.profiles?.display_name || "Member"}
                 </span>
                 <span className={`text-[9px] ${mutedText}`}>
@@ -1272,7 +1284,7 @@ export default function ChatView() {
                     isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[#FFC554]/15 text-[#FFC554] flex items-center justify-center shrink-0">
+                  <div className={`w-8 h-8 rounded-xl ${isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center shrink-0`}>
                     <Edit2 size={15} strokeWidth={2.5} />
                   </div>
                   <div className="text-left">
