@@ -1,11 +1,7 @@
-import { FlatCompat } from '@eslint/eslintrc';
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
+import nextPlugin from '@next/eslint-plugin-next';
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals'),
+  nextPlugin.configs['core-web-vitals'],
   {
     rules: {
       'react/no-unescaped-entities': 'off',
