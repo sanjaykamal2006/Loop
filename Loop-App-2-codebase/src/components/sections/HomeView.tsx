@@ -54,10 +54,10 @@ const LoopCard = React.memo(function LoopCard({
         </div>
 
         {/* Badges sub-row */}
-        {(isJoined || loop.is_female_only || loop.purpose === "return" || isHost) && (
+        {(isJoined || loop.is_female_only || (loop.purpose === "return" && isHost) || isHost) && (
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            {/* RETURN BADGE with icon and text */}
-            {loop.purpose === "return" && (
+            {/* RETURN BADGE - only visible to the author (host) */}
+            {loop.purpose === "return" && isHost && (
               <span className="text-[8px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/35 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-1">
                 <Repeat size={8} strokeWidth={2.5} />
                 <span>Return</span>

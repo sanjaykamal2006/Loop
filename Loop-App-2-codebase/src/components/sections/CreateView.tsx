@@ -246,6 +246,7 @@ export default function CreateView() {
         } else {
           toast.success(isDriver ? "Ride offer created!" : "Loop created!");
           const primaryInfo: PrimaryLoopDetails = {
+            id: data.id,
             startPoint: formattedStart,
             destination: formattedDest,
             travelDate,

@@ -4,14 +4,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
-import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search } from "lucide-react";
+import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search, Repeat } from "lucide-react";
 import type { Message } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
+import { triggerHaptic } from "@/lib/haptics";
 
 const messageCache: Record<string, Message[]> = {};
+
+const parseReturnTripMessage = (content: string) => {
+  const match = content.match(/\[return_loop:([a-zA-Z0-9-]+)\]/);
+  if (match) {
+    const returnLoopId = match[1];
+    const displayText = content.replace(/\[return_loop:[a-zA-Z0-9-]+\]/, "").trim();
+    return { isReturn: true, displayText, returnLoopId };
+  }
+  return { isReturn: false, displayText: content, returnLoopId: null };
+};
 
 const playNotificationChime = () => {
   try {
@@ -39,7 +50,7 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
@@ -523,6 +534,38 @@ export default function ChatView() {
           payload: realMsg,
         });
       }
+    }
+  };
+
+  const handleOpenReturnLoop = async (returnLoopId: string) => {
+    triggerHaptic(10);
+    const existing = activeLoops.find((l) => l.id === returnLoopId);
+    if (existing) {
+      setSelectedLoop(existing);
+      setView("ride-details");
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from("loops")
+        .select(`
+          *,
+          loop_members (
+            user_id,
+            profiles:user_id (display_name, avatar_url, gender, reg_no, bio, is_student_verified)
+          )
+        `)
+        .eq("id", returnLoopId)
+        .single();
+
+      if (error || !data) {
+        toast.error("Unable to load return ride details");
+        return;
+      }
+      setSelectedLoop(data);
+      setView("ride-details");
+    } catch {
+      toast.error("Failed to open return ride");
     }
   };
 
@@ -1018,15 +1061,51 @@ export default function ChatView() {
                     onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
                   >
                     {!mapsUrl ? (
-                      <div
-                        className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
-                          isMe
-                            ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
-                            : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
-                        }`}
-                      >
-                        {msg.content}
-                      </div>
+                      (() => {
+                        const returnInfo = parseReturnTripMessage(msg.content);
+                        if (returnInfo.isReturn && returnInfo.returnLoopId) {
+                          return (
+                            <div
+                              className={`px-4 py-3 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
+                                isMe
+                                  ? `bg-[#FFC554] text-black rounded-[20px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                                  : `${cardBg} border ${border} ${text} rounded-[20px] rounded-tl-[4px]`
+                              }`}
+                            >
+                              <p className="font-semibold leading-relaxed">{returnInfo.displayText}</p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenReturnLoop(returnInfo.returnLoopId!);
+                                }}
+                                className={`mt-2.5 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider active:scale-95 transition-all shadow-sm ${
+                                  isMe
+                                    ? "bg-black text-white hover:bg-zinc-800"
+                                    : isDark
+                                    ? "bg-[#FFC554] text-black hover:bg-[#FFC554]/90"
+                                    : "bg-[#881337] text-white hover:bg-[#700f2b]"
+                                }`}
+                              >
+                                <Repeat size={12} strokeWidth={2.5} />
+                                <span>View Return Ride</span>
+                                <ChevronRight size={13} strokeWidth={2.5} />
+                              </button>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div
+                            className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
+                              isMe
+                                ? `bg-[#FFC554] text-black rounded-[18px] rounded-tr-[4px] ${isOptimistic ? "opacity-60" : ""}`
+                                : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
+                            }`}
+                          >
+                            {msg.content}
+                          </div>
+                        );
+                      })()
                     ) : (
                       <a
                         href={mapsUrl}
@@ -1175,14 +1254,14 @@ export default function ChatView() {
                 </span>
               </div>
               <p className={`text-xs font-medium line-clamp-3 break-words ${text} opacity-90`}>
-                {actionMenuMsg.content}
+                {parseReturnTripMessage(actionMenuMsg.content).displayText}
               </p>
             </div>
 
             {/* Actions List */}
             <div className="space-y-2">
-              {/* Edit Message - Only for message owner and not location message */}
-              {actionMenuMsg.user_id === session.user.id && !getMapsUrlFromMessage(actionMenuMsg.content) && (
+              {/* Edit Message - Only for message owner and not location/return message */}
+              {actionMenuMsg.user_id === session.user.id && !getMapsUrlFromMessage(actionMenuMsg.content) && !parseReturnTripMessage(actionMenuMsg.content).isReturn && (
                 <button
                   onClick={() => {
                     const target = actionMenuMsg;
@@ -1207,7 +1286,8 @@ export default function ChatView() {
               <button
                 onClick={() => {
                   const mapsUrl = getMapsUrlFromMessage(actionMenuMsg.content);
-                  const textToCopy = mapsUrl || actionMenuMsg.content;
+                  const returnInfo = parseReturnTripMessage(actionMenuMsg.content);
+                  const textToCopy = mapsUrl || (returnInfo.isReturn ? returnInfo.displayText : actionMenuMsg.content);
                   navigator.clipboard.writeText(textToCopy);
                   toast.success(mapsUrl ? "Location link copied!" : "Message copied!");
                   setActionMenuMsg(null);

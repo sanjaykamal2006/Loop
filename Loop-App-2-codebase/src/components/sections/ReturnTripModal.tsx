@@ -13,6 +13,7 @@ import {
 import { triggerHaptic } from "@/lib/haptics";
 
 export interface PrimaryLoopDetails {
+  id?: string;
   startPoint: string;
   destination: string;
   travelDate: string;
@@ -184,6 +185,19 @@ export default function ReturnTripModal({
           loop_id: data.id,
           user_id: session.user.id,
         });
+
+        // Post announcement in outbound loop's chat from the author
+        if (primaryLoop.id) {
+          try {
+            await supabase.from("messages").insert({
+              loop_id: primaryLoop.id,
+              user_id: session.user.id,
+              content: `Return trip available! Check it out 🔄 [return_loop:${data.id}]`,
+            });
+          } catch (chatErr) {
+            console.error("Failed to post return ride notification in outbound chat:", chatErr);
+          }
+        }
 
         toast.success("Return ride created! 🔄");
         fetchLoops(true);
