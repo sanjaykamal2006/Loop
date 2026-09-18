@@ -71,34 +71,111 @@ input:-webkit-autofill:active {
   flex-direction: column;
 }
 
-/* Majestic, Physics-Based Motion System */
-@keyframes view-fade-in {
+/* =========================================================
+   APPLE iOS NATIVE MOTION & PHYSICS SYSTEM
+   ========================================================= */
+
+/* 1. iOS Navigation Controller Push (Child/Detail Screen Entrance from Right) */
+@keyframes ios-push {
   0% {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translate3d(44px, 0, 0) scale(0.965);
+  }
+  60% {
+    opacity: 0.95;
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
-.animate-view-fade-in {
-  animation: view-fade-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+.animate-ios-push {
+  animation: ios-push 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
-@keyframes modal-scale-up {
+/* 2. iOS Navigation Controller Pop (Back Button Return to Parent from Left) */
+@keyframes ios-pop {
   0% {
     opacity: 0;
-    transform: translateY(22px) scale(0.94);
+    transform: translate3d(-36px, 0, 0) scale(0.965);
+  }
+  60% {
+    opacity: 0.95;
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
-.animate-modal-scale-up {
-  animation: modal-scale-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+.animate-ios-pop {
+  animation: ios-pop 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* 3. iOS Peer Tab Slide Right (Moving Forward to Next Tab) */
+@keyframes ios-tab-right {
+  0% {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0) scale(0.982);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.animate-ios-tab-right {
+  animation: ios-tab-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* 4. iOS Peer Tab Slide Left (Moving Backward to Previous Tab) */
+@keyframes ios-tab-left {
+  0% {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0) scale(0.982);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.animate-ios-tab-left {
+  animation: ios-tab-left 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* 5. iOS Spring Cross-Dissolve */
+@keyframes ios-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-ios-fade,
+.animate-view-fade-in {
+  animation: ios-fade 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* 6. iOS Modal Bottom-Up Sheet Presentation */
+@keyframes ios-sheet-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 56px, 0) scale(0.935);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.animate-modal-scale-up,
+.animate-ios-sheet-up {
+  animation: ios-sheet-up 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
@@ -116,24 +193,35 @@ input:-webkit-autofill:active {
   animation: scale-up 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 7. Apple Interactive Touch States */
+.ios-press {
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.15s ease, filter 0.15s ease;
+}
+.ios-press:active {
+  transform: scale(0.96);
+  filter: brightness(0.96);
+}
+
+/* 8. Apple Spring Waterfall Card Stagger */
 @keyframes card-enter {
   0% {
     opacity: 0;
-    transform: translateY(18px) scale(0.98);
+    transform: translate3d(0, 22px, 0) scale(0.975);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 .animate-card-enter {
-  animation: card-enter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: card-enter 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--stagger-delay, 0ms);
   will-change: transform, opacity;
 }
 
+/* 9. Apple Tab Micro-Spring Settle */
 @keyframes tab-settle {
-  0% { transform: scale(0.88); }
+  0% { transform: scale(0.85); }
   42% { transform: scale(1.18); }
   72% { transform: scale(0.96); }
   100% { transform: scale(1); }

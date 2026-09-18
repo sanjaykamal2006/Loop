@@ -210,7 +210,7 @@ export default function PastLoopsView() {
                 key={loop.id}
                 style={{ "--stagger-delay": `${Math.min(idx, 8) * 45}ms` } as React.CSSProperties}
                 onClick={() => handleSelectLoop(loop)}
-                className={`p-3.5 sm:p-4 ${cardBg} border ${border} rounded-[24px] space-y-3 shadow-sm hover:border-[#FFC554]/40 transition-all cursor-pointer active:scale-[0.985] animate-card-enter`}
+                className={`p-3.5 sm:p-4 ${cardBg} border ${border} rounded-[24px] space-y-3 shadow-sm hover:border-[#FFC554]/40 transition-all duration-150 cursor-pointer active:scale-[0.965] animate-card-enter`}
               >
                 {/* Route Header */}
                 <div className="flex items-start justify-between gap-3">

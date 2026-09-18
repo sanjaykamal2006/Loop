@@ -3,6 +3,7 @@
 import React from "react";
 import { Session } from "@supabase/supabase-js";
 import { LoopProvider, useLoop } from "@/lib/LoopContext";
+import type { View } from "@/lib/types";
 
 import AppHeader from "./AppHeader";
 import HomeView from "./HomeView";
@@ -23,9 +24,60 @@ import BuyCoffeeModal from "./BuyCoffeeModal";
 import EmergencyContactModal from "./EmergencyContactModal";
 import SosModal from "./SosModal";
 
+const TAB_ORDER: Record<string, number> = {
+  home: 0,
+  create: 1,
+  "chat-list": 2,
+  profile: 3,
+};
+
+const DETAIL_VIEWS = new Set<View>([
+  "ride-details",
+  "chat",
+  "trusted-vehicles",
+  "past-loops",
+  "changelog",
+]);
+
 function AppContent() {
   const { view, selectedLoop, theme } = useLoop();
   const { isDark, bg, text } = theme;
+
+  // Apple iOS Directional Navigation State Controller
+  const [navState, setNavState] = React.useState<{
+    currentView: View;
+    prevView: View | null;
+    animClass: string;
+  }>({
+    currentView: view,
+    prevView: null,
+    animClass: "animate-ios-fade",
+  });
+
+  if (navState.currentView !== view) {
+    const prev = navState.currentView;
+    let nextAnim = "animate-ios-fade";
+
+    if (DETAIL_VIEWS.has(view) && !DETAIL_VIEWS.has(prev)) {
+      // Pushing forward into detail screen from root tab (e.g. Home -> Ride Details)
+      nextAnim = "animate-ios-push";
+    } else if (!DETAIL_VIEWS.has(view) && DETAIL_VIEWS.has(prev)) {
+      // Popping backward returning to root tab from detail screen (e.g. Ride Details -> Home)
+      nextAnim = "animate-ios-pop";
+    } else if (DETAIL_VIEWS.has(view) && DETAIL_VIEWS.has(prev)) {
+      // Transitioning between detail screens (e.g. Ride Details -> Chat)
+      nextAnim = view === "chat" ? "animate-ios-push" : "animate-ios-pop";
+    } else if (TAB_ORDER[view] !== undefined && TAB_ORDER[prev] !== undefined) {
+      // Directional sliding between peer root tabs
+      nextAnim = TAB_ORDER[view] > TAB_ORDER[prev] ? "animate-ios-tab-right" : "animate-ios-tab-left";
+    }
+
+    setNavState({
+      currentView: view,
+      prevView: prev,
+      animClass: nextAnim,
+    });
+  }
 
   React.useEffect(() => {
     document.body.style.backgroundColor = isDark ? "#000000" : "#F2EFE9";
@@ -60,15 +112,15 @@ function AppContent() {
       {/* When in past-loops or changelog, the view manages its own top bar / back button, or header can adapt */}
       {view !== "past-loops" && view !== "changelog" && <AppHeader />}
 
-      {/* Chat gets its own full-height container */}
+      {/* Chat gets its own full-height container with native Apple push/pop physics */}
       {view === "chat" ? (
-        <div key="view-chat" className="flex-1 flex flex-col min-h-0 animate-view-fade-in">
+        <div key="view-chat" className={`flex-1 flex flex-col min-h-0 ${navState.animClass}`}>
           {selectedLoop ? <ChatView /> : <ChatListView />}
         </div>
       ) : (
         <main 
           key={`view-${view}`}
-          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col animate-view-fade-in ${
+          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} ${
             view === "changelog" ? "overflow-y-auto pb-10 pt-5" : "overflow-y-auto pb-24"
           } ${view === "past-loops" ? "pt-5" : ""}`}
         >
