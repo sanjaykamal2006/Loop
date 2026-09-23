@@ -24,8 +24,6 @@ interface LoopContextValue {
   theme: ThemeClasses;
   themeTransition: { active: boolean, nextTheme: 'dark' | 'light' } | null;
   toggleTheme: () => void;
-  liquidGlass: boolean;
-  toggleLiquidGlass: () => void;
 
   // Profile
   profile: Profile;
@@ -452,34 +450,6 @@ export function LoopProvider({ session, children }: { session: Session; children
   const toggleTheme = () => {
     const nextTheme = profile.theme === "dark" ? "light" : "dark";
     updateProfile({ theme: nextTheme });
-  };
-
-  const [liquidGlass, setLiquidGlass] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const saved = localStorage.getItem("loop_liquid_glass");
-      if (saved !== null) {
-        setLiquidGlass(saved === "true");
-      }
-    } catch {
-      // Ignore storage errors in private mode
-    }
-  }, []);
-
-  const toggleLiquidGlass = () => {
-    setLiquidGlass((prev) => {
-      const next = !prev;
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("loop_liquid_glass", String(next));
-        } catch {
-          // Ignore storage errors
-        }
-      }
-      return next;
-    });
   };
 
   // --- Fetch profile ---
@@ -1215,8 +1185,6 @@ export function LoopProvider({ session, children }: { session: Session; children
     theme,
     themeTransition,
     toggleTheme,
-    liquidGlass,
-    toggleLiquidGlass,
     profile,
     isProfileLoaded,
     updateProfile,

@@ -17,7 +17,6 @@ interface LoopCardProps {
   border: string;
   timeFormatted: string;
   index: number;
-  liquidGlass?: boolean;
   onSelect: () => void;
 }
 
@@ -30,24 +29,17 @@ const LoopCard = React.memo(function LoopCard({
   border,
   timeFormatted,
   index,
-  liquidGlass,
   onSelect,
 }: LoopCardProps) {
   return (
     <div
       onClick={onSelect}
       style={{ "--stagger-delay": `${Math.min(index, 8) * 45}ms` } as React.CSSProperties}
-      className={`p-3 px-3.5 sm:px-4 flex items-center rounded-[24px] shadow-sm cursor-pointer active:scale-[0.965] border relative transition-all duration-150 animate-card-enter ${
-        liquidGlass
-          ? `liquid-glass-panel ${isDark ? "liquid-glass-panel-dark" : "liquid-glass-panel-light"}`
-          : `${cardBg} ${border} hover:border-[#FFC554]/30`
-      }`}
+      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.965] border ${border} relative transition-all duration-150 hover:border-[#FFC554]/30 animate-card-enter`}
     >
       {/* Left Squircle Icon Container */}
-      <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 transition-colors ${
-        liquidGlass
-          ? (isDark ? "liquid-glass-pill-dark" : "liquid-glass-pill-light")
-          : (isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10")
+      <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
+        isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
       }`}>
         <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} strokeWidth={2} />
       </div>
@@ -110,7 +102,7 @@ const LoopCard = React.memo(function LoopCard({
 });
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, liquidGlass } = useLoop();
+  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -183,11 +175,7 @@ export default function HomeView() {
   return (
     <div className="space-y-3 pt-1 pb-8">
       {/* Pill Search Bar */}
-      <div className={`relative w-full h-[42px] rounded-full flex items-center px-3.5 gap-2.5 shadow-sm ${
-        liquidGlass
-          ? (isDark ? "liquid-glass-pill-dark border-white/20" : "liquid-glass-pill-light border-black/10")
-          : `${cardBg} border ${border}`
-      } ${
+      <div className={`relative w-full h-[42px] ${cardBg} border ${border} rounded-full flex items-center px-3.5 gap-2.5 shadow-sm ${
         isDark
           ? "focus-within:border-[#FFC554]/80 focus-within:ring-1 focus-within:ring-[#FFC554]/30"
           : "focus-within:border-[#881337]/80 focus-within:ring-1 focus-within:ring-[#881337]/30"
@@ -249,7 +237,6 @@ export default function HomeView() {
           isDark={isDark}
           cardBg={cardBg}
           border={border}
-          liquidGlass={liquidGlass}
           timeFormatted={formatTime(loop.departure_time)}
           onSelect={() => {
             triggerHaptic(10);

@@ -41,14 +41,8 @@ export default function ProfileView() {
     theme, 
     setView, 
     toggleTheme,
-    liquidGlass,
-    toggleLiquidGlass,
   } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
-
-  const glassCardClass = liquidGlass
-    ? `liquid-glass-panel ${isDark ? "liquid-glass-panel-dark" : "liquid-glass-panel-light"}`
-    : `${cardBg} ${border} border`;
 
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
@@ -262,7 +256,7 @@ export default function ProfileView() {
 
       {/* 2. Edit Profile Form (Expanded When Editing) */}
       {isEditingProfile && (
-        <div className={`p-4 ${glassCardClass} rounded-[24px] space-y-3.5 shadow-sm animate-fade-in`}>
+        <div className={`p-4 ${cardBg} border ${border} rounded-[24px] space-y-3.5 shadow-sm animate-fade-in`}>
           <div className="flex items-center justify-between pb-1 border-b border-white/10">
             <span className={`text-xs font-black uppercase tracking-wider ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Edit Details</span>
             <div className="flex items-center gap-2">
@@ -353,7 +347,7 @@ export default function ProfileView() {
       )}
 
       {/* 3. Details Card (WhatsApp, Bio, Gender) */}
-      <div className={`${glassCardClass} rounded-[24px] px-4.5 divide-y ${isDark ? "divide-white/[0.06]" : "divide-black/[0.06]"} shadow-sm`}>
+      <div className={`${cardBg} border ${border} rounded-[24px] px-4.5 divide-y ${isDark ? "divide-white/[0.06]" : "divide-black/[0.06]"} shadow-sm`}>
         {/* Phone / WhatsApp */}
         <div className="flex items-center justify-between py-4 min-h-[56px]">
           <span className={`text-[13px] font-semibold ${mutedText}`}>WhatsApp / Phone</span>
@@ -415,7 +409,7 @@ export default function ProfileView() {
       </div>
 
       {/* 4. Quick Actions & Preferences Card */}
-      <div className={`${glassCardClass} rounded-[24px] overflow-hidden shadow-sm divide-y ${isDark ? "divide-white/5" : "divide-black/5"}`}>
+      <div className={`${cardBg} border ${border} rounded-[24px] overflow-hidden shadow-sm divide-y ${isDark ? "divide-white/5" : "divide-black/5"}`}>
         {/* Past Loops */}
         <button
           onClick={() => setView("past-loops")}
@@ -528,74 +522,6 @@ export default function ProfileView() {
                 <span className="text-[#881337]">Light</span>
               </>
             )}
-          </button>
-        </div>
-
-        {/* Apple iOS 26 Liquid Glass Option */}
-        <div className="w-full px-4.5 py-3.5 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                liquidGlass
-                  ? isDark
-                    ? "bg-[#FFC554]/20 text-[#FFC554] shadow-[0_0_14px_rgba(255,197,84,0.35)]"
-                    : "bg-[#881337]/15 text-[#881337] shadow-[0_0_14px_rgba(136,19,55,0.25)]"
-                  : isDark
-                  ? "bg-white/5 text-zinc-400"
-                  : "bg-black/5 text-zinc-400"
-              }`}
-            >
-              <Sparkles size={18} strokeWidth={2.5} />
-            </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
-                  Liquid Glass
-                </span>
-                <span
-                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider transition-colors ${
-                    liquidGlass
-                      ? isDark
-                        ? "bg-[#FFC554]/25 text-[#FFC554] border border-[#FFC554]/40 shadow-xs"
-                        : "bg-[#881337]/15 text-[#881337] border border-[#881337]/30 shadow-xs"
-                      : isDark
-                      ? "bg-white/10 text-zinc-400 border border-white/10"
-                      : "bg-black/5 text-zinc-500 border border-black/10"
-                  }`}
-                >
-                  iOS 26
-                </span>
-              </div>
-              <p className={`text-[10px] sm:text-[11px] font-bold ${mutedText} leading-tight`}>
-                Specular refraction & optics
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            role="switch"
-            aria-checked={liquidGlass}
-            onClick={() => {
-              triggerHaptic(12);
-              toggleLiquidGlass();
-              toast.success(liquidGlass ? "Default UI restored" : "Apple iOS 26 Liquid Glass enabled ✨");
-            }}
-            className={`w-11 h-6.5 rounded-full p-0.5 transition-colors ease-in-out flex items-center cursor-pointer ${
-              liquidGlass
-                ? isDark
-                  ? "bg-[#FFC554] justify-end shadow-[0_0_12px_rgba(255,197,84,0.35)]"
-                  : "bg-[#881337] justify-end shadow-[0_0_12px_rgba(136,19,55,0.25)]"
-                : isDark
-                ? "bg-white/15 justify-start"
-                : "bg-black/15 justify-start"
-            }`}
-          >
-            <div
-              className={`w-5.5 h-5.5 rounded-full shadow-sm transition-transform ${
-                liquidGlass ? (isDark ? "bg-black" : "bg-white") : "bg-zinc-400"
-              }`}
-            />
           </button>
         </div>
       </div>

@@ -7,7 +7,7 @@ import { triggerHaptic } from "@/lib/haptics";
 import type { View } from "@/lib/types";
 
 export default function BottomNav() {
-  const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds, liquidGlass } = useLoop();
+  const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds } = useLoop();
   const { isDark } = theme;
 
   if (view === "chat" || view === "ride-details" || view === "changelog") return null;
@@ -99,12 +99,10 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-all duration-300 ${
-        liquidGlass
-          ? (isDark ? "liquid-glass-nav-dark" : "liquid-glass-nav-light")
-          : (isDark
-              ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
-              : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]")
+      className={`absolute bottom-0 left-0 right-0 z-30 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
+        isDark
+          ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
+          : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
       }`}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
@@ -126,11 +124,7 @@ export default function BottomNav() {
                 key={`${v}-${isActive}`}
                 className={`relative px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                   isActive
-                    ? liquidGlass
-                      ? isDark
-                        ? "liquid-glass-pill-dark shadow-[0_0_14px_rgba(255,197,84,0.22)] animate-tab-settle"
-                        : "liquid-glass-pill-light shadow-[0_0_14px_rgba(136,19,55,0.15)] animate-tab-settle"
-                      : isDark
+                    ? isDark
                       ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
                       : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
                     : "group-hover:bg-white/5"

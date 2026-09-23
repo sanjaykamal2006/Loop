@@ -12,16 +12,8 @@ import { formatLocation } from "@/lib/locationFormatter";
 import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
 
 export default function CreateView() {
-  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill, liquidGlass } = useLoop();
+  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
-
-  const glassCardClass = liquidGlass
-    ? `liquid-glass-panel ${isDark ? "liquid-glass-panel-dark" : "liquid-glass-panel-light"}`
-    : `${cardBg} border ${border}`;
-
-  const glassPillInactive = liquidGlass
-    ? (isDark ? "liquid-glass-pill-dark text-zinc-300 font-bold" : "liquid-glass-pill-light text-stone-700 font-bold")
-    : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`;
 
   const [startPoint, setStartPoint] = useState("");
   const [dest, setDest] = useState("");
@@ -311,7 +303,7 @@ export default function CreateView() {
         </div>
       )}
       {/* Route Card (From & To) */}
-      <div className={`relative ${glassCardClass} rounded-[24px] shadow-sm overflow-hidden`}>
+      <div className={`relative ${cardBg} border ${border} rounded-[24px] shadow-sm overflow-hidden`}>
         {/* Row 1: Starting Point */}
         <div className="relative px-4 sm:px-5 py-3.5 pr-14 flex items-center gap-3.5">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
@@ -381,7 +373,7 @@ export default function CreateView() {
       </div>
 
       {/* Schedule Card (Date & Time Side-by-Side) */}
-      <div className={`relative ${glassCardClass} rounded-[22px] shadow-sm overflow-hidden grid grid-cols-2 divide-x divide-black/[0.06] dark:divide-white/[0.08]`}>
+      <div className={`relative ${cardBg} border ${border} rounded-[22px] shadow-sm overflow-hidden grid grid-cols-2 divide-x divide-black/[0.06] dark:divide-white/[0.08]`}>
         {/* Date Column */}
         <div
           onClick={handleOpenDatePicker}
@@ -476,7 +468,7 @@ export default function CreateView() {
       </div>
 
       {/* Offering a Ride Toggle Card with Compact Vehicle Pills */}
-      <div className={`p-4 sm:p-4.5 px-4.5 ${glassCardClass} rounded-[24px] space-y-2.5 transition-all ${
+      <div className={`p-4 sm:p-4.5 px-4.5 ${cardBg} border ${border} rounded-[24px] space-y-2.5 transition-all ${
         isDriver ? (isDark ? "border-[#FFC554]/50 shadow-sm" : "border-[#881337]/40 shadow-sm") : ""
       }`}>
         <div className="flex items-center justify-between">
@@ -539,7 +531,7 @@ export default function CreateView() {
                   className={`flex-1 h-9 sm:h-10 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs cursor-pointer ${
                     isSelected
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black" : "bg-[#881337] border-[#881337] text-white shadow-sm font-black")
-                      : glassPillInactive
+                      : `${cardBg} ${border} ${isDark ? "text-zinc-300" : "text-stone-700"} font-bold`
                   }`}
                 >
                   <v.Icon size={15} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
@@ -571,7 +563,7 @@ export default function CreateView() {
                 className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                   limit === n
                     ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
-                    : glassPillInactive
+                    : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                 }`}
               >
                 {n}
@@ -580,7 +572,7 @@ export default function CreateView() {
           </div>
         </div>
       ) : isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
-        <div className={`p-3.5 ${glassCardClass} rounded-[20px] flex items-center justify-between`}>
+        <div className={`p-3.5 ${cardBg} border ${border} rounded-[20px] flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-xl ${
               isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
@@ -611,7 +603,7 @@ export default function CreateView() {
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
-                      : glassPillInactive
+                      : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
                   {n}
@@ -627,7 +619,7 @@ export default function CreateView() {
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n 
                       ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm") 
-                      : glassPillInactive
+                      : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
                   {n}
@@ -641,7 +633,7 @@ export default function CreateView() {
       {/* Female Only Option */}
       <div 
         onClick={handleToggleFemaleOnly}
-        className={`flex items-center justify-between p-3.5 px-4 ${glassCardClass} rounded-[22px] cursor-pointer active:scale-[0.99] transition-all ${isFemaleOnly ? "border-pink-500/50" : ""}`}
+        className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] cursor-pointer active:scale-[0.99] transition-all ${isFemaleOnly ? "border-pink-500/50" : ""}`}
       >
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isFemaleOnly ? "bg-pink-500 text-white" : isDark ? "bg-white/5 text-white/40" : "bg-black/5 text-black/40"}`}>
