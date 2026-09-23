@@ -179,12 +179,10 @@ export default function PrivacyPolicyPage() {
             If you have questions, feedback, or grievance redressal requests regarding this Privacy Policy or your personal information, please contact:
           </p>
           <div className="text-xs text-zinc-300 space-y-1 font-mono">
-            <p><strong>Developer:</strong> Sanjay Kamal S</p>
-            <p><strong>Institution:</strong> VIT-AP University (24MIC7130)</p>
-            <p>
-              <strong>Email:</strong>{" "}
-              <a href="mailto:sanjaykamal001@gmail.com" className="text-[#FFC554] underline">
-                sanjaykamal001@gmail.com
+            <p><strong>Platform:</strong> LOOP (Peer-to-Peer Ride Coordination)</p>
+            <p><strong>Grievance & Privacy Support:</strong>{" "}
+              <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}`} className="text-[#FFC554] underline">
+                {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}
               </a>
             </p>
           </div>

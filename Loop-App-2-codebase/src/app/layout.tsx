@@ -56,6 +56,22 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <Toaster />
+        {/* Apple iOS 26 Liquid Glass Distortion & Caustic Filters */}
+        <svg
+          style={{ position: "absolute", width: 0, height: 0, pointerEvents: "none", overflow: "hidden" }}
+          aria-hidden="true"
+        >
+          <defs>
+            <filter id="liquid-glass-refraction" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="3" result="noise" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <filter id="liquid-caustic-edge" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="2" result="turb" />
+              <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" />
+            </filter>
+          </defs>
+        </svg>
       </body>
     </html>
   );

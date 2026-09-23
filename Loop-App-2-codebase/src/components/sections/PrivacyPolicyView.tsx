@@ -98,7 +98,13 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
         <section className="space-y-3">
           <h2 className="text-lg font-bold text-[#FFC554]">9. Contact & Grievance Redressal</h2>
           <p className="text-sm text-white/80 leading-relaxed">
-            For any privacy concerns, data requests, or grievances, contact: <a href="mailto:sanjaykamal001@gmail.com" className="text-[#FFC554] hover:underline">sanjaykamal001@gmail.com</a>
+            For any privacy concerns, data requests, or grievances, contact:{" "}
+            <a
+              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}`}
+              className="text-[#FFC554] hover:underline"
+            >
+              {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}
+            </a>
           </p>
         </section>
 

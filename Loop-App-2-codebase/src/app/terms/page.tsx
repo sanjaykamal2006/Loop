@@ -115,8 +115,7 @@ export default function TermsOfServicePage() {
           </p>
           <div className="text-xs text-zinc-300 space-y-1 font-mono">
             <p><strong>Platform:</strong> LOOP (Ride Coordination)</p>
-            <p><strong>Lead Developer:</strong> Sanjay Kamal S (24MIC7130)</p>
-            <p><strong>Email:</strong> <a href="mailto:sanjaykamal001@gmail.com" className="text-[#FFC554] underline">sanjaykamal001@gmail.com</a></p>
+            <p><strong>Support & Grievances:</strong> <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}`} className="text-[#FFC554] underline">{process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}</a></p>
           </div>
         </section>
 

@@ -89,12 +89,18 @@ export function isAllowedStudentEmail(email: string): { allowed: boolean; reason
     return { allowed: false, reason: "Please enter a valid email address." };
   }
 
-  // Developer whitelist - only lead developer
-  const developerWhitelist = [
-    "sanjaykamal2006@gmail.com",
-  ];
+  // Configurable admin/developer whitelist from environment
+  const envWhitelist = (
+    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+    process.env.ADMIN_EMAILS ||
+    ""
+  )
+    .toLowerCase()
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
 
-  if (developerWhitelist.includes(trimmed)) {
+  if (envWhitelist.includes(trimmed)) {
     return { allowed: true };
   }
 

@@ -26,6 +26,31 @@ export function getLocalTomorrowStr(): string {
 }
 
 /**
+ * Extracts YYYY-MM-DD representing the local calendar date of any Date or ISO string
+ */
+export function extractLocalDateStr(isoOrDate?: string | Date | null): string {
+  if (!isoOrDate) return "";
+  try {
+    const d = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+    if (isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Checks whether an ISO departure timestamp falls on the specified local calendar date string (YYYY-MM-DD)
+ */
+export function isSameLocalCalendarDay(departureIso: string, localDateStr: string): boolean {
+  if (!departureIso || !localDateStr) return false;
+  return extractLocalDateStr(departureIso) === localDateStr;
+}
+
+/**
  * Formats YYYY-MM-DD into short display like "Sep 12"
  */
 export function formatShortDate(dateStr: string): string {
@@ -39,7 +64,8 @@ export function formatShortDate(dateStr: string): string {
 }
 
 /**
- * Builds a Date object from YYYY-MM-DD and 12-hour time components
+ * Builds a Date object from YYYY-MM-DD and 12-hour time components in local time
+ * Correctly handles 12:00 AM midnight and 12:00 PM noon without rollover
  */
 export function buildDepartureDate(
   travelDate: string,
@@ -58,26 +84,20 @@ export function buildDepartureDate(
 
 /**
  * Returns a compact badge label: "Today", "Tomorrow", or "Sep 12"
+ * Uses exact local calendar day comparisons to prevent midnight boundary drift
  */
 export function getDepartureDateBadge(isoString?: string | null): string {
   if (!isoString) return "Upcoming";
   try {
     const d = new Date(isoString);
-    const now = new Date();
-    const isToday =
-      d.getDate() === now.getDate() &&
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear();
+    if (isNaN(d.getTime())) return "Upcoming";
 
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isTomorrow =
-      d.getDate() === tomorrow.getDate() &&
-      d.getMonth() === tomorrow.getMonth() &&
-      d.getFullYear() === tomorrow.getFullYear();
+    const rideDateStr = extractLocalDateStr(d);
+    const todayStr = getLocalTodayStr();
+    const tomorrowStr = getLocalTomorrowStr();
 
-    if (isToday) return "Today";
-    if (isTomorrow) return "Tomorrow";
+    if (rideDateStr === todayStr) return "Today";
+    if (rideDateStr === tomorrowStr) return "Tomorrow";
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   } catch {
     return "Upcoming";
@@ -86,12 +106,14 @@ export function getDepartureDateBadge(isoString?: string | null): string {
 
 /**
  * Returns full readable departure string:
- * "Today • 05:30 PM", "Tomorrow • 09:00 AM", or "Fri, Sep 12 • 06:30 PM"
+ * "Sep 10, Thu • 12:30 PM"
  */
 export function formatDepartureFull(isoString?: string | null): string {
   if (!isoString) return "";
   try {
     const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+
     const timeStr = d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -100,7 +122,6 @@ export function formatDepartureFull(isoString?: string | null): string {
 
     const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
     const monthDay = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    // MONTH DATE, DAY, TIME FORMAT (e.g. "Sep 10, Thu • 12:30 PM")
     return `${monthDay}, ${dayName} • ${timeStr}`;
   } catch {
     return "";
@@ -118,11 +139,12 @@ export function formatDDMMYYYY(dateStr?: string | null): string {
       const [y, m, d] = parts;
       return `${d.slice(0, 2).padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
     }
-    const date = new Date(dateStr);
-    const d = String(date.getDate()).padStart(2, "0");
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr || "";
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   } catch {
     return dateStr || "";
   }

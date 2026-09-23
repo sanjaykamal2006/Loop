@@ -40,7 +40,7 @@ const DETAIL_VIEWS = new Set<View>([
 ]);
 
 function AppContent() {
-  const { view, selectedLoop, theme } = useLoop();
+  const { view, selectedLoop, theme, liquidGlass } = useLoop();
   const { isDark, bg, text } = theme;
 
   // Apple iOS Directional Navigation State Controller
@@ -106,7 +106,7 @@ function AppContent() {
   }, []);
 
   return (
-    <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
+    <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans ${liquidGlass ? "mode-liquid-glass" : ""}`}>
       <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
 
       {/* When in past-loops or changelog, the view manages its own top bar / back button, or header can adapt */}
