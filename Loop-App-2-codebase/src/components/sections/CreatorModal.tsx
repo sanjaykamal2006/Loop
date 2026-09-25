@@ -12,13 +12,11 @@ import {
   ArrowUpRight, 
   BadgeCheck, 
   Copy, 
-  Check, 
-  Coffee,
-  ShieldCheck
+  Check 
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
-// App Opener Direct Links Configuration
+// Smart App Opener Direct Links Configuration
 export const CREATOR_LINKS = {
   github: {
     title: "GitHub",
@@ -52,7 +50,7 @@ export const CREATOR_LINKS = {
 
 export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme } = useLoop();
-  const { isDark, border, mutedText, accentText } = theme;
+  const { isDark, mutedText, accentText } = theme;
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -101,18 +99,18 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
           </button>
         </div>
 
-        {/* Profile Details */}
-        <div className="flex flex-col items-center text-center space-y-3 pt-1">
-          {/* Creator Avatar - Pure clean neutral border, strictly NO yellow lines or glow */}
-          <div className="w-24 h-24 rounded-[28px] bg-zinc-900 border-2 border-white/10 overflow-hidden shadow-xl shrink-0">
+        {/* Creator Hero */}
+        <div className="flex flex-col items-center text-center space-y-2.5 pt-1">
+          {/* Creator Avatar - Batman at Sunset with clean neutral border */}
+          <div className="w-28 h-28 rounded-[28px] bg-zinc-900 border-2 border-white/10 overflow-hidden shadow-2xl shrink-0">
             <img 
               src="/creator.jpg" 
               alt="Sanjay Kamal S" 
-              className="w-full h-full object-cover object-top select-none" 
+              className="w-full h-full object-cover select-none" 
             />
           </div>
 
-          {/* Identity Information */}
+          {/* Name & Verified Badge */}
           <div className="space-y-1">
             <div className="flex items-center justify-center gap-1.5">
               <h3 className="text-xl font-black uppercase tracking-tight">Sanjay Kamal S</h3>
@@ -120,225 +118,160 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
                 isDark ? "text-sky-400 fill-sky-500/20" : "text-[#881337] fill-[#881337]/20"
               }`} />
             </div>
-            <p className={`text-[11px] font-bold ${mutedText} uppercase tracking-wider`}>
-              Builder & Architect of LOOP
+            <p className="text-xs font-mono font-bold tracking-[0.25em] text-zinc-400 uppercase">
+              The One.
             </p>
           </div>
-
-          {/* Tags */}
-          <div className="flex items-center justify-center gap-2 pt-0.5 flex-wrap">
-            <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck size={12} strokeWidth={2.5} />
-              <span>VIT-AP Student</span>
-            </span>
-            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${
-              isDark
-                ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30"
-                : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
-            }`}>
-              24MIC7130
-            </span>
-            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${
-              isDark
-                ? "bg-white/10 text-white/90 border border-white/15"
-                : "bg-black/5 text-black/80 border border-black/10"
-            }`}>
-              SCOPE
-            </span>
-          </div>
         </div>
 
-        {/* Social App Opener Grid */}
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-between px-1">
-            <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${mutedText}`}>
-              Connect with me
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2.5">
-            {/* GitHub Card */}
-            <div
-              onClick={() => handleCardClick(CREATOR_LINKS.github.url)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.github.url)}
-              className={`p-3 rounded-2xl ${
-                isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
-              } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.github.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.github.iconColor}`}>
-                  <Github size={16} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => handleCopy("github", CREATOR_LINKS.github.handle, e)}
-                    title="Copy GitHub handle"
-                    className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copiedKey === "github" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                  </button>
-                  <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
-                    isDark ? "group-hover:text-white" : "group-hover:text-black"
-                  }`} />
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-black truncate transition-colors ${
-                  isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
-                }`}>GitHub</p>
-                <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.github.handle}</p>
-              </div>
-            </div>
-
-            {/* LinkedIn Card */}
-            <div
-              onClick={() => handleCardClick(CREATOR_LINKS.linkedin.url)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.linkedin.url)}
-              className={`p-3 rounded-2xl ${
-                isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
-              } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.linkedin.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.linkedin.iconColor}`}>
-                  <Linkedin size={16} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => handleCopy("linkedin", CREATOR_LINKS.linkedin.handle, e)}
-                    title="Copy LinkedIn name"
-                    className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copiedKey === "linkedin" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                  </button>
-                  <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#0A66C2] transition-colors" />
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-black truncate transition-colors ${
-                  isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
-                }`}>LinkedIn</p>
-                <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.linkedin.handle}</p>
-              </div>
-            </div>
-
-            {/* Instagram Card */}
-            <div
-              onClick={() => handleCardClick(CREATOR_LINKS.instagram.url)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.instagram.url)}
-              className={`p-3 rounded-2xl ${
-                isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
-              } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.instagram.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.instagram.iconColor}`}>
-                  <Instagram size={16} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => handleCopy("instagram", CREATOR_LINKS.instagram.handle, e)}
-                    title="Copy Instagram handle"
-                    className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copiedKey === "instagram" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                  </button>
-                  <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-pink-400 transition-colors" />
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-black truncate transition-colors ${
-                  isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
-                }`}>Instagram</p>
-                <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.instagram.handle}</p>
-              </div>
-            </div>
-
-            {/* Email Card */}
-            <div
-              onClick={() => handleCardClick(CREATOR_LINKS.email.url)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.email.url)}
-              className={`p-3 rounded-2xl ${
-                isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
-              } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.email.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.email.iconColor}`}>
-                  <Mail size={16} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={(e) => handleCopy("email", CREATOR_LINKS.email.handle, e)}
-                    title="Copy Email"
-                    className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copiedKey === "email" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                  </button>
-                  <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-emerald-400 transition-colors" />
-                </div>
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-black truncate transition-colors ${
-                  isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
-                }`}>Email</p>
-                <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.email.handle}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tip / Buy Coffee Button */}
-        <div className="pt-1">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("open-buy-coffee-modal"));
-              }
-            }}
-            className={`w-full py-3 px-4 rounded-2xl border flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer shadow-sm ${
-              isDark
-                ? "bg-[#FFC554]/10 border-[#FFC554]/30 hover:bg-[#FFC554]/15"
-                : "bg-[#881337]/10 border-[#881337]/30 hover:bg-[#881337]/15"
-            }`}
+        {/* Direct Social Channels Grid */}
+        <div className="grid grid-cols-2 gap-2.5 pt-1">
+          {/* GitHub Card */}
+          <div
+            onClick={() => handleCardClick(CREATOR_LINKS.github.url)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.github.url)}
+            className={`p-3 rounded-2xl ${
+              isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
+            } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
           >
-            <div className="flex items-center gap-2.5">
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
-                isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-              }`}>
-                <Coffee size={14} strokeWidth={2.5} />
+            <div className="flex items-center justify-between mb-2">
+              <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.github.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.github.iconColor}`}>
+                <Github size={16} />
               </div>
-              <div className="text-left">
-                <p className={`text-xs font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Buy Creator a Coffee</p>
-                <p className={`text-[10px] font-medium ${mutedText}`}>Support LOOP development</p>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy("github", CREATOR_LINKS.github.handle, e)}
+                  title="Copy GitHub handle"
+                  className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  {copiedKey === "github" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                </button>
+                <ArrowUpRight size={14} className={`text-zinc-400 transition-colors ${
+                  isDark ? "group-hover:text-white" : "group-hover:text-black"
+                }`} />
               </div>
             </div>
-            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xs ${
-              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-            }`}>
-              Tip UPI
-            </span>
-          </button>
+            <div className="min-w-0">
+              <p className={`text-xs font-black truncate transition-colors ${
+                isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+              }`}>GitHub</p>
+              <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.github.handle}</p>
+            </div>
+          </div>
+
+          {/* LinkedIn Card */}
+          <div
+            onClick={() => handleCardClick(CREATOR_LINKS.linkedin.url)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.linkedin.url)}
+            className={`p-3 rounded-2xl ${
+              isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
+            } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.linkedin.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.linkedin.iconColor}`}>
+                <Linkedin size={16} />
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy("linkedin", CREATOR_LINKS.linkedin.handle, e)}
+                  title="Copy LinkedIn name"
+                  className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  {copiedKey === "linkedin" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                </button>
+                <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-[#0A66C2] transition-colors" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className={`text-xs font-black truncate transition-colors ${
+                isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+              }`}>LinkedIn</p>
+              <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5`}>{CREATOR_LINKS.linkedin.handle}</p>
+            </div>
+          </div>
+
+          {/* Instagram Card */}
+          <div
+            onClick={() => handleCardClick(CREATOR_LINKS.instagram.url)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.instagram.url)}
+            className={`p-3 rounded-2xl ${
+              isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
+            } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.instagram.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.instagram.iconColor}`}>
+                <Instagram size={16} />
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy("instagram", CREATOR_LINKS.instagram.handle, e)}
+                  title="Copy Instagram handle"
+                  className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  {copiedKey === "instagram" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                </button>
+                <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-pink-400 transition-colors" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className={`text-xs font-black truncate transition-colors ${
+                isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+              }`}>Instagram</p>
+              <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.instagram.handle}</p>
+            </div>
+          </div>
+
+          {/* Email Card */}
+          <div
+            onClick={() => handleCardClick(CREATOR_LINKS.email.url)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleCardClick(CREATOR_LINKS.email.url)}
+            className={`p-3 rounded-2xl ${
+              isDark ? "bg-[#121212] hover:bg-[#181818] border-[#27272A]" : "bg-[#FAF8F5] hover:bg-[#F2EFE9] border-[#DFD9CE]"
+            } border flex flex-col justify-between active:scale-[0.97] transition-all text-left group relative cursor-pointer select-none`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className={`w-8 h-8 rounded-xl ${CREATOR_LINKS.email.iconBg} flex items-center justify-center shrink-0 ${CREATOR_LINKS.email.iconColor}`}>
+                <Mail size={16} />
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => handleCopy("email", CREATOR_LINKS.email.handle, e)}
+                  title="Copy Email"
+                  className="w-6 h-6 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  {copiedKey === "email" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                </button>
+                <ArrowUpRight size={14} className="text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className={`text-xs font-black truncate transition-colors ${
+                isDark ? "group-hover:text-[#FFC554]" : "group-hover:text-[#881337]"
+              }`}>Email</p>
+              <p className={`text-[10px] font-medium ${mutedText} truncate mt-0.5 font-mono`}>{CREATOR_LINKS.email.handle}</p>
+            </div>
+          </div>
         </div>
 
         {/* Footer Close */}
         <div className={`pt-2 border-t ${isDark ? "border-[#27272A]" : "border-[#DFD9CE]"} shrink-0`}>
           <button
             onClick={onClose}
-            className={`w-full py-3 ${
+            className={`w-full h-12 ${
               isDark ? "bg-white/10 hover:bg-white/15 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"
-            } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] transition-all cursor-pointer`}
+            } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center`}
           >
             Close
           </button>
