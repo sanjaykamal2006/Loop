@@ -181,8 +181,8 @@ export default function PrivacyPolicyPage() {
           <div className="text-xs text-zinc-300 space-y-1 font-mono">
             <p><strong>Platform:</strong> LOOP (Peer-to-Peer Ride Coordination)</p>
             <p><strong>Grievance & Privacy Support:</strong>{" "}
-              <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}`} className="text-[#FFC554] underline">
-                {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}
+              <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}`} className="text-[#FFC554] underline">
+                {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}
               </a>
             </p>
           </div>

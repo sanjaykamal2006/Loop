@@ -100,10 +100,10 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
           <p className="text-sm text-white/80 leading-relaxed">
             For any privacy concerns, data requests, or grievances, contact:{" "}
             <a
-              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}`}
+              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}`}
               className="text-[#FFC554] hover:underline"
             >
-              {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}
+              {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}
             </a>
           </p>
         </section>

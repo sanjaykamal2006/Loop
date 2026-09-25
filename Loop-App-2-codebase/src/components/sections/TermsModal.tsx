@@ -86,10 +86,10 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
               For any privacy concerns, data requests, or grievances, please contact our Data Protection Lead:
             </p>
             <a 
-              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}?subject=LOOP%20Privacy%20Concern`}
+              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}?subject=LOOP%20Privacy%20Concern`}
               className="inline-flex items-center gap-1.5 text-[#FFC554] font-bold mt-1 hover:underline"
             >
-              <Mail size={13} /> {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@loopcampus.in"}
+              <Mail size={13} /> {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "loopdeveloper8@gmail.com"}
             </a>
           </section>
         </div>
