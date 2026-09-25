@@ -10,7 +10,6 @@ import {
   Instagram, 
   Mail, 
   ArrowUpRight, 
-  BadgeCheck, 
   Copy, 
   Check 
 } from "lucide-react";
@@ -110,17 +109,9 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
             />
           </div>
 
-          {/* Name & Verified Badge */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-center gap-1.5">
-              <h3 className="text-xl font-black uppercase tracking-tight">Sanjay Kamal S</h3>
-              <BadgeCheck size={19} className={`shrink-0 ${
-                isDark ? "text-sky-400 fill-sky-500/20" : "text-[#881337] fill-[#881337]/20"
-              }`} />
-            </div>
-            <p className="text-xs font-mono font-bold tracking-[0.25em] text-zinc-400 uppercase">
-              The One.
-            </p>
+          {/* Name */}
+          <div className="pt-0.5">
+            <h3 className="text-xl font-black uppercase tracking-tight">Sanjay Kamal S</h3>
           </div>
         </div>
 
