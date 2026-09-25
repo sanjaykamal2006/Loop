@@ -19,7 +19,7 @@ A mobile-first web app for **VIT-AP University** students to coordinate shared r
 
 VIT-AP University is situated near Inavolu, roughly 30 km from Vijayawada and Guntur. During weekends, exams, and holidays:
 
-- Taking an auto alone costs ₹200 to ₹300 per trip.
+- Taking an auto alone costs ₹400 to ₹600 per trip.
 - Ride requests in 1,000+ member WhatsApp groups get buried within seconds.
 - Students face unnecessary expenses, unorganized chats, and language barriers.
 
@@ -29,11 +29,11 @@ LOOP solves this in one tap.
 
 ### Key Capabilities
 
-- **Split Auto Fares**: Cuts a ₹250 solo ride down to ₹40–₹50 per student.
-- **Telugu Driver Phrasebook**: Everyday conversational phrases with English meanings and phonetic guides for non-native students.
+- **Split Auto Fares**: Cuts a ₹500 solo ride down to ₹150–₹200 per student.
 - **Female-Only Rides**: Dedicated coordination option created by and for women.
+- **Verified Student Network**: University email authentication ensures ride coordination remains restricted to verified students.
 - **Emergency SOS**: Immediate one-tap alert with live trip details for trusted contacts.
-- **AMOLED Dark Interface**: Built specifically for smartphones in pure black `#000000` with zero vertical scrolling.
+- **AMOLED Dark Interface**: Built specifically for smartphones in pure black `#000000`.
 
 ---
 
