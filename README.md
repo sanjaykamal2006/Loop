@@ -3,51 +3,46 @@
 <img src="./public/logo.png" width="76" alt="LOOP Logo" style="border-radius: 18px;" />
 
 # LOOP
-### *Rides go better together.*
+### Rides go better together.
 
-[![Live App](https://img.shields.io/badge/Open_LOOP-loop--demo--app.vercel.app-FFC554?style=for-the-badge&logoColor=black)](https://loop-demo-app.vercel.app)
+[![Live Web App](https://img.shields.io/badge/Launch_App-loop--demo--app.vercel.app-FFC554?style=for-the-badge&logoColor=black)](https://loop-demo-app.vercel.app)
 
 <br/>
 
-**The real-time campus ride-sharing web app for university students.**  
-Find batchmates, split auto fares, and travel together safely without WhatsApp group chaos.
+A mobile-first web app for **VIT-AP University** students to coordinate shared rides, split auto fares, and travel together safely without WhatsApp group chaos.
 
 </div>
 
 ---
 
-### The Reality
+### The Reality at VIT-AP
 
-Our campus is far outside Vijayawada and Guntur. Every weekend or holiday:
+VIT-AP University is situated near Inavolu, roughly 30 km from Vijayawada and Guntur. During weekends, exams, and holidays:
 
-- Taking an auto alone costs ₹200 to ₹300.
-- Coordination messages in 1,000-member WhatsApp groups get buried in seconds.
-- Students end up traveling alone and paying full price.
+- Taking an auto alone costs ₹200 to ₹300 per trip.
+- Ride requests in 1,000+ member WhatsApp groups get buried within seconds.
+- Students face unnecessary expenses, unorganized chats, and language barriers.
 
-**LOOP solves this in one tap.**
-
----
-
-### What LOOP Does
-
-* 💰 **Split Auto Fares**: Share autos to the railway station, bus stand, or airport and drop travel costs down to ₹40–₹50.
-* 🗣️ **Telugu Auto Guide**: Built-in native phrases and pronunciations to help non-native students talk with local auto drivers.
-* 🛡️ **Female-Only Rides**: Dedicated coordination option created by and for girls.
-* 🚨 **Emergency SOS**: Quick-access button that shares live ride details with trusted contacts.
-* 📱 **Mobile-First AMOLED Black**: Clean `#000000` design tailored for phone screens with zero vertical clutter.
+LOOP solves this in one tap.
 
 ---
 
-### How to Run Locally
+### Key Capabilities
 
-```bash
-git clone https://github.com/sanjaykamal2006/Loop.git
-cd Loop/Loop-App-2-codebase
-npm install
-npm run dev
-```
+- **Split Auto Fares**: Cuts a ₹250 solo ride down to ₹40–₹50 per student.
+- **Telugu Driver Phrasebook**: Everyday conversational phrases with English meanings and phonetic guides for non-native students.
+- **Female-Only Rides**: Dedicated coordination option created by and for women.
+- **Emergency SOS**: Immediate one-tap alert with live trip details for trusted contacts.
+- **AMOLED Dark Interface**: Built specifically for smartphones in pure black `#000000` with zero vertical scrolling.
 
-Open [http://localhost:3000](http://localhost:3000) on your phone or in mobile view.
+---
+
+### Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS
+- **Backend & Auth**: Supabase (PostgreSQL, Realtime Engine, Row Level Security)
+- **Hosting**: Vercel
 
 ---
 
@@ -56,7 +51,7 @@ Open [http://localhost:3000](http://localhost:3000) on your phone or in mobile v
 <img src="./public/creator.jpg" width="88" height="88" style="border-radius: 22px; object-fit: cover;" alt="Sanjay Kamal S" />
 
 ### Sanjay Kamal S
-*Creator of LOOP*
+*Creator of LOOP • VIT-AP University*
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://openinapp.link/si31z)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://linkedin.openinapp.co/djr8q)
@@ -65,6 +60,6 @@ Open [http://localhost:3000](http://localhost:3000) on your phone or in mobile v
 
 <br/>
 
-<sub>Built with purpose for campus movement.</sub>
+<sub>Engineered for campus movement.</sub>
 
 </div>
