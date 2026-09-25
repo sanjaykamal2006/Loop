@@ -44,3 +44,8 @@ next-env.d.ts
 .env.production
 .env.test
 
+# scratch and secrets
+/scratch
+*.keystore
+
+
