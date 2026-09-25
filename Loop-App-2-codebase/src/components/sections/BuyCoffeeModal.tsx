@@ -172,33 +172,35 @@ export default function BuyCoffeeModal({
           </div>
 
           {!isCustom ? (
-            <div className="grid grid-cols-5 gap-1.5">
-              {PRESET_AMOUNTS.map((p) => {
-                const isSelected = !isCustom && selectedAmount === p.amount;
-                return (
-                  <button
-                    key={p.amount}
-                    type="button"
-                    onClick={() => {
-                      triggerHaptic(8);
-                      setSelectedAmount(p.amount);
-                    }}
-                    className={`py-2 rounded-xl text-center transition-all cursor-pointer border relative ${
-                      isSelected
-                        ? isDark
-                          ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm scale-[1.02]"
-                          : "bg-[#881337] border-[#881337] text-white font-black shadow-sm scale-[1.02]"
-                        : isDark
-                        ? "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10"
-                        : "bg-black/[0.03] border-black/10 text-zinc-800 hover:bg-black/5"
-                    }`}
-                  >
-                    <span className="text-xs font-bold">₹{p.amount}</span>
-                  </button>
-                );
-              })}
+            <div className="space-y-2">
+              <div className="grid grid-cols-4 gap-2">
+                {PRESET_AMOUNTS.map((p) => {
+                  const isSelected = !isCustom && selectedAmount === p.amount;
+                  return (
+                    <button
+                      key={p.amount}
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(8);
+                        setSelectedAmount(p.amount);
+                      }}
+                      className={`h-12 rounded-2xl text-center transition-all cursor-pointer border flex flex-col items-center justify-center ${
+                        isSelected
+                          ? isDark
+                            ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-md scale-[1.02]"
+                            : "bg-[#881337] border-[#881337] text-white font-black shadow-md scale-[1.02]"
+                          : isDark
+                          ? "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10"
+                          : "bg-black/[0.03] border-black/10 text-zinc-800 hover:bg-black/5"
+                      }`}
+                    >
+                      <span className="text-sm font-black">₹{p.amount}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-              {/* Custom amount trigger pill */}
+              {/* Full-sized Custom Amount Trigger Button */}
               <button
                 type="button"
                 onClick={() => {
@@ -206,18 +208,26 @@ export default function BuyCoffeeModal({
                   setIsCustom(true);
                   setCustomAmount("");
                 }}
-                className={`py-2 rounded-xl text-center transition-all cursor-pointer border ${
+                className={`w-full h-12 rounded-2xl border ${
                   isDark
-                    ? "bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10"
-                    : "bg-black/[0.03] border-black/10 text-zinc-600 hover:bg-black/5"
-                }`}
+                    ? "bg-white/5 border-white/10 hover:bg-white/10 text-zinc-300 hover:text-white"
+                    : "bg-black/[0.03] border-black/10 text-zinc-700 hover:bg-black/5"
+                } flex items-center justify-between px-4 font-bold text-xs uppercase tracking-wider active:scale-[0.98] transition-all cursor-pointer`}
               >
-                <span className="text-[11px] font-bold">+ More</span>
+                <span className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isDark ? "bg-[#FFC554]" : "bg-[#881337]"}`} />
+                  <span>Custom Amount</span>
+                </span>
+                <span className={`text-xs font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+                  + Enter Any Amount
+                </span>
               </button>
             </div>
           ) : (
-            <div className={`h-10 px-3.5 rounded-xl border ${border} ${cardBg} flex items-center gap-2 animate-fade-in`}>
-              <span className={`text-sm font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>₹</span>
+            <div className={`w-full h-12 px-4 rounded-2xl border ${
+              isDark ? "border-[#FFC554]/50 bg-[#121212]" : "border-[#881337]/50 bg-white"
+            } flex items-center gap-2.5 shadow-sm animate-fade-in`}>
+              <span className={`text-base font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>₹</span>
               <input
                 type="number"
                 min="1"
@@ -225,9 +235,21 @@ export default function BuyCoffeeModal({
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="Enter custom amount"
-                className="w-full bg-transparent text-sm font-bold outline-none"
+                className="flex-1 bg-transparent text-sm font-black outline-none"
                 autoFocus
               />
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic(6);
+                  setIsCustom(false);
+                }}
+                className={`px-3 py-1.5 rounded-xl ${
+                  isDark ? "bg-white/10 hover:bg-white/15 text-zinc-200" : "bg-black/5 hover:bg-black/10 text-zinc-800"
+                } text-[10px] font-black uppercase tracking-wider cursor-pointer transition-colors`}
+              >
+                Presets
+              </button>
             </div>
           )}
         </div>

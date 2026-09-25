@@ -94,12 +94,12 @@ export default function GenderModal() {
 
           <div className="space-y-1">
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>Gender</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {["male", "female"].map((g) => (
                 <button
                   key={g}
                   onClick={() => setGender(g as "male" | "female")}
-                  className={`w-full h-10 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${
+                  className={`w-full h-12 rounded-[20px] border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer ${
                     gender === g
                       ? isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
@@ -107,14 +107,14 @@ export default function GenderModal() {
                       : `${border} ${cardBg} ${mutedText}`
                   }`}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full ${g === "female" ? "bg-pink-500" : "bg-blue-500"}`} />
-                  {g}
+                  <div className={`w-2 h-2 rounded-full ${g === "female" ? "bg-pink-500" : "bg-blue-500"}`} />
+                  <span className="capitalize">{g}</span>
                 </button>
               ))}
             </div>
             <button
               onClick={() => setGender("unspecified")}
-              className={`w-full h-10 mt-1.5 rounded-[16px] border font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${
+              className={`w-full h-12 mt-2 rounded-[20px] border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer ${
                 gender === "unspecified"
                   ? isDark
                     ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
@@ -122,8 +122,8 @@ export default function GenderModal() {
                   : `${border} ${cardBg} ${mutedText}`
               }`}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-              Prefer not to say
+              <div className="w-2 h-2 rounded-full bg-gray-400" />
+              <span>Prefer not to say</span>
             </button>
           </div>
         </div>
@@ -131,11 +131,11 @@ export default function GenderModal() {
         <button
           onClick={handleSave}
           disabled={isSubmitting}
-          className={`w-full h-11 ${
+          className={`w-full h-12 ${
             isDark
-              ? "bg-[#FFC554] text-black shadow-[#FFC554]/10"
+              ? "bg-[#FFC554] text-black shadow-[#FFC554]/20"
               : "bg-[#881337] text-white shadow-[#881337]/20"
-          } rounded-[18px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg ${isSubmitting ? 'opacity-50' : ''}`}
+          } rounded-[20px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg cursor-pointer ${isSubmitting ? 'opacity-50' : ''}`}
         >
           {isSubmitting ? 'Saving...' : 'Save & Continue'}
         </button>

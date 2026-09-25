@@ -276,7 +276,7 @@ export default function EmergencyContactModal() {
                   {/* Add button */}
                   <button
                     type="submit"
-                    className="w-full h-10 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-red-500/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full h-12 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-red-500/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Plus size={15} strokeWidth={2.6} />
                     <span>Save Contact ({emergencyContacts.length + 1}/3)</span>
@@ -298,7 +298,7 @@ export default function EmergencyContactModal() {
           <button
             type="button"
             onClick={() => setShowEmergencyContactModal(false)}
-            className={`w-full h-10 rounded-xl ${isDark ? "bg-white/10 hover:bg-white/15 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"} text-xs font-black uppercase tracking-wider active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5`}
+            className={`w-full h-12 rounded-2xl ${isDark ? "bg-white/10 hover:bg-white/15 text-white" : "bg-black/5 hover:bg-black/10 text-zinc-900"} text-xs font-black uppercase tracking-wider active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5`}
           >
             <CheckCircle size={15} />
             <span>Done</span>

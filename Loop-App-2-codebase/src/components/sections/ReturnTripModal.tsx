@@ -342,29 +342,33 @@ export default function ReturnTripModal({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="pt-1 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={handleCreateReturnLoop}
-            disabled={isSubmitting}
-            className={`w-full h-11 ${
-              isDark
-                ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black"
-                : "bg-[#881337] hover:bg-[#700f2b] text-white"
-            } font-black rounded-[18px] text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2`}
-          >
-            <Repeat size={14} strokeWidth={2.4} />
-            {isSubmitting ? "Creating..." : "Plan Return Ride"}
-          </button>
-
+        {/* Actions - Equal size buttons */}
+        <div className="pt-2 grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={handleSkip}
             disabled={isSubmitting}
-            className={`w-full py-2 text-xs font-bold uppercase tracking-wider ${mutedText} hover:opacity-100 active:scale-[0.98] transition-all text-center`}
+            className={`w-full h-12 rounded-[20px] border ${
+              isDark
+                ? "bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                : "bg-black/5 border-black/10 hover:bg-black/10 text-zinc-900"
+            } font-black text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer`}
           >
-            Not now
+            Not Now
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCreateReturnLoop}
+            disabled={isSubmitting}
+            className={`w-full h-12 ${
+              isDark
+                ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black shadow-[#FFC554]/20"
+                : "bg-[#881337] hover:bg-[#700f2b] text-white shadow-[#881337]/20"
+            } font-black rounded-[20px] text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
+          >
+            <Repeat size={14} strokeWidth={2.5} />
+            <span>{isSubmitting ? "Creating..." : "Plan Return"}</span>
           </button>
         </div>
       </div>

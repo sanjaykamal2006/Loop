@@ -138,11 +138,11 @@ export default function UserProfileModal({
         {/* Dismiss Button */}
         <button
           onClick={onClose}
-          className={`w-full py-3 ${
+          className={`w-full h-12 ${
             isDark
-              ? "bg-[#FFC554] text-black shadow-[#FFC554]/10"
+              ? "bg-[#FFC554] text-black shadow-[#FFC554]/20"
               : "bg-[#881337] text-white shadow-[#881337]/20"
-          } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform`}
+          } font-black text-xs uppercase tracking-wider rounded-2xl active:scale-[0.98] shadow-md transition-transform flex items-center justify-center cursor-pointer`}
         >
           Done
         </button>

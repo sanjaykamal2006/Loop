@@ -587,18 +587,31 @@ export default function EditLoopModal({
           </div>
         )}
 
-        {/* Save Button */}
-        <div className="pt-2">
+        {/* Actions - Equal size buttons */}
+        <div className="pt-2 grid grid-cols-2 gap-2.5">
           <button
+            type="button"
+            onClick={onClose}
+            disabled={isSaving}
+            className={`w-full h-12 rounded-[22px] border ${
+              isDark
+                ? "bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                : "bg-black/5 border-black/10 hover:bg-black/10 text-zinc-900"
+            } font-black text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center cursor-pointer`}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
             className={`w-full h-12 ${
               isDark 
-                ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black" 
-                : "bg-[#881337] hover:bg-[#700f2b] text-white"
-            } font-black rounded-[22px] text-xs uppercase tracking-[0.18em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2`}
+                ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black shadow-[#FFC554]/20" 
+                : "bg-[#881337] hover:bg-[#700f2b] text-white shadow-[#881337]/20"
+            } font-black rounded-[22px] text-xs uppercase tracking-[0.18em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer`}
           >
-            {isSaving ? "Saving Changes..." : "Save Changes"}
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
