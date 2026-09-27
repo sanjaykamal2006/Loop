@@ -125,6 +125,9 @@ export default function GenderModal() {
               <div className="w-2 h-2 rounded-full bg-gray-400" />
               <span>Prefer not to say</span>
             </button>
+            <p className="text-[10px] text-center opacity-60 pt-1 leading-normal">
+              Based on self-reported gender at signup. Not independently verified.
+            </p>
           </div>
         </div>
 

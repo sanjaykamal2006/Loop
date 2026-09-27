@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck, Repeat, ShieldAlert } from "lucide-react";
+import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck, Repeat, ShieldAlert, Users } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
@@ -264,6 +264,21 @@ export default function RideDetailsView() {
           <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${selectedLoop.status === 'cancelled' ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
             Archived
           </span>
+        </div>
+      )}
+
+      {/* Female-Only Ride Banner */}
+      {selectedLoop.is_female_only && (
+        <div className="p-3.5 rounded-[24px] bg-pink-500/10 border border-pink-500/30 flex items-start gap-3 shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
+            <Users size={16} strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-black uppercase tracking-wider text-pink-400">Female-Only Ride</span>
+            <p className="text-[10px] text-pink-300/80 font-medium leading-relaxed mt-0.5">
+              Based on self-reported gender at signup. Not independently verified.
+            </p>
+          </div>
         </div>
       )}
 
@@ -559,6 +574,11 @@ export default function RideDetailsView() {
           </button>
         ) : (
           <>
+            {selectedLoop.is_female_only && !isJoined && (
+              <p className="text-[10px] text-center text-pink-400 font-bold px-2 py-0.5">
+                Female-Only Ride: Based on self-reported gender at signup. Not independently verified.
+              </p>
+            )}
             <button
               onClick={() => {
                 triggerHaptic(12);
