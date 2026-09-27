@@ -1,8 +1,16 @@
-/**
- * Student Email & Identity Parser for VIT-AP Campus
- * Parses: name.rollno@vitapstudent.ac.in
- * Automatically extracts student full name and roll number.
- */
+import {
+  ALLOWED_INSTITUTIONAL_DOMAINS,
+  EXTERNAL_EMAIL_WHITELIST,
+  INSTITUTIONAL_ERROR_MESSAGE,
+  isAllowedInstitutionalEmail,
+} from "./authConfig";
+
+export {
+  ALLOWED_INSTITUTIONAL_DOMAINS,
+  EXTERNAL_EMAIL_WHITELIST,
+  INSTITUTIONAL_ERROR_MESSAGE,
+  isAllowedInstitutionalEmail,
+};
 
 export interface ParsedStudentInfo {
   displayName: string;
@@ -32,19 +40,9 @@ export function parseStudentEmail(email: string): ParsedStudentInfo {
 
   const [rawPrefix, rawDomain = ""] = email.toLowerCase().trim().split("@");
 
-  const isVitAp =
-    rawDomain === "vitapstudent.ac.in" ||
-    rawDomain === "vitap.ac.in" ||
-    rawDomain.includes("vitap");
-
-  const isStudentDomain =
-    isVitAp ||
-    rawDomain.endsWith(".ac.in") ||
-    rawDomain.endsWith(".edu.in") ||
-    rawDomain.endsWith(".edu") ||
-    rawDomain.includes("student") ||
-    rawDomain.includes("college") ||
-    rawDomain.includes("univ");
+  // Strict exact institutional match
+  const isVitAp = (ALLOWED_INSTITUTIONAL_DOMAINS as readonly string[]).includes(rawDomain);
+  const isStudentDomain = isVitAp || isAllowedInstitutionalEmail(email);
 
   // Matches VIT-AP & standard Indian college roll numbers:
   // e.g. 21BCE1234, 24MIC7119, 22BCS012, 23BCE7111, RA2111003010123
@@ -81,98 +79,41 @@ export function parseStudentEmail(email: string): ParsedStudentInfo {
 }
 
 /**
- * Validates if the email is an authorized college student email or a developer account.
+ * Validates if the email is an authorized college student email or whitelisted account.
  */
 export function isAllowedStudentEmail(email: string): { allowed: boolean; reason?: string } {
-  const trimmed = (email || "").toLowerCase().trim();
-  if (!trimmed.includes("@")) {
-    return { allowed: false, reason: "Please enter a valid email address." };
-  }
-
-  // Configurable admin/developer whitelist from environment
-  const envWhitelist = (
-    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
-    process.env.ADMIN_EMAILS ||
-    ""
-  )
-    .toLowerCase()
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-
-  if (envWhitelist.includes(trimmed)) {
+  if (isAllowedInstitutionalEmail(email)) {
     return { allowed: true };
   }
 
-  const domain = trimmed.split("@")[1] || "";
-  const isVitAp =
-    domain === "vitapstudent.ac.in" ||
-    domain === "vitap.ac.in" ||
-    domain.includes("vitap");
-
-  const isEducational =
-    isVitAp ||
-    domain.endsWith(".ac.in") ||
-    domain.endsWith(".edu.in") ||
-    domain.endsWith(".edu") ||
-    domain.includes("student");
-
-  if (!isEducational) {
-    return {
-      allowed: false,
-      reason: "🎓 Please use your official VIT-AP student email (name.rollno@vitapstudent.ac.in).",
-    };
-  }
-
-  return { allowed: true };
+  return {
+    allowed: false,
+    reason: INSTITUTIONAL_ERROR_MESSAGE,
+  };
 }
 
 /**
  * Asynchronously checks if an email is eligible to sign up or log in.
- * - Educational domains & Developer whitelist: instantaneous client-side allow (0ms latency).
- * - External domains: queries /api/auth/validate-email to enforce the upcoming 5 external slots quota.
+ * - If logging in (isLogin=true), allows existing users to proceed to password check.
+ * - If signing up (isLogin=false), strictly enforces institutional domains & whitelist.
  */
 export async function validateEmailWithQuota(
   email: string,
   isLogin: boolean = false
 ): Promise<{ allowed: boolean; reason?: string }> {
+  // Existing users logging in are always allowed through to Supabase auth
+  if (isLogin) {
+    return { allowed: true };
+  }
+
   const syncCheck = isAllowedStudentEmail(email);
   if (syncCheck.allowed) {
     return { allowed: true };
   }
 
-  // If format is invalid, return immediately
-  if (!email || !email.includes("@")) {
-    return { allowed: false, reason: "Please enter a valid email address." };
-  }
-
-  try {
-    const res = await fetch("/api/auth/validate-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), isLogin }),
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      return {
-        allowed: false,
-        reason: data?.reason || "🎓 Please use your official VIT-AP student email.",
-      };
-    }
-
-    return {
-      allowed: Boolean(data?.allowed),
-      reason: data?.reason,
-    };
-  } catch (err) {
-    // If network fails during login, allow attempt through to Supabase auth
-    if (isLogin) return { allowed: true };
-    return {
-      allowed: false,
-      reason: "Could not verify email quota. Please check your connection and try again.",
-    };
-  }
+  return {
+    allowed: false,
+    reason: INSTITUTIONAL_ERROR_MESSAGE,
+  };
 }
 

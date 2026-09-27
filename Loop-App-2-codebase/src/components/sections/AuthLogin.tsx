@@ -7,6 +7,7 @@ import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
+import { isAllowedInstitutionalEmail, INSTITUTIONAL_ERROR_MESSAGE } from "@/lib/authConfig";
 
 interface AuthLoginProps {
   initialPasswordReset?: boolean;
@@ -59,6 +60,12 @@ export default function AuthLogin({
       return;
     }
 
+    // Pre-submit UI validation: Reject non-institutional emails immediately for signups
+    if (!isLogin && !isAllowedInstitutionalEmail(email)) {
+      toast.error(INSTITUTIONAL_ERROR_MESSAGE);
+      return;
+    }
+
     const passwordError = validatePassword(password);
     if (!isLogin && passwordError) {
       toast.error(passwordError);
@@ -67,7 +74,7 @@ export default function AuthLogin({
 
     const allowedCheck = await validateEmailWithQuota(email, isLogin);
     if (!allowedCheck.allowed) {
-      toast.error(allowedCheck.reason || "Please use your official VIT-AP student email (name.rollno@vitapstudent.ac.in).");
+      toast.error(allowedCheck.reason || INSTITUTIONAL_ERROR_MESSAGE);
       return;
     }
 
@@ -483,7 +490,7 @@ export default function AuthLogin({
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2.5">
               <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
-                {isLogin ? "VIT-AP Student / Personal Email" : "VIT-AP Student / Personal Email"}
+                {isLogin ? "VIT-AP Institutional or Registered Email" : "VIT-AP Institutional Email"}
               </label>
               <input
                 type="email"
@@ -496,7 +503,7 @@ export default function AuthLogin({
               {!isLogin && (
                 <p className="text-[10px] font-bold text-[#FFC554] ml-4 flex items-center gap-1.5 opacity-90">
                   <span>🎓</span>
-                  <span>VIT-AP Campus: Use name.rollno@vitapstudent.ac.in</span>
+                  <span>Students: @vitapstudent.ac.in | Faculty: @vitap.ac.in</span>
                 </p>
               )}
             </div>
