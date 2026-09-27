@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 
 export default function SosModal() {
   const {
@@ -37,6 +38,9 @@ export default function SosModal() {
 
   // Active targeted emergency contact
   const currentContact = emergencyContacts[selectedContactIdx] || emergencyContacts[0] || null;
+  const hasValidContact = Boolean(
+    currentContact?.phone && /^[6-9]\d{9}$/.test(sanitizeIndianPhoneNumber(currentContact.phone))
+  );
 
   // Auto-fetch real-time GPS coordinates as soon as SOS opens
   useEffect(() => {
@@ -107,20 +111,30 @@ export default function SosModal() {
   };
 
   const handleWhatsAppAlert = () => {
-    if (!currentContact?.phone) return;
+    if (!hasValidContact || !currentContact) {
+      toast.error("Please add an emergency contact first");
+      setShowSosModal(false);
+      setShowEmergencyContactModal(true);
+      return;
+    }
     triggerHaptic(15);
     const msg = buildSosMessage();
-    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
+    const cleanPhone = sanitizeIndianPhoneNumber(currentContact.phone);
     const waUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
   };
 
   const handleSmsAlert = () => {
-    if (!currentContact?.phone) return;
+    if (!hasValidContact || !currentContact) {
+      toast.error("Please add an emergency contact first");
+      setShowSosModal(false);
+      setShowEmergencyContactModal(true);
+      return;
+    }
     triggerHaptic(15);
     const msg = buildSosMessage();
-    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const cleanPhone = sanitizeIndianPhoneNumber(currentContact.phone);
+    const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
     const smsUrl = isIOS
       ? `sms:+91${cleanPhone}&body=${encodeURIComponent(msg)}`
       : `sms:+91${cleanPhone}?body=${encodeURIComponent(msg)}`;
@@ -128,9 +142,9 @@ export default function SosModal() {
   };
 
   const handlePhoneCall = () => {
-    if (!currentContact?.phone) return;
+    if (!hasValidContact || !currentContact) return;
     triggerHaptic(15);
-    const cleanPhone = currentContact.phone.replace(/[^\d]/g, "");
+    const cleanPhone = sanitizeIndianPhoneNumber(currentContact.phone);
     window.location.href = `tel:+91${cleanPhone}`;
   };
 
@@ -226,7 +240,7 @@ export default function SosModal() {
         )}
 
         {/* Target Emergency Contact Card */}
-        {currentContact && currentContact.phone ? (
+        {hasValidContact && currentContact ? (
           <div className={`p-3 rounded-2xl border ${border} ${isDark ? "bg-white/5" : "bg-black/[0.03]"} flex items-center justify-between`}>
             <div>
               <p className={`text-[9px] font-black uppercase tracking-wider ${mutedText}`}>Target Contact</p>
@@ -257,14 +271,17 @@ export default function SosModal() {
             </button>
           </div>
         ) : (
-          <div className="p-3 rounded-2xl border border-dashed border-red-500/40 bg-red-500/5 text-center space-y-1.5">
-            <p className="text-xs font-bold text-red-400">No emergency contact saved yet</p>
+          <div className="p-3.5 rounded-2xl border border-dashed border-red-500/40 bg-red-500/5 text-center space-y-1.5">
+            <p className="text-xs font-black text-red-400">No emergency contact saved yet</p>
+            <p className="text-[10px] text-zinc-400 leading-tight">
+              Add at least one trusted contact to enable WhatsApp and SMS SOS dispatches.
+            </p>
             <button
               onClick={() => {
                 setShowSosModal(false);
                 setShowEmergencyContactModal(true);
               }}
-              className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-black uppercase tracking-wider"
+              className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all cursor-pointer shadow-md shadow-red-600/20"
             >
               + Add Contact Now
             </button>
@@ -286,8 +303,8 @@ export default function SosModal() {
           {/* 2. WhatsApp Alert */}
           <button
             onClick={handleWhatsAppAlert}
-            disabled={!currentContact?.phone}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            disabled={!hasValidContact}
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Send size={16} strokeWidth={2.5} />
             <span>Alert {currentContact ? currentContact.name : "Contact"} via WhatsApp</span>
@@ -297,8 +314,8 @@ export default function SosModal() {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleSmsAlert}
-              disabled={!currentContact?.phone}
-              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-40 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
+              disabled={!hasValidContact}
+              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-30 disabled:cursor-not-allowed font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <MessageSquare size={15} />
               <span>SMS Alert</span>
@@ -306,8 +323,8 @@ export default function SosModal() {
 
             <button
               onClick={handlePhoneCall}
-              disabled={!currentContact?.phone}
-              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-40 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
+              disabled={!hasValidContact}
+              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-30 disabled:cursor-not-allowed font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <Phone size={15} />
               <span>Call Contact</span>

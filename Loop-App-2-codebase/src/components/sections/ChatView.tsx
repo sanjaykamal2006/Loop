@@ -50,7 +50,7 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops, triggerSos } = useLoop();
+  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops, triggerSos, emergencyContacts = [] } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
@@ -874,6 +874,7 @@ export default function ChatView() {
           <button
             onClick={triggerSos}
             aria-label="Emergency SOS"
+            title={emergencyContacts.length === 0 ? "Add emergency contact to enable SOS" : "Emergency SOS"}
             className="h-8 px-2 rounded-full bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm shadow-red-600/30 transition-all shrink-0 cursor-pointer"
           >
             <ShieldAlert size={12} strokeWidth={2.6} />

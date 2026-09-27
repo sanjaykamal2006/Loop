@@ -9,6 +9,7 @@ import { registerServiceWorker, sendLocalNotification } from "./notifications";
 import { parseStudentEmail } from "./studentParser";
 import { preloadAvatars } from "./imageOptimization";
 import { triggerHaptic } from "./haptics";
+import { sanitizeIndianPhoneNumber } from "./utils";
 
 interface LoopContextValue {
   // Session
@@ -302,12 +303,13 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   const triggerSos = useCallback(() => {
     triggerHaptic(20);
-    if (emergencyContacts.length === 0 || !emergencyContacts[0]?.phone) {
-      toast.info("Please set an emergency contact first to use 1-tap SOS");
+    const validContacts = emergencyContacts.filter((c) => /^[6-9]\d{9}$/.test(sanitizeIndianPhoneNumber(c.phone)));
+    if (validContacts.length === 0) {
+      toast.error("No emergency contact saved! Please add a trusted contact first.");
       setShowEmergencyContactModal(true);
-    } else {
-      setShowSosModal(true);
+      return;
     }
+    setShowSosModal(true);
   }, [emergencyContacts]);
 
   const userJoinedLoopsRef = useRef(userJoinedLoops);
@@ -729,6 +731,11 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
     if ((loop.member_count || 0) >= loop.participants_limit) {
       toast.error("Loop is full!");
+      return;
+    }
+
+    if (loop.is_female_only && currentGender !== "female" && loop.creator_id !== session.user.id) {
+      toast.error("This ride is restricted to female students only.");
       return;
     }
 

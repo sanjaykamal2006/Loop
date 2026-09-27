@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ShieldAlert, X, Phone, User, HeartHandshake, Plus, Trash2, CheckCircle } from "lucide-react";
+import { ShieldAlert, X, Phone, User, HeartHandshake, Plus, Trash2, CheckCircle, Send, MessageSquare, AlertTriangle } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
@@ -14,6 +14,7 @@ export default function EmergencyContactModal() {
     setShowEmergencyContactModal,
     emergencyContacts = [],
     saveEmergencyContacts,
+    profile,
     theme,
   } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
@@ -22,21 +23,46 @@ export default function EmergencyContactModal() {
   const [phone, setPhone] = useState("");
   const [relation, setRelation] = useState("Parent");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [testTargetContact, setTestTargetContact] = useState<EmergencyContact | null>(null);
 
   if (!showEmergencyContactModal) return null;
 
   const relations = ["Parent", "Friend", "Guardian", "Sibling", "Roommate"];
 
+  const validatePhone = (val: string): string | null => {
+    if (!val) return "Phone number is required";
+    if (!/^[6-9]/.test(val)) return "Indian mobile numbers must start with 6, 7, 8, or 9";
+    if (val.length !== 10) return `Must be exactly 10 digits (${val.length}/10 entered)`;
+    if (!/^[6-9]\d{9}$/.test(val)) return "Please enter a valid 10-digit Indian mobile number";
+    return null;
+  };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(sanitizeIndianPhoneNumber(e.target.value));
+    const raw = e.target.value;
+    const cleaned = sanitizeIndianPhoneNumber(raw);
+    setPhone(cleaned);
+
+    if (!cleaned) {
+      setPhoneError(null);
+    } else if (!/^[6-9]/.test(cleaned)) {
+      setPhoneError("Indian mobile numbers must start with 6, 7, 8, or 9");
+    } else if (cleaned.length < 10) {
+      setPhoneError(`10 digits required (${cleaned.length}/10 entered)`);
+    } else if (!/^[6-9]\d{9}$/.test(cleaned)) {
+      setPhoneError("Please enter a valid 10-digit Indian mobile number");
+    } else {
+      setPhoneError(null);
+    }
   };
 
   const handlePhonePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pasted = e.clipboardData.getData("text");
     const cleaned = sanitizeIndianPhoneNumber(pasted);
-    if (cleaned.length === 10) {
+    if (cleaned) {
       e.preventDefault();
       setPhone(cleaned);
+      setPhoneError(validatePhone(cleaned));
     }
   };
 
@@ -50,11 +76,15 @@ export default function EmergencyContactModal() {
     if (!cleanName) {
       return toast.error("Please enter contact name (e.g. Mom, Dad, Roommate)");
     }
-    if (!cleanPhone || cleanPhone.length !== 10) {
-      return toast.error("Please enter a valid 10-digit mobile number");
+
+    const err = validatePhone(cleanPhone);
+    if (err) {
+      setPhoneError(err);
+      return toast.error(err);
     }
 
     if (emergencyContacts.some((c) => sanitizeIndianPhoneNumber(c.phone) === cleanPhone)) {
+      setPhoneError("This phone number is already added");
       return toast.error("This phone number is already in your emergency contacts");
     }
 
@@ -73,6 +103,7 @@ export default function EmergencyContactModal() {
     saveEmergencyContacts(updated);
     setName("");
     setPhone("");
+    setPhoneError(null);
     setRelation("Parent");
     setShowAddForm(false);
     toast.success(`Added ${cleanName} to emergency contacts (${updated.length}/3)`);
@@ -84,6 +115,30 @@ export default function EmergencyContactModal() {
     const updated = emergencyContacts.filter((_, i) => i !== index);
     saveEmergencyContacts(updated);
     toast.info(`Removed ${target?.name || "contact"}`);
+  };
+
+  const getTestMessage = () => {
+    const senderName = profile?.display_name?.trim() ? profile.display_name.trim() : "your friend";
+    return `This is a test from LOOP. If ${senderName} ever sends an SOS alert, you will receive it at this number.`;
+  };
+
+  const handleSendTestMessage = (contact: EmergencyContact, medium: "whatsapp" | "sms") => {
+    triggerHaptic(12);
+    const cleanPhone = sanitizeIndianPhoneNumber(contact.phone);
+    const msg = getTestMessage();
+
+    if (medium === "whatsapp") {
+      const waUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, "_blank");
+      toast.success(`Opening WhatsApp test alert for ${contact.name}`);
+    } else {
+      const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const smsUrl = isIOS
+        ? `sms:+91${cleanPhone}&body=${encodeURIComponent(msg)}`
+        : `sms:+91${cleanPhone}?body=${encodeURIComponent(msg)}`;
+      window.location.href = smsUrl;
+      toast.success(`Opening SMS test alert for ${contact.name}`);
+    }
   };
 
   const isFormOpen = showAddForm || emergencyContacts.length === 0;
@@ -143,33 +198,46 @@ export default function EmergencyContactModal() {
                 {emergencyContacts.map((contact, idx) => (
                   <div
                     key={contact.id || idx}
-                    className={`p-3 rounded-2xl border ${border} ${isDark ? "bg-white/5" : "bg-black/[0.03]"} flex items-center justify-between gap-2`}
+                    className={`p-3 rounded-2xl border ${border} ${isDark ? "bg-white/5" : "bg-black/[0.03]"} space-y-2`}
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-black truncate">{contact.name}</span>
-                        {contact.relation && (
-                          <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-md shrink-0 ${
-                            isDark ? "bg-white/10 text-zinc-300" : "bg-black/10 text-stone-700"
-                          }`}>
-                            {contact.relation}
-                          </span>
-                        )}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm font-black truncate">{contact.name}</span>
+                          {contact.relation && (
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-md shrink-0 ${
+                              isDark ? "bg-white/10 text-zinc-300" : "bg-black/10 text-stone-700"
+                            }`}>
+                              {contact.relation}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-mono font-bold text-red-400 mt-0.5 flex items-center gap-1">
+                          <Phone size={11} />
+                          <span>+91 {contact.phone}</span>
+                        </p>
                       </div>
-                      <p className="text-xs font-mono font-bold text-red-400 mt-0.5 flex items-center gap-1">
-                        <Phone size={11} />
-                        <span>+91 {contact.phone}</span>
-                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(idx)}
+                        aria-label={`Remove ${contact.name}`}
+                        className="w-8 h-8 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors active:scale-90 shrink-0 cursor-pointer"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(idx)}
-                      aria-label={`Remove ${contact.name}`}
-                      className="w-8 h-8 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors active:scale-90 shrink-0 cursor-pointer"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                    <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTestTargetContact(contact)}
+                        className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+                      >
+                        <Send size={11} strokeWidth={2.5} />
+                        <span>Send Test Message</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -255,10 +323,15 @@ export default function EmergencyContactModal() {
 
                   {/* Phone Number */}
                   <div className="space-y-1">
-                    <label className={`text-[10px] font-bold uppercase tracking-wider block ${mutedText}`}>
-                      10-Digit Mobile / WhatsApp Number
-                    </label>
-                    <div className={`flex items-center gap-2 px-3 h-10 rounded-xl border ${border} ${isDark ? "bg-white/5" : "bg-black/5"}`}>
+                    <div className="flex items-center justify-between">
+                      <label className={`text-[10px] font-bold uppercase tracking-wider block ${mutedText}`}>
+                        10-Digit Mobile / WhatsApp Number
+                      </label>
+                      <span className="text-[9px] font-mono text-zinc-400">Starts with 6, 7, 8, 9</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 h-10 rounded-xl border ${
+                      phoneError ? "border-red-500/80 ring-1 ring-red-500/30" : border
+                    } ${isDark ? "bg-white/5" : "bg-black/5"} transition-all`}>
                       <span className="text-xs font-black text-red-400">+91</span>
                       <Phone size={14} className={isDark ? "text-zinc-400" : "text-stone-500"} />
                       <input
@@ -268,9 +341,16 @@ export default function EmergencyContactModal() {
                         onChange={handlePhoneChange}
                         onPaste={handlePhonePaste}
                         placeholder="9876543210"
+                        maxLength={10}
                         className="flex-1 bg-transparent text-xs sm:text-sm font-mono font-bold outline-none placeholder:text-zinc-500 tracking-wider"
                       />
                     </div>
+                    {phoneError && (
+                      <p className="text-[11px] text-red-400 font-bold flex items-center gap-1.5 mt-1 animate-fade-in">
+                        <AlertTriangle size={12} className="shrink-0 text-red-500" />
+                        <span>{phoneError}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Add button */}
@@ -304,6 +384,65 @@ export default function EmergencyContactModal() {
             <span>Done</span>
           </button>
         </div>
+
+        {/* Test Message Dispatch Modal Sheet */}
+        {testTargetContact && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className={`w-full max-w-xs rounded-[24px] ${cardBg} border ${border} p-5 space-y-3.5 shadow-2xl animate-scale-up`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Send size={15} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400">Send Test Message</h3>
+                    <p className={`text-[10px] ${mutedText}`}>Verify contact readiness</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTestTargetContact(null)}
+                  className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+
+              <p className="text-[11px] leading-relaxed">
+                Send a real test alert to <strong className="text-white">{testTargetContact.name}</strong> (+91 {testTargetContact.phone}):
+              </p>
+
+              <div className={`p-3 rounded-xl ${isDark ? "bg-black/40 border border-white/5" : "bg-black/[0.04] border border-black/5"} text-[10px] font-mono leading-relaxed`}>
+                &ldquo;{getTestMessage()}&rdquo;
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSendTestMessage(testTargetContact, "whatsapp");
+                    setTestTargetContact(null);
+                  }}
+                  className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
+                >
+                  <Send size={13} strokeWidth={2.5} />
+                  <span>Send via WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSendTestMessage(testTargetContact, "sms");
+                    setTestTargetContact(null);
+                  }}
+                  className={`w-full h-10 rounded-xl border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer`}
+                >
+                  <MessageSquare size={13} />
+                  <span>Send via SMS</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

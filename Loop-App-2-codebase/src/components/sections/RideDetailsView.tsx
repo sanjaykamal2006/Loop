@@ -36,6 +36,7 @@ export default function RideDetailsView() {
     setChatSource,
     setCreatePrefill,
     triggerSos,
+    emergencyContacts = [],
   } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
@@ -641,10 +642,14 @@ export default function RideDetailsView() {
                 type="button"
                 onClick={triggerSos}
                 aria-label="Emergency SOS"
-                className="w-full py-3 bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 rounded-[20px] text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                className={`w-full py-3 ${
+                  emergencyContacts.length === 0
+                    ? "bg-red-600/10 hover:bg-red-600/20 border border-red-500/25 text-red-400/80"
+                    : "bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 text-red-400 hover:text-red-300"
+                } rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer`}
               >
                 <ShieldAlert size={14} strokeWidth={2.5} />
-                <span>Emergency SOS</span>
+                <span>{emergencyContacts.length === 0 ? "Setup Emergency Contact (Required for SOS)" : "Emergency SOS"}</span>
               </button>
             )}
 
