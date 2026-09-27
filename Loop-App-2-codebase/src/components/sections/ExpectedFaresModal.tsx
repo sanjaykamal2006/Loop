@@ -44,7 +44,9 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       if (error) throw error;
       setFares((data || []) as unknown as ExpectedFare[]);
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("fetchFares error:", err);
+      }
       toast.error("Failed to load expected fares");
     } finally {
       setLoading(false);
@@ -82,7 +84,9 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       setFareAmount("");
       setVType("auto");
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("handleAddFare error:", err);
+      }
       toast.error("Failed to add fare. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -96,7 +100,9 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       toast.success("Fare entry removed");
       setFares(fares.filter(f => f.id !== id));
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("handleDeleteFare error:", err);
+      }
       toast.error("Failed to delete");
     }
   };

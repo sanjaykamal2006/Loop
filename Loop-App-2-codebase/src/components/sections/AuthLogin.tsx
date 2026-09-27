@@ -240,7 +240,9 @@ export default function AuthLogin({
       setIsResettingPassword(true);
       setPassword("");
     } catch (error: any) {
-      console.error("Recovery OTP verify error");
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Recovery OTP verify error:", error);
+      }
       toast.error(error.message || "Invalid or expired code");
     } finally {
       setIsLoading(false);
@@ -559,7 +561,9 @@ export default function AuthLogin({
                         setIsResetOtp(true);
                         toast.success("Reset code sent! Please check your Inbox and Spam folder.");
                       } catch (err: any) {
-                        console.error("Password reset request failed");
+                        if (process.env.NODE_ENV !== "production") {
+                          console.error("Password reset request failed:", err);
+                        }
                         const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
                         toast.error(msg);
                       } finally {

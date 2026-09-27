@@ -225,7 +225,9 @@ export default function CreateView() {
         .single();
 
       if (error) {
-        console.error(error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Create loop error:", error);
+        }
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });

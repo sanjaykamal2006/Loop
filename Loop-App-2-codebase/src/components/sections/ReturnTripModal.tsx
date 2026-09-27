@@ -178,7 +178,9 @@ export default function ReturnTripModal({
         .single();
 
       if (error) {
-        console.error("Failed to create return loop:", error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to create return loop:", error);
+        }
         toast.error("Failed to create return loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({
@@ -195,7 +197,9 @@ export default function ReturnTripModal({
               content: `Return trip available! Check it out 🔄 [return_loop:${data.id}]`,
             });
           } catch (chatErr) {
-            console.error("Failed to post return ride notification in outbound chat:", chatErr);
+            if (process.env.NODE_ENV !== "production") {
+              console.error("Failed to post return ride notification in outbound chat:", chatErr);
+            }
           }
         }
 
@@ -206,7 +210,9 @@ export default function ReturnTripModal({
         setView("home");
       }
     } catch (err) {
-      console.error("Return loop error:", err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Return loop error:", err);
+      }
       toast.error("Something went wrong creating the return loop");
     } finally {
       setIsSubmitting(false);

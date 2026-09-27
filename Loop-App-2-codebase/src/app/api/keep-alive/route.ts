@@ -56,7 +56,9 @@ export async function GET() {
       { status: 503 }
     );
   } catch (err: any) {
-    console.error('Keep-alive ping exception:', err?.message || 'Unknown error');
+    if (process.env.NODE_ENV !== "production") {
+      console.error('Keep-alive ping exception:', err?.message || 'Unknown error');
+    }
     return NextResponse.json(
       {
         status: 'error',

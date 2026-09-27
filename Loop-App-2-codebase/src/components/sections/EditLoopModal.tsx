@@ -217,7 +217,9 @@ export default function EditLoopModal({
         .single();
 
       if (error || !updated) {
-        console.error("Error updating loop:", error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Error updating loop:", error);
+        }
         toast.error("Failed to update loop details.");
         setIsSaving(false);
         return;
@@ -232,7 +234,9 @@ export default function EditLoopModal({
             content: `📢 Ride updated by creator:\n• ${changes.join("\n• ")}`,
           });
         } catch (msgErr) {
-          console.warn("Could not post update announcement to chat", msgErr);
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Could not post update announcement to chat:", msgErr);
+          }
         }
       }
 
@@ -243,7 +247,9 @@ export default function EditLoopModal({
       });
       onClose();
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Unexpected error in EditLoopModal:", err);
+      }
       toast.error("An unexpected error occurred.");
     } finally {
       setIsSaving(false);

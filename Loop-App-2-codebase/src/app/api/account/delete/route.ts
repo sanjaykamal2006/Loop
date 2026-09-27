@@ -94,13 +94,17 @@ export async function POST(req: NextRequest) {
     const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteAuthError) {
-      console.error("Failed to delete auth user:", deleteAuthError);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to delete auth user:", deleteAuthError);
+      }
       return NextResponse.json({ error: deleteAuthError.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: "Account deleted successfully" });
   } catch (err: any) {
-    console.error("Account delete error:", err?.message || "Unknown error");
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Account delete error:", err?.message || "Unknown error");
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

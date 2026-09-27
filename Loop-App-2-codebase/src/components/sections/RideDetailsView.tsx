@@ -157,7 +157,9 @@ export default function RideDetailsView() {
         setLoopMembers(mems);
       }
     } catch (err) {
-      console.error("fetchLoopMembers error:", err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("fetchLoopMembers error:", err);
+      }
     } finally {
       setIsLoadingMembers(false);
     }

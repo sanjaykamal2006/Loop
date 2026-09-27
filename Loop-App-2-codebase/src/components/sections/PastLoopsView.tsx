@@ -22,7 +22,9 @@ export default function PastLoopsView() {
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (e) {
-        console.warn("Error parsing past loops cache:", e);
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Error parsing past loops cache:", e);
+        }
       }
     }
     return [];
@@ -88,7 +90,9 @@ export default function PastLoopsView() {
           } catch (e) {}
         }
       } catch (err) {
-        console.error("Error fetching past loops:", err);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Error fetching past loops:", err);
+        }
       } finally {
         setLoading(false);
         setIsSyncing(false);

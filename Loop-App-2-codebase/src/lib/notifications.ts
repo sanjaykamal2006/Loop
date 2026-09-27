@@ -59,7 +59,9 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     });
     return registration;
   } catch (err) {
-    console.warn("Service Worker registration failed:", err);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Service Worker registration failed:", err);
+    }
     return null;
   }
 }
@@ -95,7 +97,9 @@ export async function requestNotificationPermission(): Promise<{
     }
     return { granted: false, reason: result as any };
   } catch (err) {
-    console.error("Error requesting notification permission:", err);
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error requesting notification permission:", err);
+    }
     return { granted: false, reason: "error" };
   }
 }
@@ -150,7 +154,9 @@ export async function sendLocalNotification(
         return true;
       }
     } catch (err) {
-      console.warn("SW notification attempt failed:", err);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("SW notification attempt failed:", err);
+      }
     }
   }
 
@@ -159,7 +165,9 @@ export async function sendLocalNotification(
     new Notification(title, defaultOptions);
     return true;
   } catch (err) {
-    console.warn("Standard Notification constructor failed:", err);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Standard Notification constructor failed:", err);
+    }
     return false;
   }
 }

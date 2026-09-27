@@ -337,7 +337,9 @@ export default function ChatView() {
       .limit(PAGE_SIZE);
 
     if (error) {
-      console.error("fetchMessages error:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("fetchMessages error:", error);
+      }
       // Fallback query if profiles join fails
       const { data: fallbackData } = await supabase
         .from("messages")
@@ -401,7 +403,9 @@ export default function ChatView() {
         .eq("loop_id", loopId);
 
       if (memErr) {
-        console.warn("fetchMembers query error:", memErr);
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("fetchMembers query error:", memErr);
+        }
         return;
       }
 
@@ -484,7 +488,9 @@ export default function ChatView() {
 
       setMembers(formatted);
     } catch (e) {
-      console.error("fetchMembers error:", e);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("fetchMembers error:", e);
+      }
     }
   };
 
@@ -671,10 +677,14 @@ export default function ChatView() {
         .select('id');
 
       if (error) {
-        console.error('Delete message error:', error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error('Delete message error:', error);
+        }
         toast.error('Failed to delete message');
       } else if (!data || data.length === 0) {
-        console.warn('No message was deleted in database');
+        if (process.env.NODE_ENV !== "production") {
+          console.warn('No message was deleted in database');
+        }
         toast.error('Failed to delete message');
       } else {
         setMessages(prev => prev.filter(m => m.id !== messageId));
@@ -684,7 +694,9 @@ export default function ChatView() {
         toast.success('Message deleted');
       }
     } catch (err) {
-      console.error('deleteMessage exception:', err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error('deleteMessage exception:', err);
+      }
       toast.error('Failed to delete message');
     }
   };

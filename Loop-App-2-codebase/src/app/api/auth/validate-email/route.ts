@@ -84,7 +84,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ allowed: true, type: 'whitelisted_db' });
         }
       } catch (dbErr) {
-        console.error('Error querying allowed_external_emails table:', dbErr);
+        if (process.env.NODE_ENV !== "production") {
+          console.error('Error querying allowed_external_emails table:', dbErr);
+        }
       }
     }
 
@@ -97,7 +99,9 @@ export async function POST(request: NextRequest) {
       { status: 403 }
     );
   } catch (err: any) {
-    console.error('validate-email route exception:', err?.message || 'Unknown');
+    if (process.env.NODE_ENV !== "production") {
+      console.error('validate-email route exception:', err?.message || 'Unknown');
+    }
     return NextResponse.json(
       { allowed: false, error: 'Unable to validate email at this time. Please try again.' },
       { status: 500 }

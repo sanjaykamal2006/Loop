@@ -64,7 +64,9 @@ export default function SosModal() {
         setIsLocating(false);
       },
       (err) => {
-        console.warn("SOS Geolocation error:", err);
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("SOS Geolocation error:", err);
+        }
         setLocError("Could not retrieve GPS pin. Sharing ride details.");
         setIsLocating(false);
       },

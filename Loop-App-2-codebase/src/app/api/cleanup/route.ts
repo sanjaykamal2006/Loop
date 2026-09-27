@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
 
     if (ridesError || unconfirmedError) {
       const errMsg = (ridesError?.message || '') + (unconfirmedError ? ` ${unconfirmedError.message}` : '');
-      console.error('Cleanup error:', errMsg);
+      if (process.env.NODE_ENV !== "production") {
+        console.error('Cleanup error:', errMsg);
+      }
       return NextResponse.json({
         success: false,
         error: errMsg,
@@ -46,7 +48,9 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('Cleanup route error:', error);
+    if (process.env.NODE_ENV !== "production") {
+      console.error('Cleanup route error:', error);
+    }
     return NextResponse.json({
       success: false,
       error: error?.message || 'Internal Server Error',

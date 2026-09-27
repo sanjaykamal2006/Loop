@@ -50,7 +50,9 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
       .upsert(rows, { onConflict: "email" });
 
     if (error) {
-      console.error("syncWhitelistToDatabase error:", error.message);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("syncWhitelistToDatabase error:", error.message);
+      }
       return {
         success: false,
         syncedEmails: [],
@@ -63,7 +65,9 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
       syncedEmails: validEmails,
     };
   } catch (err: any) {
-    console.error("syncWhitelistToDatabase exception:", err?.message || err);
+    if (process.env.NODE_ENV !== "production") {
+      console.error("syncWhitelistToDatabase exception:", err?.message || err);
+    }
     return {
       success: false,
       syncedEmails: [],
