@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, Rocket, ShieldAlert } from "lucide-react";
+import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
 export default function AppHeader() {
@@ -206,21 +206,6 @@ export default function AppHeader() {
                   <span>Emergency Contacts</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setView("changelog");
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
-                >
-                  <Rocket size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-                  <div className="flex items-center gap-1.5">
-                    <span>Changelog</span>
-                    <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-md ${
-                      isDark ? "bg-[#FFC554]/20 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
-                    }`}>v2.3</span>
-                  </div>
-                </button>
 
                 <button
                   onClick={() => {

@@ -14,7 +14,6 @@ import ProfileView from "./ProfileView";
 import RideDetailsView from "./RideDetailsView";
 import TrustedVehiclesView from "./TrustedVehiclesView";
 import PastLoopsView from "./PastLoopsView";
-import ChangelogView from "./ChangelogView";
 import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 import TermsModal from "./TermsModal";
@@ -36,7 +35,6 @@ const DETAIL_VIEWS = new Set<View>([
   "chat",
   "trusted-vehicles",
   "past-loops",
-  "changelog",
 ]);
 
 function AppContent() {
@@ -109,8 +107,8 @@ function AppContent() {
     <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
       <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
 
-      {/* When in past-loops or changelog, the view manages its own top bar / back button, or header can adapt */}
-      {view !== "past-loops" && view !== "changelog" && <AppHeader />}
+      {/* When in past-loops, the view manages its own top bar / back button, or header can adapt */}
+      {view !== "past-loops" && <AppHeader />}
 
       {/* Chat gets its own full-height container with native Apple push/pop physics */}
       {view === "chat" ? (
@@ -120,9 +118,7 @@ function AppContent() {
       ) : (
         <main 
           key={`view-${view}`}
-          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} ${
-            view === "changelog" ? "overflow-y-auto pb-10 pt-5" : "overflow-y-auto pb-24"
-          } ${view === "past-loops" ? "pt-5" : ""}`}
+          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto pb-24 ${view === "past-loops" ? "pt-5" : ""}`}
         >
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
@@ -131,7 +127,6 @@ function AppContent() {
           {view === "ride-details" && (selectedLoop ? <RideDetailsView /> : <HomeView />)}
           {view === "trusted-vehicles" && <TrustedVehiclesView />}
           {view === "past-loops" && <PastLoopsView />}
-          {view === "changelog" && <ChangelogView />}
         </main>
       )}
 
