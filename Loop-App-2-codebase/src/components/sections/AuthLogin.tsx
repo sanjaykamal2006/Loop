@@ -278,7 +278,7 @@ export default function AuthLogin({
           <button 
             onClick={async () => {
               setIsResettingPassword(false);
-              await supabase.auth.signOut().catch(() => {});
+              await supabase.auth.signOut({ scope: "global" }).catch(() => {});
               if (onPasswordResetComplete) onPasswordResetComplete();
             }}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"

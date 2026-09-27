@@ -583,7 +583,7 @@ export default function ProfileView() {
                       throw new Error(body.error || "Failed to delete account");
                     }
 
-                    await supabase.auth.signOut();
+                    await supabase.auth.signOut({ scope: "global" });
                     toast.success("Account permanently deleted.");
                   } catch (error: any) {
                     console.error(error);
