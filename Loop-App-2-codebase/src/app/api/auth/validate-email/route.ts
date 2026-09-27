@@ -6,11 +6,35 @@ import {
   PLUS_ADDRESSING_ERROR_MESSAGE,
   hasPlusAddressing,
 } from '@/lib/authConfig';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. IP Rate Limiting: 10 requests per 10 minutes per IP (Free-Tier in-memory limiter)
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(`validate-email:${clientIp}`, 10, 10 * 60 * 1000);
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          allowed: false,
+          reason: 'Too many requests. Please try again in a few minutes.',
+          retryAfter: rateLimit.resetInSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.resetInSeconds),
+            'X-RateLimit-Limit': '10',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetAt / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const email = (body?.email || '').toLowerCase().trim();
     const isLogin = Boolean(body?.isLogin);
