@@ -98,6 +98,8 @@ export default function SosModal() {
     if (location) {
       text += `🗺️ My Live GPS Pin: https://maps.google.com/?q=${location.lat},${location.lng}\n`;
       text += `🎯 GPS Accuracy: ~${location.accuracy}m\n`;
+    } else {
+      text += `⚠️ Live GPS Pin: Unavailable (location permission denied on phone)\n`;
     }
 
     text += `\nPlease check on me immediately or contact authorities if I do not answer!`;
