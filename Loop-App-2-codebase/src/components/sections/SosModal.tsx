@@ -271,46 +271,51 @@ export default function SosModal() {
 
         {/* Action Buttons */}
         <div className="space-y-2 pt-1">
-          {/* 1. WhatsApp Alert */}
+          {/* 1. Primary Action: Call 112 Immediately */}
+          <a
+            href="tel:112"
+            onClick={handleCall112}
+            className="w-full h-12 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-red-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer select-none"
+          >
+            <Phone size={16} strokeWidth={2.5} />
+            <span>Call Emergency Services (112)</span>
+          </a>
+
+          {/* 2. WhatsApp Alert */}
           <button
             onClick={handleWhatsAppAlert}
             disabled={!currentContact?.phone}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-black rounded-2xl text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Send size={16} strokeWidth={2.5} />
-            <span>Send SOS {currentContact ? `to ${currentContact.name}` : ""} via WhatsApp</span>
+            <span>Alert {currentContact ? currentContact.name : "Contact"} via WhatsApp</span>
           </button>
 
-          {/* 2. SMS Alert */}
+          {/* 3. SMS Alert & Call Contact in 2-column grid */}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleSmsAlert}
               disabled={!currentContact?.phone}
-              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} disabled:opacity-50 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
+              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-40 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <MessageSquare size={15} />
               <span>SMS Alert</span>
             </button>
 
-            {/* 3. Direct Phone Call */}
             <button
               onClick={handlePhoneCall}
               disabled={!currentContact?.phone}
-              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"} disabled:opacity-50 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
+              className={`h-11 border ${border} ${isDark ? "bg-white/5 hover:bg-white/10 text-white" : "bg-black/5 hover:bg-black/10 text-black"} disabled:opacity-40 font-bold rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               <Phone size={15} />
               <span>Call Contact</span>
             </button>
           </div>
 
-          {/* 4. National Emergency Number (112) */}
-          <button
-            onClick={handleCall112}
-            className="w-full h-11 bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-400 hover:text-red-300 font-black rounded-2xl text-xs uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Phone size={15} strokeWidth={2.5} />
-            <span>Call National Helpline (112)</span>
-          </button>
+          {/* Honest in-modal explanation note directly under buttons */}
+          <p className={`text-[10px] text-center font-bold ${mutedText} pt-1 leading-snug`}>
+            WhatsApp/SMS opens with your alert and live pin ready — hit send there to notify {currentContact ? currentContact.name : "your contact"}.
+          </p>
         </div>
       </div>
     </div>
