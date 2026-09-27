@@ -642,9 +642,11 @@ export default function CreateView() {
           <div>
             <span className="text-xs sm:text-[13px] font-black tracking-tight uppercase">Female Only</span>
             <p className={`text-[10px] font-bold ${mutedText}`}>Visible to women only</p>
-            <p className="text-[9px] opacity-60 leading-tight">
-              Based on self-reported gender at signup. Not independently verified.
-            </p>
+            {isFemaleOnly && (
+              <p className="text-[9px] text-pink-400 font-medium leading-tight mt-1 animate-fade-in">
+                Based on self-reported gender at signup. Not independently verified.
+              </p>
+            )}
           </div>
         </div>
         <button
