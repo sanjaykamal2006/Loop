@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import {
   isAllowedInstitutionalEmail,
   INSTITUTIONAL_ERROR_MESSAGE,
@@ -26,9 +27,31 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Strict check for NEW signups:
-    // Requires exact match with @vitapstudent.ac.in, @vitap.ac.in, or EXTERNAL_EMAIL_WHITELIST.
+    // A. Check static institutional domains & local whitelist (0ms)
     if (isAllowedInstitutionalEmail(email)) {
       return NextResponse.json({ allowed: true, type: 'authorized' });
+    }
+
+    // B. Check dynamic database table public.allowed_external_emails
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (supabaseUrl && serviceRoleKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { data: dbEntry } = await adminClient
+          .from('allowed_external_emails')
+          .select('email')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (dbEntry?.email) {
+          return NextResponse.json({ allowed: true, type: 'whitelisted_db' });
+        }
+      } catch (dbErr) {
+        console.error('Error querying allowed_external_emails table:', dbErr);
+      }
     }
 
     // 3. Reject all other signups (gmail, yahoo, spoof domains, etc.)

@@ -111,9 +111,27 @@ export async function validateEmailWithQuota(
     return { allowed: true };
   }
 
-  return {
-    allowed: false,
-    reason: INSTITUTIONAL_ERROR_MESSAGE,
-  };
+  // Check dynamic server-side allowed_external_emails table
+  try {
+    const res = await fetch("/api/auth/validate-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), isLogin: false }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.allowed) {
+      return { allowed: true };
+    }
+    return {
+      allowed: false,
+      reason: data?.reason || INSTITUTIONAL_ERROR_MESSAGE,
+    };
+  } catch (err) {
+    return {
+      allowed: false,
+      reason: INSTITUTIONAL_ERROR_MESSAGE,
+    };
+  }
 }
 

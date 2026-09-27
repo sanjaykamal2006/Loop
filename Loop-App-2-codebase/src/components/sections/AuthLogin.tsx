@@ -60,22 +60,19 @@ export default function AuthLogin({
       return;
     }
 
-    // Pre-submit UI validation: Reject non-institutional emails immediately for signups
-    if (!isLogin && !isAllowedInstitutionalEmail(email)) {
-      toast.error(INSTITUTIONAL_ERROR_MESSAGE);
-      return;
-    }
-
     const passwordError = validatePassword(password);
     if (!isLogin && passwordError) {
       toast.error(passwordError);
       return;
     }
 
-    const allowedCheck = await validateEmailWithQuota(email, isLogin);
-    if (!allowedCheck.allowed) {
-      toast.error(allowedCheck.reason || INSTITUTIONAL_ERROR_MESSAGE);
-      return;
+    // Pre-submit validation: Check static list first (0ms), fallback to DB dynamic table
+    if (!isLogin && !isAllowedInstitutionalEmail(email)) {
+      const allowedCheck = await validateEmailWithQuota(email, isLogin);
+      if (!allowedCheck.allowed) {
+        toast.error(allowedCheck.reason || INSTITUTIONAL_ERROR_MESSAGE);
+        return;
+      }
     }
 
     setIsLoading(true);
