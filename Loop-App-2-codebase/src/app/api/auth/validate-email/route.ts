@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import {
   isAllowedInstitutionalEmail,
   INSTITUTIONAL_ERROR_MESSAGE,
+  PLUS_ADDRESSING_ERROR_MESSAGE,
+  hasPlusAddressing,
 } from '@/lib/authConfig';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +18,14 @@ export async function POST(request: NextRequest) {
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { allowed: false, reason: 'Please enter a valid email address.' },
+        { status: 400 }
+      );
+    }
+
+    // Plus-addressing check: Reject any email containing '+' in the local part
+    if (hasPlusAddressing(email)) {
+      return NextResponse.json(
+        { allowed: false, reason: PLUS_ADDRESSING_ERROR_MESSAGE },
         { status: 400 }
       );
     }

@@ -7,7 +7,12 @@ import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
-import { isAllowedInstitutionalEmail, INSTITUTIONAL_ERROR_MESSAGE } from "@/lib/authConfig";
+import {
+  isAllowedInstitutionalEmail,
+  INSTITUTIONAL_ERROR_MESSAGE,
+  PLUS_ADDRESSING_ERROR_MESSAGE,
+  hasPlusAddressing,
+} from "@/lib/authConfig";
 
 interface AuthLoginProps {
   initialPasswordReset?: boolean;
@@ -57,6 +62,11 @@ export default function AuthLogin({
     
     if (isVerifying) {
       handleVerifyOtp();
+      return;
+    }
+
+    if (hasPlusAddressing(email)) {
+      toast.error(PLUS_ADDRESSING_ERROR_MESSAGE);
       return;
     }
 

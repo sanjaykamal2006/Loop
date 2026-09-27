@@ -28,15 +28,33 @@ export const EXTERNAL_EMAIL_WHITELIST: string[] = [
 export const INSTITUTIONAL_ERROR_MESSAGE =
   "LOOP is only available to VIT-AP students and faculty. Please use your institutional email.";
 
+export const PLUS_ADDRESSING_ERROR_MESSAGE =
+  "Plus-addressing (+) is not allowed in email addresses.";
+
+/**
+ * Checks if an email contains a '+' in its local part (before the @).
+ */
+export function hasPlusAddressing(email: string): boolean {
+  if (!email || typeof email !== "string" || !email.includes("@")) return false;
+  const localPart = email.split("@")[0] || "";
+  return localPart.includes("+");
+}
+
 /**
  * Validates whether an email belongs to an allowed institutional domain or the whitelist.
  * Uses strict exact matching (no substring matches).
+ * Strictly rejects any plus-addressing (+) in the local part.
  * Filters out empty strings so reserved whitelist slots cannot match blank/empty inputs.
  */
 export function isAllowedInstitutionalEmail(email: string): boolean {
   if (!email || typeof email !== "string" || !email.includes("@")) return false;
   const normalized = email.toLowerCase().trim();
   if (!normalized) return false;
+
+  // Plus-addressing check: immediately reject if '+' is in local part
+  if (hasPlusAddressing(normalized)) {
+    return false;
+  }
 
   const domain = normalized.split("@")[1]?.trim() || "";
   if (!domain) return false;

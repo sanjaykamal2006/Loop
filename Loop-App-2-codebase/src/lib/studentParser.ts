@@ -2,6 +2,8 @@ import {
   ALLOWED_INSTITUTIONAL_DOMAINS,
   EXTERNAL_EMAIL_WHITELIST,
   INSTITUTIONAL_ERROR_MESSAGE,
+  PLUS_ADDRESSING_ERROR_MESSAGE,
+  hasPlusAddressing,
   isAllowedInstitutionalEmail,
 } from "./authConfig";
 
@@ -9,6 +11,8 @@ export {
   ALLOWED_INSTITUTIONAL_DOMAINS,
   EXTERNAL_EMAIL_WHITELIST,
   INSTITUTIONAL_ERROR_MESSAGE,
+  PLUS_ADDRESSING_ERROR_MESSAGE,
+  hasPlusAddressing,
   isAllowedInstitutionalEmail,
 };
 
@@ -82,6 +86,13 @@ export function parseStudentEmail(email: string): ParsedStudentInfo {
  * Validates if the email is an authorized college student email or whitelisted account.
  */
 export function isAllowedStudentEmail(email: string): { allowed: boolean; reason?: string } {
+  if (hasPlusAddressing(email)) {
+    return {
+      allowed: false,
+      reason: PLUS_ADDRESSING_ERROR_MESSAGE,
+    };
+  }
+
   if (isAllowedInstitutionalEmail(email)) {
     return { allowed: true };
   }
@@ -96,6 +107,7 @@ export function isAllowedStudentEmail(email: string): { allowed: boolean; reason
  * Asynchronously checks if an email is eligible to sign up or log in.
  * - If logging in (isLogin=true), allows existing users to proceed to password check.
  * - If signing up (isLogin=false), strictly enforces institutional domains & whitelist.
+ * - Rejects plus-addressing (+) outright.
  */
 export async function validateEmailWithQuota(
   email: string,
@@ -104,6 +116,13 @@ export async function validateEmailWithQuota(
   // Existing users logging in are always allowed through to Supabase auth
   if (isLogin) {
     return { allowed: true };
+  }
+
+  if (hasPlusAddressing(email)) {
+    return {
+      allowed: false,
+      reason: PLUS_ADDRESSING_ERROR_MESSAGE,
+    };
   }
 
   const syncCheck = isAllowedStudentEmail(email);
