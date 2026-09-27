@@ -439,6 +439,10 @@ export default function EmergencyContactModal() {
                   <MessageSquare size={13} />
                   <span>Send via SMS</span>
                 </button>
+
+                <p className={`text-[10px] text-center font-bold ${mutedText} pt-1 leading-snug`}>
+                  WhatsApp/SMS opens with your test message ready — hit send there to notify {testTargetContact.name}.
+                </p>
               </div>
             </div>
           </div>
