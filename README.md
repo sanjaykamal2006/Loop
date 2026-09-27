@@ -59,7 +59,4 @@ LOOP solves this in one tap.
 [![Email](https://img.shields.io/badge/Email-EA4335?style=flat-square&logo=gmail&logoColor=white)](mailto:loopdeveloper8@gmail.com)
 
 <br/>
-
-<sub>Engineered for campus movement.</sub>
-
 </div>
