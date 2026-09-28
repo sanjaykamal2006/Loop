@@ -257,7 +257,7 @@ export default function SosModal() {
                 )}
               </div>
               <p className="text-xs font-mono font-bold text-red-400 mt-0.5">
-                +91 {currentContact.phone}
+                +91 {currentContact.phone.length === 10 ? `${currentContact.phone.slice(0, 5)} ${currentContact.phone.slice(5)}` : currentContact.phone}
               </p>
             </div>
             <button
