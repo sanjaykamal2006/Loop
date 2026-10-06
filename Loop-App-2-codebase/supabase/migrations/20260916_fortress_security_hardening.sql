@@ -54,7 +54,6 @@ BEGIN
       OR caller_email LIKE '%.ac.in'
       OR caller_email LIKE '%.edu.in'
       OR caller_email LIKE '%.edu'
-      OR caller_email = 'sanjaykamal2006@gmail.com'
     );
 
     IF NOT is_valid_student THEN

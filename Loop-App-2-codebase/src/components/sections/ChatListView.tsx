@@ -105,11 +105,23 @@ function formatRecentMessagePreview(msg?: RecentMsgData, currentUserId?: string)
 }
 
 export default function ChatListView() {
-  const { session, profile, activeLoops, userJoinedLoops, setSelectedLoop, setView, theme, setChatSource, unreadLoopIds, markLoopAsRead } = useLoop();
+  const {
+    session,
+    profile,
+    activeLoops,
+    userJoinedLoops,
+    setSelectedLoop,
+    setView,
+    theme,
+    setChatSource,
+    unreadLoopIds,
+    markLoopAsRead,
+    isChatSearchOpen,
+    setIsChatSearchOpen,
+  } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [recentMessages, setRecentMessages] = useState<Record<string, RecentMsgData>>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -122,13 +134,6 @@ export default function ChatListView() {
 
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
   const joinedLoopIdsKey = userJoinedLoops.join(",");
-
-  // Toggle search from custom event in header
-  useEffect(() => {
-    const toggle = () => setIsSearchOpen((prev) => !prev);
-    window.addEventListener("toggle-chat-search", toggle);
-    return () => window.removeEventListener("toggle-chat-search", toggle);
-  }, []);
 
   const lastFetchRecentTimeRef = React.useRef<number>(0);
   const isFetchingRecentRef = React.useRef<boolean>(false);
@@ -338,7 +343,7 @@ export default function ChatListView() {
   return (
     <div className="space-y-2 pt-1">
       {/* Search Input Bar (Toggled via Header Search Button) */}
-      {isSearchOpen && (
+      {isChatSearchOpen && (
         <div className="relative animate-fade-in mb-2">
           <Search size={14} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${mutedText}`} />
           <input

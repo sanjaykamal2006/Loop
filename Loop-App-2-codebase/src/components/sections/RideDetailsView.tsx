@@ -13,8 +13,9 @@ import FastAvatar from "@/components/ui/FastAvatar";
 import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatDepartureFull } from "@/lib/dateFormatter";
+import { LRUCache } from "@/lib/cache";
 
-const membersCache: Record<string, LoopMember[]> = {};
+const membersCache = new LRUCache<string, LoopMember[]>({ maxSize: 30 });
 
 export default function RideDetailsView() {
   const {
@@ -37,17 +38,18 @@ export default function RideDetailsView() {
     setCreatePrefill,
     triggerSos,
     emergencyContacts = [],
+    setShowTermsModal,
   } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() => {
-    if (selectedLoop?.id && membersCache[selectedLoop.id]) {
-      return membersCache[selectedLoop.id];
+    if (selectedLoop?.id && membersCache.get(selectedLoop.id)) {
+      return membersCache.get(selectedLoop.id)!;
     }
     return [];
   });
   const [isLoadingMembers, setIsLoadingMembers] = useState(() => {
-    return !(selectedLoop?.id && membersCache[selectedLoop.id]);
+    return !(selectedLoop?.id && membersCache.get(selectedLoop.id));
   });
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
@@ -84,8 +86,9 @@ export default function RideDetailsView() {
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
-    if (membersCache[loopId]) {
-      setLoopMembers(membersCache[loopId]);
+    const cached = membersCache.get(loopId);
+    if (cached) {
+      setLoopMembers(cached);
       setIsLoadingMembers(false);
     } else {
       setIsLoadingMembers(true);
@@ -153,7 +156,7 @@ export default function RideDetailsView() {
           };
         }) as LoopMember[];
 
-        membersCache[loopId] = mems;
+        membersCache.set(loopId, mems);
         setLoopMembers(mems);
       }
     } catch (err) {
@@ -397,7 +400,7 @@ export default function RideDetailsView() {
         </div>
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("open-terms-modal"))}
+          onClick={() => setShowTermsModal(true)}
           className="text-[9px] font-black text-[#FFC554] underline hover:opacity-80 active:scale-95 transition-all shrink-0 cursor-pointer"
         >
           Safety Policy

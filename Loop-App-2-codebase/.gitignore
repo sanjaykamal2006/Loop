@@ -47,5 +47,11 @@ next-env.d.ts
 # scratch and secrets
 /scratch
 *.keystore
+build-output.txt
+.claude/
+brag-output/
+.agents/
+
+
 
 

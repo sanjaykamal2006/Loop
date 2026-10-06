@@ -6,13 +6,14 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search, Repeat, ShieldAlert } from "lucide-react";
 import type { Message } from "@/lib/types";
+import { LRUCache } from "@/lib/cache";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { triggerHaptic } from "@/lib/haptics";
 
-const messageCache: Record<string, Message[]> = {};
+const messageCache = new LRUCache<string, Message[]>({ maxSize: 30 });
 
 const parseReturnTripMessage = (content: string) => {
   const match = content.match(/\[return_loop:([a-zA-Z0-9-]+)\]/);
@@ -50,7 +51,24 @@ const playNotificationChime = () => {
 };
 
 export default function ChatView() {
-  const { session, selectedLoop, setSelectedLoop, profile, formatTime, theme, setView, markLoopAsRead, userJoinedLoops, userLoops, isJoining, activeLoops, triggerSos, emergencyContacts = [] } = useLoop();
+  const {
+    session,
+    selectedLoop,
+    setSelectedLoop,
+    profile,
+    formatTime,
+    theme,
+    setView,
+    markLoopAsRead,
+    userJoinedLoops,
+    userLoops,
+    isJoining,
+    activeLoops,
+    triggerSos,
+    emergencyContacts = [],
+    isMessageSearchOpen,
+    setIsMessageSearchOpen,
+  } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   // Guard against unauthorized chat access (IDOR & URL / state manipulation defense)
@@ -98,8 +116,8 @@ export default function ChatView() {
   }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, isJoining, setView]);
 
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (selectedLoop?.id && messageCache[selectedLoop.id]) {
-      return messageCache[selectedLoop.id];
+    if (selectedLoop?.id && messageCache.get(selectedLoop.id)) {
+      return messageCache.get(selectedLoop.id)!;
     }
     return [];
   });
@@ -126,21 +144,7 @@ export default function ChatView() {
   const [isSharingLocation, setIsSharingLocation] = useState(false);
   const channelRef = useRef<any>(null);
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Listen for toggle-message-search from header
-  useEffect(() => {
-    const handleToggleSearch = () => {
-      if (messages.length === 0) {
-        toast.info("No messages in this chat yet to search.");
-        return;
-      }
-      setIsSearchOpen((prev) => !prev);
-    };
-    window.addEventListener("toggle-message-search", handleToggleSearch);
-    return () => window.removeEventListener("toggle-message-search", handleToggleSearch);
-  }, [messages.length]);
 
   const matchingMsgIds = React.useMemo(() => {
     if (!searchQuery.trim()) return new Set<string>();
@@ -165,8 +169,9 @@ export default function ChatView() {
     if (!selectedLoop?.id) return;
     if (currentLoopIdRef.current !== selectedLoop.id) {
       currentLoopIdRef.current = selectedLoop.id;
-      if (messageCache[selectedLoop.id]) {
-        setMessages(messageCache[selectedLoop.id]);
+      const cached = messageCache.get(selectedLoop.id);
+      if (cached) {
+        setMessages(cached);
       } else {
         setMessages([]);
       }
@@ -220,7 +225,7 @@ export default function ChatView() {
           setMessages((prev) => {
             if (prev.some((m) => m.id === msg.id)) return prev;
             const updated = [...prev, msg];
-            messageCache[loopId] = updated;
+            messageCache.set(loopId, updated);
             return updated;
           });
           requestAnimationFrame(() => scrollToBottom(true));
@@ -256,7 +261,7 @@ export default function ChatView() {
                 profiles: sender?.profiles || { display_name: "Member" },
               };
               const updated = [...prev, enriched];
-              messageCache[loopId] = updated;
+              messageCache.set(loopId, updated);
               requestAnimationFrame(() => scrollToBottom(true));
               return updated;
             });
@@ -274,7 +279,7 @@ export default function ChatView() {
                   ? { ...m, ...updated, profiles: m.profiles }
                   : m
               );
-              messageCache[loopId] = next;
+              messageCache.set(loopId, next);
               return next;
             });
           }
@@ -287,7 +292,7 @@ export default function ChatView() {
             if (!deletedId) return;
             setMessages((prev) => {
               const next = prev.filter((m) => m.id !== deletedId);
-              messageCache[loopId] = next;
+              messageCache.set(loopId, next);
               return next;
             });
           }
@@ -352,7 +357,7 @@ export default function ChatView() {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
           return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
         });
-        messageCache[loopId] = enriched;
+        messageCache.set(loopId, enriched);
         setMessages(enriched);
         setHasMoreMessages(fallbackData.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
@@ -360,7 +365,7 @@ export default function ChatView() {
     } else if (data) {
       // Reverse to get chronological order
       const msgs = (data as unknown as Message[]).reverse();
-      messageCache[loopId] = msgs;
+      messageCache.set(loopId, msgs);
       setMessages(msgs);
       setHasMoreMessages(data.length === PAGE_SIZE);
       requestAnimationFrame(() => scrollToBottom(false));
@@ -384,7 +389,7 @@ export default function ChatView() {
       const olderMessages = (data as unknown as Message[]).reverse();
       setMessages((prev) => {
         const combined = [...olderMessages, ...prev];
-        messageCache[selectedLoop.id] = combined;
+        messageCache.set(selectedLoop.id, combined);
         return combined;
       });
       setHasMoreMessages(data.length === PAGE_SIZE);
@@ -529,7 +534,7 @@ export default function ChatView() {
       };
       setMessages((prev) => {
         const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
-        messageCache[selectedLoop.id] = next;
+        messageCache.set(selectedLoop.id, next);
         return next;
       });
 
@@ -656,11 +661,15 @@ export default function ChatView() {
             : m
         )
       );
-      if (selectedLoop?.id && messageCache[selectedLoop.id]) {
-        messageCache[selectedLoop.id] = messageCache[selectedLoop.id].map((m) =>
-          m.id === editingMsgId
-            ? { ...m, content: editingContent.trim(), edited_at: new Date().toISOString() }
-            : m
+      if (selectedLoop?.id && messageCache.get(selectedLoop.id)) {
+        const cached = messageCache.get(selectedLoop.id)!;
+        messageCache.set(
+          selectedLoop.id,
+          cached.map((m) =>
+            m.id === editingMsgId
+              ? { ...m, content: editingContent.trim(), edited_at: new Date().toISOString() }
+              : m
+          )
         );
       }
       setEditingMsgId(null);
@@ -688,8 +697,9 @@ export default function ChatView() {
         toast.error('Failed to delete message');
       } else {
         setMessages(prev => prev.filter(m => m.id !== messageId));
-        if (selectedLoop?.id && messageCache[selectedLoop.id]) {
-          messageCache[selectedLoop.id] = messageCache[selectedLoop.id].filter(m => m.id !== messageId);
+        if (selectedLoop?.id && messageCache.get(selectedLoop.id)) {
+          const cached = messageCache.get(selectedLoop.id)!;
+          messageCache.set(selectedLoop.id, cached.filter(m => m.id !== messageId));
         }
         toast.success('Message deleted');
       }
@@ -776,7 +786,7 @@ export default function ChatView() {
           };
           setMessages((prev) => {
             const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
-            messageCache[selectedLoop.id] = next;
+            messageCache.set(selectedLoop.id, next);
             return next;
           });
 
@@ -919,7 +929,7 @@ export default function ChatView() {
       </div>
 
       {/* In-Chat Message Search Bar */}
-      {isSearchOpen && (
+      {isMessageSearchOpen && (
         <div className={`px-4 py-2 border-b ${border} ${cardBg} flex items-center gap-2 animate-fade-in shrink-0`}>
           <div className="relative flex-1">
             <Search size={14} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${mutedText}`} />
@@ -949,7 +959,7 @@ export default function ChatView() {
           )}
           <button
             onClick={() => {
-              setIsSearchOpen(false);
+              setIsMessageSearchOpen(false);
               setSearchQuery("");
             }}
             className={`text-xs font-bold ${mutedText} hover:opacity-100 px-1`}

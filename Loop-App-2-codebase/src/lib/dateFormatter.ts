@@ -134,10 +134,10 @@ export function formatDepartureFull(isoString?: string | null): string {
 export function formatDDMMYYYY(dateStr?: string | null): string {
   if (!dateStr) return "";
   try {
-    const parts = dateStr.split("-");
-    if (parts.length === 3 && parts[0].length === 4) {
-      const [y, m, d] = parts;
-      return `${d.slice(0, 2).padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
+    // If it's an exact YYYY-MM-DD date string without time components
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [y, m, d] = dateStr.split("-");
+      return `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
     }
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr || "";

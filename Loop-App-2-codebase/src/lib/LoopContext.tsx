@@ -75,6 +75,22 @@ interface LoopContextValue {
   showEmergencyContactModal: boolean;
   setShowEmergencyContactModal: (show: boolean) => void;
   triggerSos: () => void;
+
+  // Declarative Modals & Search Controls
+  showTermsModal: boolean;
+  setShowTermsModal: (show: boolean) => void;
+  showTeluguGuideModal: boolean;
+  setShowTeluguGuideModal: (show: boolean) => void;
+  showCreatorModal: boolean;
+  setShowCreatorModal: (show: boolean) => void;
+  showBuyCoffeeModal: boolean;
+  setShowBuyCoffeeModal: (show: boolean) => void;
+  isMessageSearchOpen: boolean;
+  setIsMessageSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleMessageSearch: () => void;
+  isChatSearchOpen: boolean;
+  setIsChatSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleChatSearch: () => void;
 }
 
 const LoopContext = createContext<LoopContextValue | null>(null);
@@ -196,6 +212,22 @@ export function LoopProvider({ session, children }: { session: Session; children
   const [showSosModal, setShowSosModal] = useState(false);
   const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false);
 
+  // Declarative Modals & Search Controls State
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showTeluguGuideModal, setShowTeluguGuideModal] = useState(false);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
+  const [showBuyCoffeeModal, setShowBuyCoffeeModal] = useState(false);
+  const [isMessageSearchOpen, setIsMessageSearchOpen] = useState(false);
+  const [isChatSearchOpen, setIsChatSearchOpen] = useState(false);
+
+  const toggleMessageSearch = useCallback(() => {
+    setIsMessageSearchOpen((prev) => !prev);
+  }, []);
+
+  const toggleChatSearch = useCallback(() => {
+    setIsChatSearchOpen((prev) => !prev);
+  }, []);
+
   const fetchEmergencyContacts = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -262,11 +294,39 @@ export function LoopProvider({ session, children }: { session: Session; children
       } catch {}
     }
 
-    // Cloud synchronization with Row Level Security (RLS)
+    // Safe Cloud Synchronization (Atomic RPC with safe non-destructive fallback)
     try {
-      await supabase.from("emergency_contacts").delete().eq("user_id", session.user.id);
+      const payload = trimmed.map((c) => ({
+        name: c.name.trim(),
+        phone: c.phone.trim(),
+        relation: c.relation || "Parent",
+      }));
+
+      // 1. Attempt atomic stored procedure (executes within single DB transaction)
+      const { data: rpcData, error: rpcError } = await supabase.rpc("sync_emergency_contacts", {
+        contacts_payload: payload,
+      });
+
+      if (!rpcError && rpcData) {
+        setEmergencyContacts(rpcData);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(rpcData));
+          } catch {}
+        }
+        return;
+      }
+
+      // 2. Fallback: Safe differential sync (inserts before deleting old IDs)
+      const { data: existing } = await supabase
+        .from("emergency_contacts")
+        .select("id")
+        .eq("user_id", session.user.id);
+
+      const existingIds = (existing || []).map((e: any) => e.id);
+
       if (trimmed.length > 0) {
-        const payload = trimmed.map((c) => ({
+        const insertPayload = trimmed.map((c) => ({
           user_id: session.user.id,
           name: c.name.trim(),
           phone: c.phone.trim(),
@@ -274,10 +334,13 @@ export function LoopProvider({ session, children }: { session: Session; children
         }));
         const { data: inserted, error: insertError } = await supabase
           .from("emergency_contacts")
-          .insert(payload)
+          .insert(insertPayload)
           .select("id, name, phone, relation");
 
         if (!insertError && inserted && inserted.length > 0) {
+          if (existingIds.length > 0) {
+            await supabase.from("emergency_contacts").delete().in("id", existingIds);
+          }
           setEmergencyContacts(inserted);
           if (typeof window !== "undefined") {
             try {
@@ -285,6 +348,8 @@ export function LoopProvider({ session, children }: { session: Session; children
             } catch {}
           }
         }
+      } else if (existingIds.length > 0) {
+        await supabase.from("emergency_contacts").delete().in("id", existingIds);
       }
     } catch (dbErr) {
       if (process.env.NODE_ENV !== "production") {
@@ -1242,6 +1307,20 @@ export function LoopProvider({ session, children }: { session: Session; children
     showEmergencyContactModal,
     setShowEmergencyContactModal,
     triggerSos,
+    showTermsModal,
+    setShowTermsModal,
+    showTeluguGuideModal,
+    setShowTeluguGuideModal,
+    showCreatorModal,
+    setShowCreatorModal,
+    showBuyCoffeeModal,
+    setShowBuyCoffeeModal,
+    isMessageSearchOpen,
+    setIsMessageSearchOpen,
+    toggleMessageSearch,
+    isChatSearchOpen,
+    setIsChatSearchOpen,
+    toggleChatSearch,
   };
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;

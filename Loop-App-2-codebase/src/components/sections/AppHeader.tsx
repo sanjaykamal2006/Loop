@@ -17,6 +17,12 @@ export default function AppHeader() {
     userJoinedLoops,
     activeLoops,
     setShowEmergencyContactModal,
+    setShowTermsModal,
+    setShowTeluguGuideModal,
+    setShowCreatorModal,
+    setShowBuyCoffeeModal,
+    toggleMessageSearch,
+    toggleChatSearch,
   } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
@@ -137,7 +143,7 @@ export default function AppHeader() {
           )}
           {view === "chat" && (
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent("toggle-message-search"))}
+              onClick={toggleMessageSearch}
               aria-label="Search messages"
               className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm cursor-pointer`}
             >
@@ -161,7 +167,7 @@ export default function AppHeader() {
                 toast.info("No active chats to search yet. Join or create a ride first!");
                 return;
               }
-              window.dispatchEvent(new CustomEvent("toggle-chat-search"));
+              toggleChatSearch();
             }}
             aria-label="Search chats"
             className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shadow-sm`}
@@ -210,7 +216,7 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
-                    window.dispatchEvent(new CustomEvent("open-telugu-guide-modal"));
+                    setShowTeluguGuideModal(true);
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
                 >
@@ -221,7 +227,7 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
-                    window.dispatchEvent(new CustomEvent("open-creator-modal"));
+                    setShowCreatorModal(true);
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
@@ -232,7 +238,7 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
-                    window.dispatchEvent(new CustomEvent("open-buy-coffee-modal"));
+                    setShowBuyCoffeeModal(true);
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
@@ -243,7 +249,7 @@ export default function AppHeader() {
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);
-                    window.dispatchEvent(new CustomEvent("open-terms-modal"));
+                    setShowTermsModal(true);
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >

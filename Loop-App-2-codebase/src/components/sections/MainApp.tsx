@@ -38,7 +38,19 @@ const DETAIL_VIEWS = new Set<View>([
 ]);
 
 function AppContent() {
-  const { view, selectedLoop, theme } = useLoop();
+  const {
+    view,
+    selectedLoop,
+    theme,
+    showTermsModal,
+    setShowTermsModal,
+    showTeluguGuideModal,
+    setShowTeluguGuideModal,
+    showCreatorModal,
+    setShowCreatorModal,
+    showBuyCoffeeModal,
+    setShowBuyCoffeeModal,
+  } = useLoop();
   const { isDark, bg, text } = theme;
 
   // Apple iOS Directional Navigation State Controller
@@ -81,28 +93,6 @@ function AppContent() {
     document.body.style.backgroundColor = isDark ? "#000000" : "#F2EFE9";
   }, [isDark]);
 
-  const [showTerms, setShowTerms] = React.useState(false);
-  const [showTeluguGuide, setShowTeluguGuide] = React.useState(false);
-  const [showCreator, setShowCreator] = React.useState(false);
-  const [showBuyCoffee, setShowBuyCoffee] = React.useState(false);
-
-  React.useEffect(() => {
-    const handleTerms = () => setShowTerms(true);
-    const handleTelugu = () => setShowTeluguGuide(true);
-    const handleCreator = () => setShowCreator(true);
-    const handleBuyCoffee = () => setShowBuyCoffee(true);
-    window.addEventListener("open-terms-modal", handleTerms);
-    window.addEventListener("open-telugu-guide-modal", handleTelugu);
-    window.addEventListener("open-creator-modal", handleCreator);
-    window.addEventListener("open-buy-coffee-modal", handleBuyCoffee);
-    return () => {
-      window.removeEventListener("open-terms-modal", handleTerms);
-      window.removeEventListener("open-telugu-guide-modal", handleTelugu);
-      window.removeEventListener("open-creator-modal", handleCreator);
-      window.removeEventListener("open-buy-coffee-modal", handleBuyCoffee);
-    };
-  }, []);
-
   return (
     <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
       <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
@@ -116,7 +106,7 @@ function AppContent() {
           {selectedLoop ? <ChatView /> : <ChatListView />}
         </div>
       ) : (
-        <main 
+        <main
           key={`view-${view}`}
           className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto pb-24 ${view === "past-loops" ? "pt-5" : ""}`}
         >
@@ -134,10 +124,10 @@ function AppContent() {
       <GenderModal />
       <EmergencyContactModal />
       <SosModal />
-      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
-      <TeluguGuideModal isOpen={showTeluguGuide} onClose={() => setShowTeluguGuide(false)} />
-      <CreatorModal isOpen={showCreator} onClose={() => setShowCreator(false)} />
-      <BuyCoffeeModal isOpen={showBuyCoffee} onClose={() => setShowBuyCoffee(false)} />
+      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      <TeluguGuideModal isOpen={showTeluguGuideModal} onClose={() => setShowTeluguGuideModal(false)} />
+      <CreatorModal isOpen={showCreatorModal} onClose={() => setShowCreatorModal(false)} />
+      <BuyCoffeeModal isOpen={showBuyCoffeeModal} onClose={() => setShowBuyCoffeeModal(false)} />
     </div>
   );
 }
