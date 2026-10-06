@@ -31,13 +31,6 @@ const LoopCard = React.memo(function LoopCard({
   index,
   onSelect,
 }: LoopCardProps) {
-  const vehicleAccent =
-    loop.vehicle_type === "bike" || loop.vehicle_type === "scooter"
-      ? "border-l-[3.5px] border-l-sky-500"
-      : loop.vehicle_type === "car"
-      ? "border-l-[3.5px] border-l-emerald-500"
-      : "border-l-[3.5px] border-l-[#FFC554]";
-
   const currentSeats = loop.member_count || 1;
   const maxSeats = loop.participants_limit || 4;
   const isFull = currentSeats >= maxSeats;
@@ -46,7 +39,7 @@ const LoopCard = React.memo(function LoopCard({
     <div
       onClick={onSelect}
       style={{ "--stagger-delay": `${Math.min(index, 8) * 45}ms` } as React.CSSProperties}
-      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} ${vehicleAccent} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.965] border ${border} relative transition-all duration-150 hover:border-[#FFC554]/30 animate-card-enter`}
+      className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.965] border ${border} relative transition-all duration-150 hover:border-[#FFC554]/30 animate-card-enter`}
     >
       {/* Left Squircle Icon Container */}
       <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
