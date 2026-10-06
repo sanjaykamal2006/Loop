@@ -4,6 +4,7 @@ import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { X, FileText, Phone, MessageCircle, ShieldCheck } from "lucide-react";
 import FastAvatar from "@/components/ui/FastAvatar";
+import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 
 export interface UserProfileData {
   user_id?: string;
@@ -97,11 +98,12 @@ export default function UserProfileModal({
         </div>
 
         {/* Direct Contact for Confirmed Ride Co-Members */}
-        {user.user_id !== currentUserId && (
-          user.phone_number ? (
+        {user.user_id !== currentUserId && (() => {
+          const cleanPhone = user.phone_number ? sanitizeIndianPhoneNumber(user.phone_number) : "";
+          return cleanPhone.length === 10 ? (
             <div className="w-full flex gap-2 pt-1">
               <a
-                href={`https://wa.me/91${user.phone_number}?text=${encodeURIComponent(`Hey ${user.display_name}! Coordinating our LOOP ride.`)}`}
+                href={`https://wa.me/91${cleanPhone}?text=${encodeURIComponent(`Hey ${user.display_name}! Coordinating our LOOP ride.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm"
@@ -110,7 +112,7 @@ export default function UserProfileModal({
                 <span>WhatsApp</span>
               </a>
               <a
-                href={`tel:+91${user.phone_number}`}
+                href={`tel:+91${cleanPhone}`}
                 className="flex-1 py-3 rounded-2xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/40 text-blue-400 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm"
               >
                 <Phone size={15} strokeWidth={2.5} />
@@ -121,8 +123,8 @@ export default function UserProfileModal({
             <div className={`w-full py-2 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-[10px] font-bold ${mutedText} text-center`}>
               🔒 Phone not shared. Coordinate in LOOP in-app chat.
             </div>
-          )
-        )}
+          );
+        })()}
 
         {/* Bio Card */}
         <div className={`w-full p-3.5 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-2xl text-left space-y-1`}>

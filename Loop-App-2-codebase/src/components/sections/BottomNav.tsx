@@ -96,16 +96,41 @@ export default function BottomNav() {
     },
   ];
 
+  const activeIndex = items.findIndex(({ v }) =>
+    v === "profile"
+      ? view === "profile" || view === "trusted-vehicles" || view === "past-loops"
+      : view === v
+  );
+
   return (
     <nav
       aria-label="Main Navigation"
-      className={`absolute bottom-0 left-0 right-0 z-30 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
+      className={`absolute bottom-2.5 left-3 right-3 max-w-md mx-auto z-30 py-1.5 px-2 rounded-[28px] border backdrop-blur-2xl transition-all duration-300 shadow-2xl ${
         isDark
-          ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
-          : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
+          ? "bg-black/85 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+          : "bg-white/90 border-black/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)]"
       }`}
     >
-      <div className="flex items-center justify-around max-w-md mx-auto">
+      <div className="relative flex items-center justify-around w-full">
+        {/* Fluid Sliding Active Pill */}
+        {activeIndex !== -1 && (
+          <div
+            className="absolute top-0.5 bottom-0.5 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] pointer-events-none p-1"
+            style={{
+              left: `${activeIndex * 25}%`,
+              width: "25%",
+            }}
+          >
+            <div
+              className={`w-full h-full rounded-2xl transition-colors duration-300 ${
+                isDark
+                  ? "bg-[#FFC554]/15 shadow-[0_0_16px_rgba(255,197,84,0.18)]"
+                  : "bg-[#881337]/10 shadow-[0_0_16px_rgba(136,19,55,0.12)]"
+              }`}
+            />
+          </div>
+        )}
+
         {items.map(({ v, icon, label }) => {
           const isActive =
             v === "profile"
@@ -117,24 +142,14 @@ export default function BottomNav() {
               key={v}
               onClick={() => handleNavClick(v)}
               aria-label={`${label} tab`}
-              className="flex flex-col items-center justify-center flex-1 py-0.5 relative select-none cursor-pointer group active:scale-[0.91] transition-transform duration-100"
+              className="flex flex-col items-center justify-center flex-1 py-1 relative z-10 select-none cursor-pointer group active:scale-[0.91] transition-transform duration-100"
             >
-              {/* Icon Container with refined micro-settle physics & active pill backdrop */}
-              <div
-                key={`${v}-${isActive}`}
-                className={`relative px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                  isActive
-                    ? isDark
-                      ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
-                      : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
-                    : "group-hover:bg-white/5"
-                }`}
-              >
+              <div className="relative flex items-center justify-center">
                 {icon(isActive)}
 
                 {/* Unread Chat Radar Badge */}
                 {v === "chat-list" && unreadLoopIds && unreadLoopIds.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                     <span
                       className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                         isDark ? "bg-[#FFC554]" : "bg-[#881337]"
@@ -153,7 +168,7 @@ export default function BottomNav() {
 
               {/* Title Case Label */}
               <span
-                className={`text-[11px] sm:text-xs tracking-tight mt-0.5 transition-colors duration-200 ${
+                className={`text-[10px] tracking-tight mt-1 transition-colors duration-200 ${
                   isActive
                     ? isDark
                       ? "text-white font-black"
@@ -165,17 +180,6 @@ export default function BottomNav() {
               >
                 {label}
               </span>
-
-              {/* Dynamic Active Indicator Pill */}
-              <span
-                className={`h-0.5 rounded-full mt-0.5 transition-all duration-300 ${
-                  isActive
-                    ? isDark
-                      ? "w-3.5 bg-[#FFC554] opacity-100 shadow-[0_0_6px_#FFC554]"
-                      : "w-3.5 bg-[#881337] opacity-100 shadow-[0_0_6px_rgba(136,19,55,0.5)]"
-                    : "w-0 opacity-0"
-                }`}
-              />
             </button>
           );
         })}

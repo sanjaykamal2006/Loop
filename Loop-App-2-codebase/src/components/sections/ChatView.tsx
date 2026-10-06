@@ -1236,6 +1236,34 @@ export default function ChatView() {
 
       {/* Message input */}
       <div className="shrink-0 px-4 pb-5 pt-2 z-20">
+        {/* Quick Coordination Macro Chips */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-hide px-0.5">
+          {[
+            "At Main Gate 📍",
+            "Auto arrived 🛺",
+            "5 mins away ⏳",
+            "Near MH / LH 🏢",
+            "Leaving now 🏃",
+            "Cab reached 🚗",
+          ].map((macro) => (
+            <button
+              key={macro}
+              type="button"
+              onClick={() => {
+                triggerHaptic(10);
+                setNewMessage(macro);
+              }}
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 border transition-all active:scale-95 cursor-pointer ${
+                isDark
+                  ? "bg-white/5 border-white/10 text-zinc-300 hover:text-white hover:border-[#FFC554]/40"
+                  : "bg-black/5 border-black/10 text-stone-700 hover:text-black hover:border-[#881337]/30"
+              }`}
+            >
+              {macro}
+            </button>
+          ))}
+        </div>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -158,6 +158,9 @@ export default function EditLoopModal({
     const formattedDest = formatLocation(dest);
     if (!formattedStart.trim()) return toast.error("Starting Point is required");
     if (!formattedDest.trim()) return toast.error("Destination is required");
+    if (formattedStart.toLowerCase() === formattedDest.toLowerCase()) {
+      return toast.error("Pickup and Destination cannot be the same!");
+    }
     if (!hour.trim() || !minute.trim()) return toast.error("Time of Travel is required");
     if (isSaving) return;
 
@@ -182,11 +185,11 @@ export default function EditLoopModal({
 
       // Track changes for announcement
       const changes: string[] = [];
-      if (startPoint.trim() !== (loop.start_point || "").trim()) {
-        changes.push(`Pickup: ${startPoint.trim()}`);
+      if (formattedStart !== (loop.start_point || "").trim()) {
+        changes.push(`Pickup: ${formattedStart}`);
       }
-      if (dest.trim() !== loop.destination.trim()) {
-        changes.push(`Destination: ${dest.trim()}`);
+      if (formattedDest !== loop.destination.trim()) {
+        changes.push(`Destination: ${formattedDest}`);
       }
       if (departure.toISOString() !== new Date(loop.departure_time).toISOString()) {
         changes.push(`Schedule: ${formatDepartureFull(departure.toISOString())}`);
@@ -204,8 +207,8 @@ export default function EditLoopModal({
       const { data: updated, error } = await supabase
         .from("loops")
         .update({
-          start_point: startPoint.trim(),
-          destination: dest.trim(),
+          start_point: formattedStart,
+          destination: formattedDest,
           departure_time: departure.toISOString(),
           participants_limit: finalLimit,
           is_female_only: isFemaleOnly,

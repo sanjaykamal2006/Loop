@@ -137,6 +137,23 @@ export default function CreateView() {
     if (minute) setMinute(minute.padStart(2, '0'));
   };
 
+  const applyTimePreset = (minutesToAdd: number) => {
+    triggerHaptic(8);
+    const target = new Date(Date.now() + minutesToAdd * 60 * 1000);
+    const y = target.getFullYear();
+    const m = String(target.getMonth() + 1).padStart(2, "0");
+    const d = String(target.getDate()).padStart(2, "0");
+    setTravelDate(`${y}-${m}-${d}`);
+
+    const rawH = target.getHours();
+    const rawM = target.getMinutes();
+    const newAmpm = rawH >= 12 ? "PM" : "AM";
+    const h12 = rawH % 12 || 12;
+    setHour(String(h12).padStart(2, "0"));
+    setMinute(String(rawM).padStart(2, "0"));
+    setAmpm(newAmpm);
+  };
+
   // Strictly require completed profile to access or submit in CreateView (only after profile is loaded)
   useEffect(() => {
     if (!isProfileLoaded) return;
@@ -466,6 +483,34 @@ export default function CreateView() {
             }}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />
+        </div>
+      </div>
+
+      {/* Quick Departure Presets (+15m, +30m, +1h, +2h) */}
+      <div className="flex items-center gap-1.5 px-0.5">
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-zinc-500" : "text-stone-500"} shrink-0 flex items-center gap-1`}>
+          <Clock size={11} strokeWidth={2.4} /> Quick:
+        </span>
+        <div className="flex items-center gap-1.5 flex-1">
+          {[
+            { label: "+15m", mins: 15 },
+            { label: "+30m", mins: 30 },
+            { label: "+1h", mins: 60 },
+            { label: "+2h", mins: 120 },
+          ].map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => applyTimePreset(preset.mins)}
+              className={`flex-1 py-1 px-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 border cursor-pointer text-center ${
+                isDark
+                  ? "bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border-white/10 hover:border-[#FFC554]/50 hover:text-[#FFC554]"
+                  : "bg-black/[0.03] hover:bg-black/[0.06] text-zinc-700 border-black/10 hover:border-[#881337]/50 hover:text-[#881337]"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
       </div>
 

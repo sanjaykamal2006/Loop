@@ -13,6 +13,7 @@ import {
   PLUS_ADDRESSING_ERROR_MESSAGE,
   hasPlusAddressing,
 } from "@/lib/authConfig";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface AuthLoginProps {
   initialPasswordReset?: boolean;
@@ -490,14 +491,14 @@ export default function AuthLogin({
       <div className="dot-matrix-bg text-white" />
       
       <div className="flex flex-col items-center justify-center h-full px-8 relative z-10">
-        <div className="w-full space-y-12">
+        <div className="w-full space-y-8 sm:space-y-10">
           <div className="text-center space-y-2">
             <h1 className="text-6xl font-black tracking-tighter">LOOP</h1>
             <p className="text-base font-semibold text-white/70">Rides go better in Loop.</p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-2.5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
               <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
                 {isLogin ? "VIT-AP Institutional or Registered Email" : "VIT-AP Institutional Email"}
               </label>
@@ -509,6 +510,29 @@ export default function AuthLogin({
                 placeholder="name.rollno@vitapstudent.ac.in"
                 className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 text-base font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
               />
+
+              {/* 1-Tap Institutional Domain Shortcut Chips */}
+              <div className="flex items-center gap-1.5 px-2 overflow-x-auto scrollbar-hide py-0.5">
+                {[
+                  { label: "@vitapstudent.ac.in", domain: "@vitapstudent.ac.in" },
+                  { label: "@vitstudent.ac.in", domain: "@vitstudent.ac.in" },
+                  { label: "@vitap.ac.in", domain: "@vitap.ac.in" },
+                ].map((chip) => (
+                  <button
+                    key={chip.domain}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic(8);
+                      const prefix = email.includes("@") ? email.split("@")[0] : email.trim();
+                      setEmail((prefix || "") + chip.domain);
+                    }}
+                    className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 hover:bg-white/15 border border-white/10 text-white/70 hover:text-[#FFC554] hover:border-[#FFC554]/40 transition-all active:scale-95 shrink-0 whitespace-nowrap cursor-pointer"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+
               {!isLogin && (
                 <p className="text-[10px] font-bold text-[#FFC554] ml-4 flex items-center gap-1.5 opacity-90">
                   <span>🎓</span>

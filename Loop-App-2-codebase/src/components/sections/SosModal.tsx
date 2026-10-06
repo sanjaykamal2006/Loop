@@ -218,6 +218,31 @@ export default function SosModal() {
           )}
         </div>
 
+        {/* Live GPS Coordinates Detail & 1-Tap Copy */}
+        {location && (
+          <div className="p-2.5 px-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+            <div className="flex flex-col">
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${mutedText}`}>Exact Coordinates</span>
+              <span className="text-[11px] font-mono font-bold text-white tracking-tight mt-0.5">
+                {location.lat.toFixed(5)}° N, {location.lng.toFixed(5)}° E
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(10);
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(`${location.lat},${location.lng}`);
+                  toast.success("GPS Coordinates copied to clipboard!");
+                }
+              }}
+              className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 active:scale-95 transition-transform cursor-pointer"
+            >
+              Copy GPS
+            </button>
+          </div>
+        )}
+
         {/* Multiple Contact Selector Tabs if > 1 */}
         {emergencyContacts.length > 1 && (
           <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/20 border border-white/5">

@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Search, Copy, Check, Languages, ArrowLeft } from "lucide-react";
+import { X, Search, Copy, Check, Languages, ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface Phrase {
   id: string;
@@ -127,6 +128,7 @@ export default function TeluguGuideModal({
   const [selectedCat, setSelectedCat] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const [fullscreenPhrase, setFullscreenPhrase] = useState<Phrase | null>(null);
 
   if (!isOpen) return null;
@@ -146,6 +148,32 @@ export default function TeluguGuideModal({
     setCopiedId(phrase.id);
     toast.success("Phrase copied!");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleSpeak = (phrase: Phrase) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      toast.error("Audio speech synthesis not available on this browser");
+      return;
+    }
+
+    if (playingId === phrase.id) {
+      window.speechSynthesis.cancel();
+      setPlayingId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    triggerHaptic(10);
+    setPlayingId(phrase.id);
+
+    const utterance = new SpeechSynthesisUtterance(phrase.telugu);
+    utterance.lang = "te-IN";
+    utterance.rate = 0.85;
+
+    utterance.onend = () => setPlayingId(null);
+    utterance.onerror = () => setPlayingId(null);
+
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -274,16 +302,36 @@ export default function TeluguGuideModal({
                       </p>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
+                          onClick={() => handleSpeak(p)}
+                          title="Speak phrase"
+                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all cursor-pointer ${
+                            playingId === p.id
+                              ? "bg-[#FFC554] text-black shadow-sm"
+                              : "bg-[#FFC554]/10 text-[#FFC554] hover:bg-[#FFC554]/20"
+                          }`}
+                        >
+                          {playingId === p.id ? (
+                            <div className="flex items-center gap-0.5 h-2.5">
+                              <span className="w-0.5 h-2.5 bg-black animate-pulse rounded-full" />
+                              <span className="w-0.5 h-1.5 bg-black animate-ping rounded-full" />
+                              <span className="w-0.5 h-2.5 bg-black animate-pulse rounded-full" />
+                            </div>
+                          ) : (
+                            <Volume2 size={11} strokeWidth={2.5} />
+                          )}
+                          <span>{playingId === p.id ? "Playing" : "Speak"}</span>
+                        </button>
+                        <button
                           onClick={() => setFullscreenPhrase(p)}
                           title="Show to Driver"
-                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-[#FFC554]/10 text-[#FFC554] active:scale-95 transition-transform`}
+                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-[#FFC554]/10 text-[#FFC554] active:scale-95 transition-transform cursor-pointer`}
                         >
                           Show
                         </button>
                         <button
                           onClick={() => handleCopy(p)}
                           aria-label="Copy phrase"
-                          className={`w-7 h-7 rounded-lg ${isDark ? "bg-white/5" : "bg-black/5"} flex items-center justify-center text-zinc-400 hover:text-[#FFC554] active:scale-90 transition-transform`}
+                          className={`w-7 h-7 rounded-lg ${isDark ? "bg-white/5" : "bg-black/5"} flex items-center justify-center text-zinc-400 hover:text-[#FFC554] active:scale-90 transition-transform cursor-pointer`}
                         >
                           {copiedId === p.id ? (
                             <Check size={12} strokeWidth={3} className="text-emerald-400" />

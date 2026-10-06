@@ -10,14 +10,14 @@ import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import ExpectedFaresModal from "./ExpectedFaresModal";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
-
-
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function TrustedVehiclesView() {
   const { session, theme, setView } = useLoop();
   const { isDark, cardBg, border, mutedText, text } = theme;
 
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
+  const [filterType, setFilterType] = useState<"all" | "auto" | "bike" | "share_auto">("all");
   const [isAdding, setIsAdding] = useState(false);
   const [showFaresModal, setShowFaresModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -94,6 +94,11 @@ export default function TrustedVehiclesView() {
     return <VehicleTypeIcon vehicleType={vType} size={22} className={className} strokeWidth={2} />;
   };
 
+  const filteredVehicles = vehicles.filter((v) => {
+    if (filterType === "all") return true;
+    return v.vehicle_type === filterType;
+  });
+
   return (
     <div className="flex flex-col h-full pt-2">
       {/* Header */}
@@ -124,13 +129,44 @@ export default function TrustedVehiclesView() {
           </button>
 
           <button 
-            onClick={() => setIsAdding(true)}
+            onClick={() => setIsAdding(true)} 
             aria-label="Add trusted driver"
             className="bg-[#FFC554] text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform shrink-0"
           >
             <Plus strokeWidth={3} size={20} />
           </button>
         </div>
+      </div>
+
+      {/* 4-Way Vehicle Filter Segment Bar */}
+      <div className="flex items-center gap-1.5 mb-3 px-1 overflow-x-auto scrollbar-hide py-0.5 shrink-0">
+        {[
+          { id: "all", label: "All Drivers" },
+          { id: "auto", label: "🛺 Auto" },
+          { id: "bike", label: "🏍️ Bike" },
+          { id: "share_auto", label: "🚐 Share Auto" },
+        ].map((tab) => {
+          const isSelected = filterType === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                triggerHaptic(8);
+                setFilterType(tab.id as "all" | "auto" | "bike" | "share_auto");
+              }}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 border cursor-pointer ${
+                isSelected
+                  ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
+                  : isDark
+                  ? "bg-white/[0.04] text-zinc-400 border-white/10 hover:text-white"
+                  : "bg-black/[0.04] text-zinc-600 border-black/10 hover:text-black"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Driver List */}
@@ -155,10 +191,28 @@ export default function TrustedVehiclesView() {
               + Add Driver
             </button>
           </div>
+        ) : filteredVehicles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-44 text-center space-y-2.5 px-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400">
+              <ShieldCheck size={24} strokeWidth={1.8} />
+            </div>
+            <p className="text-xs font-black uppercase tracking-wider">
+              No {filterType === "share_auto" ? "Share Auto" : filterType} drivers found
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(8);
+                setFilterType("all");
+              }}
+              className="text-xs font-bold text-[#FFC554] underline hover:opacity-80 cursor-pointer"
+            >
+              Show all drivers
+            </button>
+          </div>
         ) : (
-          vehicles.map(v => {
-            const rawDigits = (v.phone_number || "").replace(/\D/g, "");
-            const phoneDigits = rawDigits.length >= 10 ? rawDigits.slice(-10) : rawDigits;
+          filteredVehicles.map(v => {
+            const phoneDigits = sanitizeIndianPhoneNumber(v.phone_number || "");
             const displayPhone = phoneDigits.length === 10
               ? `+91 ${phoneDigits.slice(0, 5)} ${phoneDigits.slice(5)}`
               : v.phone_number;
