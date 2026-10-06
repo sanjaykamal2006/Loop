@@ -12,6 +12,7 @@ import FastAvatar from "@/components/ui/FastAvatar";
 import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { triggerHaptic } from "@/lib/haptics";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 const messageCache = new LRUCache<string, Message[]>({ maxSize: 30 });
 
@@ -838,8 +839,7 @@ export default function ChatView() {
         if (err.name === "AbortError") return;
       }
     }
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(rawShareMessage)}`;
-    window.open(waUrl, "_blank");
+    openWhatsApp({ text: rawShareMessage });
   };
 
   return (

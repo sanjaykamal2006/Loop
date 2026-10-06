@@ -18,6 +18,7 @@ import {
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 export default function SosModal() {
   const {
@@ -122,8 +123,7 @@ export default function SosModal() {
     triggerHaptic(15);
     const msg = buildSosMessage();
     const cleanPhone = sanitizeIndianPhoneNumber(currentContact.phone);
-    const waUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, "_blank");
+    openWhatsApp({ phone: cleanPhone, text: msg });
   };
 
   const handleSmsAlert = () => {

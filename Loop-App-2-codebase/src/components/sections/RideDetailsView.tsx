@@ -14,6 +14,7 @@ import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { LRUCache } from "@/lib/cache";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 const membersCache = new LRUCache<string, LoopMember[]>({ maxSize: 30 });
 
@@ -236,8 +237,7 @@ export default function RideDetailsView() {
       }
     }
 
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, "_blank");
+    openWhatsApp({ text });
   };
 
   if (!selectedLoop) return null;

@@ -5,6 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { X, FileText, Phone, MessageCircle, ShieldCheck, Lock } from "lucide-react";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 export interface UserProfileData {
   user_id?: string;
@@ -103,9 +104,10 @@ export default function UserProfileModal({
           return cleanPhone.length === 10 ? (
             <div className="w-full flex gap-2 pt-1">
               <a
-                href={`https://wa.me/91${cleanPhone}?text=${encodeURIComponent(`Hey ${user.display_name}! Coordinating our LOOP ride.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={getWhatsAppUrl({
+                  phone: cleanPhone,
+                  text: `Hey ${user.display_name}! Coordinating our LOOP ride.`,
+                })}
                 className="flex-1 py-3 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-sm"
               >
                 <MessageCircle size={15} strokeWidth={2.5} />

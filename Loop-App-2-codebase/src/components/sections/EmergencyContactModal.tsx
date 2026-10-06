@@ -18,6 +18,7 @@ import {
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
+import { openWhatsApp } from "@/lib/whatsapp";
 import type { EmergencyContact } from "@/lib/types";
 
 export default function EmergencyContactModal() {
@@ -144,8 +145,7 @@ export default function EmergencyContactModal() {
     const msg = getTestMessage();
 
     if (medium === "whatsapp") {
-      const waUrl = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, "_blank");
+      openWhatsApp({ phone: cleanPhone, text: msg });
       toast.success(`Opening WhatsApp alert for ${contact.name}`);
     } else {
       const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
