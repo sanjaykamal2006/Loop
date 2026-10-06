@@ -94,18 +94,18 @@ export default function SosModal() {
     const host = selectedLoop?.creator?.display_name || "Co-riders";
     const hostReg = selectedLoop?.creator?.reg_no ? ` (${selectedLoop.creator.reg_no})` : "";
 
-    let text = `🚨 EMERGENCY SOS ALERT from ${sender}${senderReg}!\n`;
+    let text = `[EMERGENCY SOS ALERT] from ${sender}${senderReg}\n`;
     text += `I need immediate help! I am on a LOOP ride:\n`;
-    text += `📍 Destination: ${destination}\n`;
-    text += `📍 Starting Point: ${startPoint}\n`;
-    text += `⏰ Departure: ${departureTime}\n`;
-    text += `👤 Ride Host: ${host}${hostReg}\n`;
+    text += `Destination: ${destination}\n`;
+    text += `Starting Point: ${startPoint}\n`;
+    text += `Departure: ${departureTime}\n`;
+    text += `Ride Host: ${host}${hostReg}\n`;
 
     if (location) {
-      text += `🗺️ My Live GPS Pin: https://maps.google.com/?q=${location.lat},${location.lng}\n`;
-      text += `🎯 GPS Accuracy: ~${location.accuracy}m\n`;
+      text += `My Live GPS Pin: https://maps.google.com/?q=${location.lat},${location.lng}\n`;
+      text += `GPS Accuracy: ~${location.accuracy}m\n`;
     } else {
-      text += `⚠️ Live GPS Pin: Unavailable (location permission denied on phone)\n`;
+      text += `Live GPS Pin: Unavailable (location permission denied on phone)\n`;
     }
 
     text += `\nPlease check on me immediately or contact authorities if I do not answer!`;

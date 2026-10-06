@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail, GraduationCap } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
@@ -511,7 +511,7 @@ export default function AuthLogin({
               />
               {!isLogin && (
                 <p className="text-[10px] font-bold text-[#FFC554] ml-4 flex items-center gap-1.5 opacity-90">
-                  <span>🎓</span>
+                  <GraduationCap size={14} className="text-[#FFC554] shrink-0" strokeWidth={2.2} />
                   <span>Students: @vitapstudent.ac.in | Faculty: @vitap.ac.in</span>
                 </p>
               )}

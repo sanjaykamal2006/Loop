@@ -194,7 +194,7 @@ export default function ReturnTripModal({
             await supabase.from("messages").insert({
               loop_id: primaryLoop.id,
               user_id: session.user.id,
-              content: `Return trip available! Check it out 🔄 [return_loop:${data.id}]`,
+              content: `Return trip available! Check it out [return_loop:${data.id}]`,
             });
           } catch (chatErr) {
             if (process.env.NODE_ENV !== "production") {
@@ -203,7 +203,7 @@ export default function ReturnTripModal({
           }
         }
 
-        toast.success("Return ride created! 🔄");
+        toast.success("Return ride created successfully");
         fetchLoops(true);
         fetchUserMemberships(true);
         onClose();

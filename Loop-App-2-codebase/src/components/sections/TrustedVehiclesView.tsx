@@ -141,12 +141,13 @@ export default function TrustedVehiclesView() {
       {/* 4-Way Vehicle Filter Segment Bar */}
       <div className="flex items-center gap-1.5 mb-3 px-1 overflow-x-auto scrollbar-hide py-0.5 shrink-0">
         {[
-          { id: "all", label: "All Drivers" },
-          { id: "auto", label: "🛺 Auto" },
-          { id: "bike", label: "🏍️ Bike" },
-          { id: "share_auto", label: "🚐 Share Auto" },
+          { id: "all", label: "All Drivers", icon: null },
+          { id: "auto", label: "Auto", icon: AutoIcon },
+          { id: "bike", label: "Bike", icon: BikeIcon },
+          { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon },
         ].map((tab) => {
           const isSelected = filterType === tab.id;
+          const Icon = tab.icon;
           return (
             <button
               key={tab.id}
@@ -155,7 +156,7 @@ export default function TrustedVehiclesView() {
                 triggerHaptic(8);
                 setFilterType(tab.id as "all" | "auto" | "bike" | "share_auto");
               }}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 border cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 border cursor-pointer flex items-center gap-1.5 ${
                 isSelected
                   ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
                   : isDark
@@ -163,7 +164,8 @@ export default function TrustedVehiclesView() {
                   : "bg-black/[0.04] text-zinc-600 border-black/10 hover:text-black"
               }`}
             >
-              {tab.label}
+              {Icon && <Icon size={14} className="shrink-0" />}
+              <span>{tab.label}</span>
             </button>
           );
         })}

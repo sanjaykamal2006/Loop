@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, FileText, Phone, MessageCircle, ShieldCheck } from "lucide-react";
+import { X, FileText, Phone, MessageCircle, ShieldCheck, Lock } from "lucide-react";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 
@@ -120,8 +120,9 @@ export default function UserProfileModal({
               </a>
             </div>
           ) : (
-            <div className={`w-full py-2 px-3 rounded-xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-[10px] font-bold ${mutedText} text-center`}>
-              🔒 Phone not shared. Coordinate in LOOP in-app chat.
+            <div className={`w-full py-2.5 px-3 rounded-2xl ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} text-[11px] font-bold ${mutedText} flex items-center justify-center gap-1.5`}>
+              <Lock size={12} className="shrink-0 opacity-70" strokeWidth={2.2} />
+              <span>Phone not shared. Coordinate in LOOP in-app chat.</span>
             </div>
           );
         })()}

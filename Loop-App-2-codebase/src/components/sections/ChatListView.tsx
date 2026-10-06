@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
-import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X } from "lucide-react";
+import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X, MapPin } from "lucide-react";
 import { AutoRickshawIcon, ScooterIcon, MotorcycleIcon, CarIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
 
 function formatDepartureDate(departureIso: string): string {
@@ -84,24 +84,25 @@ interface RecentMsgData {
   sender_name?: string;
 }
 
-function formatRecentMessagePreview(msg?: RecentMsgData, currentUserId?: string): string {
-  if (!msg?.content) return "";
+function formatRecentMessagePreview(msg?: RecentMsgData, currentUserId?: string): { isLocation: boolean; text: string } {
+  if (!msg?.content) return { isLocation: false, text: "" };
   const content = msg.content;
   const isLocation =
     content.includes("maps.google.com") ||
     content.includes("maps.apple.com") ||
-    content.startsWith("📍") ||
+    content.startsWith("\u{1F4CD}") ||
+    content.startsWith("Location shared:") ||
     content.includes("My Spot:");
 
   if (isLocation) {
     if (msg.user_id && currentUserId && msg.user_id === currentUserId) {
-      return "📍 Location shared by You";
+      return { isLocation: true, text: "Location shared by You" };
     }
     const name = msg.sender_name?.trim();
-    return name ? `📍 Location shared by ${name}` : "📍 Location shared";
+    return { isLocation: true, text: name ? `Location shared by ${name}` : "Location shared" };
   }
 
-  return content;
+  return { isLocation: false, text: content.replace(/^[\u{1F4CD}\s]+/u, "") };
 }
 
 export default function ChatListView() {
@@ -312,7 +313,7 @@ export default function ChatListView() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     const recent = recentMessages[loop.id];
-    const previewText = recent ? formatRecentMessagePreview(recent, session?.user?.id).toLowerCase() : "";
+    const previewText = recent ? formatRecentMessagePreview(recent, session?.user?.id).text.toLowerCase() : "";
     return loop.destination.toLowerCase().includes(q) || previewText.includes(q);
   });
 
@@ -456,8 +457,18 @@ export default function ChatListView() {
                     Recent message
                   </span>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] font-bold truncate opacity-90">
-                      {formatRecentMessagePreview(latestMsg, session?.user?.id)}
+                    <p className="text-[11px] font-bold truncate opacity-90 flex items-center">
+                      {(() => {
+                        const preview = formatRecentMessagePreview(latestMsg, session?.user?.id);
+                        return (
+                          <>
+                            {preview.isLocation && (
+                              <MapPin size={11} className={`inline mr-1 shrink-0 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`} />
+                            )}
+                            <span className="truncate">{preview.text}</span>
+                          </>
+                        );
+                      })()}
                     </p>
                     <span className={`text-[10px] font-medium ${mutedText} shrink-0 ml-2`}>
                       {formatMessageTime(latestMsg.created_at)}

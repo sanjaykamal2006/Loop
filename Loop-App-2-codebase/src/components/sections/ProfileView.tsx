@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Sparkles,
   ShieldAlert,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -81,9 +82,9 @@ export default function ProfileView() {
       setNotificationEnabled(true);
       setNotifEnabled(true);
     } else if (res.reason === "ios_not_pwa") {
-      toast.info("📱 On iPhone, notifications require adding LOOP to your Home Screen: Tap Share (⎋) ➔ 'Add to Home Screen'.");
+      toast.info("On iPhone, notifications require adding LOOP to your Home Screen: Tap Share -> 'Add to Home Screen'.");
     } else if (res.reason === "blocked") {
-      toast.error("🔒 Notifications are blocked in your browser. Tap the lock/tune icon in your address bar to allow.");
+      toast.error("Notifications are blocked in your browser. Tap the lock/tune icon in your address bar to allow.");
     } else {
       toast.error("Notifications were not enabled. Please check your device settings.");
     }
@@ -95,8 +96,8 @@ export default function ProfileView() {
       toast.info("Turn notifications ON first to test.");
       return;
     }
-    toast.success("Sending test alert... 🔔");
-    await sendLocalNotification("LOOP Test Notification 🔔", {
+    toast.success("Sending test alert...");
+    await sendLocalNotification("LOOP Test Notification", {
       body: "Awesome! You will receive alerts when passengers join your rides.",
     });
   };
@@ -290,11 +291,19 @@ export default function ProfileView() {
           </div>
 
           <div className="space-y-1">
-            <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>
-              {profile.is_student_verified
-                ? (session.user.email?.includes("vitap") ? "VIT-AP Reg. No (Locked 🔒)" : "Student Roll No. (Locked 🔒)")
-                : "Org / College / Roll No."}
-            </label>
+            <div className="flex items-center gap-1.5">
+              <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>
+                {profile.is_student_verified
+                  ? (session.user.email?.includes("vitap") ? "VIT-AP Reg. No" : "Student Roll No.")
+                  : "Org / College / Roll No."}
+              </label>
+              {profile.is_student_verified && (
+                <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+                  <Lock size={10} strokeWidth={2.4} />
+                  <span>Locked</span>
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={tempRegNo}

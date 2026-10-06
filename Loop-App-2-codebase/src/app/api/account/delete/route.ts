@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
             await adminClient.from("messages").insert({
               loop_id: loop.id,
               user_id: userId,
-              content: "⚠️ The ride host's account was closed. This ride has been cancelled.",
+              content: "[Notice] The ride host's account was closed. This ride has been cancelled.",
             });
           } else {
             // Already ended or cancelled: detach creator to avoid cascade deletion

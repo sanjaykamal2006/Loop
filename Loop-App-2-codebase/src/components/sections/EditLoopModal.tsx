@@ -234,7 +234,7 @@ export default function EditLoopModal({
           await supabase.from("messages").insert({
             loop_id: loop.id,
             user_id: loop.creator_id,
-            content: `📢 Ride updated by creator:\n• ${changes.join("\n• ")}`,
+            content: `[Update] Ride updated by host:\n• ${changes.join("\n• ")}`,
           });
         } catch (msgErr) {
           if (process.env.NODE_ENV !== "production") {

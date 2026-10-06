@@ -233,7 +233,7 @@ export default function CreateView() {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
 
         if (isReturnTrip) {
-          toast.success("Return ride created! 🔄");
+          toast.success("Return ride created successfully");
           setStartPoint("");
           setDest("");
           setHour("");

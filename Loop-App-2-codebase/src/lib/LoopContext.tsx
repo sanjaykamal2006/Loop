@@ -1111,8 +1111,8 @@ export function LoopProvider({ session, children }: { session: Session; children
               // Trigger notification if current user created this loop
               setUserLoops((currentCreatorLoops) => {
                 if (currentCreatorLoops.includes(newMember.loop_id!)) {
-                  toast.success("A passenger just joined your loop! 🚗");
-                  sendLocalNotification("LOOP: Passenger Joined! 🚗", {
+                  toast.success("A passenger just joined your loop");
+                  sendLocalNotification("LOOP: Passenger Joined", {
                     body: "A new passenger just joined your ride. Tap to view your loop.",
                     data: { url: `/?loop=${newMember.loop_id}` },
                     tag: `loop-join-${newMember.loop_id}`,
@@ -1201,7 +1201,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
               const targetLoop = activeLoopsRef.current.find((l) => l.id === newMsg.loop_id);
               const destName = targetLoop ? targetLoop.destination : "Ride Chat";
-              toast.info(`💬 ${destName}: ${newMsg.content?.slice(0, 45) || "New message"}`);
+              toast.info(`${destName}: ${newMsg.content?.slice(0, 45) || "New message"}`);
 
               sendLocalNotification(`LOOP: ${destName}`, {
                 body: newMsg.content || "New message in your ride",

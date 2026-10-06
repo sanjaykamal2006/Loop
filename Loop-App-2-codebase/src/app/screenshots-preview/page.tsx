@@ -19,6 +19,7 @@ import {
   Coffee,
   Heart,
   CarFront,
+  Star,
 } from "lucide-react";
 import {
   AutoRickshawIcon,
@@ -564,7 +565,10 @@ function ScreenshotContent() {
                 <span className="text-[11px] text-zinc-400 block mt-1">Fares Saved</span>
               </div>
               <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-center">
-                <span className="text-2xl font-black text-white">5.0 ★</span>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-2xl font-black text-white">5.0</span>
+                  <Star size={16} className="text-[#FFC554] fill-[#FFC554]" />
+                </div>
                 <span className="text-[11px] text-zinc-400 block mt-1">Community Trust</span>
               </div>
             </div>

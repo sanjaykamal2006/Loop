@@ -738,7 +738,7 @@ export default function ChatView() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         const mapsUrl = `https://maps.google.com/maps?q=${latitude},${longitude}`;
-        const content = `📍 My Spot: ${mapsUrl}`;
+        const content = `Location shared: ${mapsUrl}`;
 
         // Optimistic message in UI
         const optimisticId = `loc-${Date.now()}`;

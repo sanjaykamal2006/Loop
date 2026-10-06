@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Search, Copy, Check, Languages, ArrowLeft, Volume2, Maximize2, Lightbulb } from "lucide-react";
+import { X, Search, Copy, Check, Languages, ArrowLeft, Volume2, Maximize2, Lightbulb, IndianRupee, Handshake, MapPin, QrCode, Zap } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -122,13 +122,13 @@ const PHRASES: Phrase[] = [
 ];
 
 const CATEGORIES = [
-  { id: "all", label: "All Phrases" },
-  { id: "fares", label: "💰 Fares" },
-  { id: "bargain", label: "🤝 Bargain" },
-  { id: "stops", label: "📍 Gate & Stops" },
-  { id: "payment", label: "📱 UPI / Pay" },
-  { id: "urgent", label: "⚡ Urgent / Train" }
-];
+  { id: "all", label: "All Phrases", icon: null },
+  { id: "fares", label: "Fares", icon: IndianRupee },
+  { id: "bargain", label: "Bargain", icon: Handshake },
+  { id: "stops", label: "Gate & Stops", icon: MapPin },
+  { id: "payment", label: "UPI & Pay", icon: QrCode },
+  { id: "urgent", label: "Urgent", icon: Zap },
+] as const;
 
 export default function TeluguGuideModal({
   isOpen,
@@ -323,10 +323,11 @@ export default function TeluguGuideModal({
               </div>
             </div>
 
-            {/* Category Pills (Taller, Chunky, Easy to Tap) */}
+            {/* Category Pills (Linear-Grade Vector Icon Pills) */}
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide shrink-0">
               {CATEGORIES.map(c => {
                 const isSelected = selectedCat === c.id;
+                const Icon = c.icon;
                 return (
                   <button
                     key={c.id}
@@ -334,13 +335,14 @@ export default function TeluguGuideModal({
                       triggerHaptic(8);
                       setSelectedCat(c.id);
                     }}
-                    className={`h-9 px-3.5 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 cursor-pointer border ${
+                    className={`h-9 px-3.5 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 cursor-pointer border flex items-center gap-1.5 ${
                       isSelected
                         ? "bg-[#FFC554] text-black border-[#FFC554] shadow-sm"
                         : `${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"} ${mutedText} hover:text-white`
                     }`}
                   >
-                    {c.label}
+                    {Icon && <Icon size={13} strokeWidth={2.4} className="shrink-0" />}
+                    <span>{c.label}</span>
                   </button>
                 );
               })}
