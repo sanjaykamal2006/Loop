@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { EXTERNAL_EMAIL_WHITELIST } from "./authConfig";
+import { logger } from "./logger";
 
 export interface WhitelistSyncResult {
   success: boolean;
@@ -50,9 +51,7 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
       .upsert(rows, { onConflict: "email" });
 
     if (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("syncWhitelistToDatabase error:", error.message);
-      }
+      logger.error("syncWhitelistToDatabase error:", error.message);
       return {
         success: false,
         syncedEmails: [],
@@ -65,9 +64,7 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
       syncedEmails: validEmails,
     };
   } catch (err: any) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("syncWhitelistToDatabase exception:", err?.message || err);
-    }
+    logger.error("syncWhitelistToDatabase exception:", err?.message || err);
     return {
       success: false,
       syncedEmails: [],

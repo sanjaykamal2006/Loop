@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 
@@ -161,9 +162,7 @@ export default function RideDetailsView() {
         setLoopMembers(mems);
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("fetchLoopMembers error:", err);
-      }
+      logger.error("fetchLoopMembers error:", err);
     } finally {
       setIsLoadingMembers(false);
     }

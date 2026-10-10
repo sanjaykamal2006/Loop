@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import {
   Users,
@@ -166,9 +167,7 @@ export default function ProfileView() {
       await updateProfile({ avatar_url: publicUrl });
       toast.success("Profile photo updated!");
     } catch (err: any) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Avatar upload error:", err);
-      }
+      logger.error("Avatar upload error:", err);
       setOptimisticAvatarUrl(null); // Revert optimistic preview on error
       toast.error(err?.message || "Failed to upload image. Please try again.");
     } finally {
@@ -597,9 +596,7 @@ export default function ProfileView() {
                     await supabase.auth.signOut({ scope: "global" });
                     toast.success("Account permanently deleted.");
                   } catch (error: any) {
-                    if (process.env.NODE_ENV !== "production") {
-                      console.error("Account delete error:", error);
-                    }
+                    logger.error("Account delete error:", error);
                     toast.error(error.message || "Failed to delete account. Please try again.");
                   } finally {
                     setIsDeleting(false);

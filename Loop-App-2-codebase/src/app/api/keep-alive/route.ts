@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,9 +57,7 @@ export async function GET() {
       { status: 503 }
     );
   } catch (err: any) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error('Keep-alive ping exception:', err?.message || 'Unknown error');
-    }
+    logger.error('Keep-alive ping exception:', err?.message || 'Unknown error');
     return NextResponse.json(
       {
         status: 'error',

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
@@ -343,9 +344,7 @@ export default function ChatView() {
       .limit(PAGE_SIZE);
 
     if (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("fetchMessages error:", error);
-      }
+      logger.error("fetchMessages error:", error);
       // Fallback query if profiles join fails
       const { data: fallbackData } = await supabase
         .from("messages")
@@ -409,9 +408,7 @@ export default function ChatView() {
         .eq("loop_id", loopId);
 
       if (memErr) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("fetchMembers query error:", memErr);
-        }
+        logger.warn("fetchMembers query error:", memErr);
         return;
       }
 
@@ -494,9 +491,7 @@ export default function ChatView() {
 
       setMembers(formatted);
     } catch (e) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("fetchMembers error:", e);
-      }
+      logger.error("fetchMembers error:", e);
     }
   };
 
@@ -687,14 +682,10 @@ export default function ChatView() {
         .select('id');
 
       if (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error('Delete message error:', error);
-        }
+        logger.error('Delete message error:', error);
         toast.error('Failed to delete message');
       } else if (!data || data.length === 0) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn('No message was deleted in database');
-        }
+        logger.warn('No message was deleted in database');
         toast.error('Failed to delete message');
       } else {
         setMessages(prev => prev.filter(m => m.id !== messageId));
@@ -705,9 +696,7 @@ export default function ChatView() {
         toast.success('Message deleted');
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error('deleteMessage exception:', err);
-      }
+      logger.error('deleteMessage exception:', err);
       toast.error('Failed to delete message');
     }
   };

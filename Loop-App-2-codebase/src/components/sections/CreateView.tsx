@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
@@ -225,9 +226,7 @@ export default function CreateView() {
         .single();
 
       if (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Create loop error:", error);
-        }
+        logger.error("Create loop error:", error);
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });

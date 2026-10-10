@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { History, MapPin, Clock, Users, ArrowRight, ArrowLeft, RefreshCw, CheckCircle2, XCircle } from "lucide-react";
@@ -22,9 +23,7 @@ export default function PastLoopsView() {
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (e) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("Error parsing past loops cache:", e);
-        }
+        logger.warn("Error parsing past loops cache:", e);
       }
     }
     return [];
@@ -90,9 +89,7 @@ export default function PastLoopsView() {
           } catch (e) {}
         }
       } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Error fetching past loops:", err);
-        }
+        logger.error("Error fetching past loops:", err);
       } finally {
         setLoading(false);
         setIsSyncing(false);

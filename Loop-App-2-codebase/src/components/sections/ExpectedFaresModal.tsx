@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -44,9 +45,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       if (error) throw error;
       setFares((data || []) as unknown as ExpectedFare[]);
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("fetchFares error:", err);
-      }
+      logger.error("fetchFares error:", err);
       toast.error("Failed to load expected fares");
     } finally {
       setLoading(false);
@@ -84,9 +83,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       setFareAmount("");
       setVType("auto");
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("handleAddFare error:", err);
-      }
+      logger.error("handleAddFare error:", err);
       toast.error("Failed to add fare. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -100,9 +97,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
       toast.success("Fare entry removed");
       setFares(fares.filter(f => f.id !== id));
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("handleDeleteFare error:", err);
-      }
+      logger.error("handleDeleteFare error:", err);
       toast.error("Failed to delete");
     }
   };

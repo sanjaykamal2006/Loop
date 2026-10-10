@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
@@ -352,9 +353,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         await supabase.from("emergency_contacts").delete().in("id", existingIds);
       }
     } catch (dbErr) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Emergency contacts database sync notice:", dbErr);
-      }
+      logger.warn("Emergency contacts database sync notice:", dbErr);
     }
   }, [session.user.id]);
 
@@ -734,9 +733,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         }
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Error fetching loops:", err);
-      }
+      logger.warn("Error fetching loops:", err);
     } finally {
       isFetchingLoopsRef.current = false;
     }
@@ -781,9 +778,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         }
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Error fetching memberships:", err);
-      }
+      logger.warn("Error fetching memberships:", err);
     } finally {
       isFetchingMembershipsRef.current = false;
     }
@@ -822,9 +817,7 @@ export function LoopProvider({ session, children }: { session: Session; children
 
       // Error code 23505 is PostgreSQL unique_violation (already a member), safe to proceed
       if (error && error.code !== "23505") {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Failed to insert loop membership:", error);
-        }
+        logger.error("Failed to insert loop membership:", error);
         toast.error("Failed to join loop. Please try again.");
         return;
       }
@@ -852,9 +845,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       fetchLoops(true);
       fetchUserMemberships(true);
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("joinLoop error:", err);
-      }
+      logger.error("joinLoop error:", err);
       toast.error("Failed to join loop. Please try again.");
     } finally {
       setIsJoining(false);
@@ -896,9 +887,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         }
         isSuccess = true;
       } else {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("delete_loop RPC failed, falling back to direct table update:", rpcError);
-        }
+        logger.warn("delete_loop RPC failed, falling back to direct table update:", rpcError);
         // 2. Fallback: Direct table update
         const { error: updateError } = await supabase
           .from("loops")
@@ -906,9 +895,7 @@ export function LoopProvider({ session, children }: { session: Session; children
           .eq("id", loopId);
 
         if (updateError) {
-          if (process.env.NODE_ENV !== "production") {
-            console.error("Error deleting loop:", updateError);
-          }
+          logger.error("Error deleting loop:", updateError);
           toast.error(updateError.message || "Failed to delete loop");
           setIsDeleting(false);
           return;
@@ -927,9 +914,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         fetchUserMemberships(true);
       }
     } catch (err: any) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Unexpected error deleting loop:", err);
-      }
+      logger.error("Unexpected error deleting loop:", err);
       toast.error("Failed to delete loop");
     } finally {
       setIsDeleting(false);

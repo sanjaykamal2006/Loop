@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -178,9 +179,7 @@ export default function ReturnTripModal({
         .single();
 
       if (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Failed to create return loop:", error);
-        }
+        logger.error("Failed to create return loop:", error);
         toast.error("Failed to create return loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({
@@ -197,9 +196,7 @@ export default function ReturnTripModal({
               content: `Return trip available! Check it out [return_loop:${data.id}]`,
             });
           } catch (chatErr) {
-            if (process.env.NODE_ENV !== "production") {
-              console.error("Failed to post return ride notification in outbound chat:", chatErr);
-            }
+            logger.error("Failed to post return ride notification in outbound chat:", chatErr);
           }
         }
 
@@ -210,9 +207,7 @@ export default function ReturnTripModal({
         setView("home");
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Return loop error:", err);
-      }
+      logger.error("Return loop error:", err);
       toast.error("Something went wrong creating the return loop");
     } finally {
       setIsSubmitting(false);

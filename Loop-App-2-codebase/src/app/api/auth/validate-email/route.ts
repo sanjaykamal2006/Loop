@@ -7,14 +7,15 @@ import {
   hasPlusAddressing,
 } from '@/lib/authConfig';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. IP Rate Limiting: 10 requests per 10 minutes per IP (Free-Tier in-memory limiter)
+    // 1. IP Rate Limiting: 10 requests per 10 minutes per IP (Upstash Redis + fallback)
     const clientIp = getClientIp(request);
-    const rateLimit = checkRateLimit(`validate-email:${clientIp}`, 10, 10 * 60 * 1000);
+    const rateLimit = await checkRateLimit(`validate-email:${clientIp}`, 10, 10 * 60 * 1000);
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -84,9 +85,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ allowed: true, type: 'whitelisted_db' });
         }
       } catch (dbErr) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error('Error querying allowed_external_emails table:', dbErr);
-        }
+        logger.error('Error querying allowed_external_emails table:', dbErr);
       }
     }
 
@@ -99,12 +98,11 @@ export async function POST(request: NextRequest) {
       { status: 403 }
     );
   } catch (err: any) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error('validate-email route exception:', err?.message || 'Unknown');
-    }
+    logger.error('validate-email route exception:', err?.message || 'Unknown');
     return NextResponse.json(
       { allowed: false, error: 'Unable to validate email at this time. Please try again.' },
       { status: 500 }
     );
   }
 }
+

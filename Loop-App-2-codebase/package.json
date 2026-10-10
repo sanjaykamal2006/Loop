@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.91.0",
+    "@upstash/redis": "^1.39.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.552.0",
     "next": "^16.2.12",

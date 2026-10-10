@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { 
   ShieldAlert, 
@@ -65,9 +66,7 @@ export default function SosModal() {
         setIsLocating(false);
       },
       (err) => {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("SOS Geolocation error:", err);
-        }
+        logger.warn("SOS Geolocation error:", err);
         setLocError("Could not retrieve GPS pin. Sharing ride details.");
         setIsLocating(false);
       },

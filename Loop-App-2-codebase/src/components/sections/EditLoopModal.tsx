@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
@@ -220,9 +221,7 @@ export default function EditLoopModal({
         .single();
 
       if (error || !updated) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Error updating loop:", error);
-        }
+        logger.error("Error updating loop:", error);
         toast.error("Failed to update loop details.");
         setIsSaving(false);
         return;
@@ -237,9 +236,7 @@ export default function EditLoopModal({
             content: `[Update] Ride updated by host:\n• ${changes.join("\n• ")}`,
           });
         } catch (msgErr) {
-          if (process.env.NODE_ENV !== "production") {
-            console.warn("Could not post update announcement to chat:", msgErr);
-          }
+          logger.warn("Could not post update announcement to chat:", msgErr);
         }
       }
 
@@ -250,9 +247,7 @@ export default function EditLoopModal({
       });
       onClose();
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Unexpected error in EditLoopModal:", err);
-      }
+      logger.error("Unexpected error in EditLoopModal:", err);
       toast.error("An unexpected error occurred.");
     } finally {
       setIsSaving(false);

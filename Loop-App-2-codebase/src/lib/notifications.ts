@@ -1,4 +1,5 @@
 import { triggerHaptic } from "./haptics";
+import { logger } from "./logger";
 
 export function isIOS(): boolean {
   if (typeof window === "undefined") return false;
@@ -59,9 +60,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     });
     return registration;
   } catch (err) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Service Worker registration failed:", err);
-    }
+    logger.warn("Service Worker registration failed:", err);
     return null;
   }
 }
@@ -97,9 +96,7 @@ export async function requestNotificationPermission(): Promise<{
     }
     return { granted: false, reason: result as any };
   } catch (err) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("Error requesting notification permission:", err);
-    }
+    logger.error("Error requesting notification permission:", err);
     return { granted: false, reason: "error" };
   }
 }
@@ -154,9 +151,7 @@ export async function sendLocalNotification(
         return true;
       }
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("SW notification attempt failed:", err);
-      }
+      logger.warn("SW notification attempt failed:", err);
     }
   }
 
@@ -165,9 +160,7 @@ export async function sendLocalNotification(
     new Notification(title, defaultOptions);
     return true;
   } catch (err) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Standard Notification constructor failed:", err);
-    }
+    logger.warn("Standard Notification constructor failed:", err);
     return false;
   }
 }

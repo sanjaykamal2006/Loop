@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,9 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (ridesError || unconfirmedError) {
       const errMsg = (ridesError?.message || '') + (unconfirmedError ? ` ${unconfirmedError.message}` : '');
-      if (process.env.NODE_ENV !== "production") {
-        console.error('Cleanup error:', errMsg);
-      }
+      logger.error('Cleanup error:', errMsg);
       return NextResponse.json({
         success: false,
         error: errMsg,
@@ -48,9 +47,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error('Cleanup route error:', error);
-    }
+    logger.error('Cleanup route error:', error);
     return NextResponse.json({
       success: false,
       error: error?.message || 'Internal Server Error',

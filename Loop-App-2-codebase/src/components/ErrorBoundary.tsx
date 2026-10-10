@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { RefreshCw, AlertTriangle } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface Props {
   children: ReactNode;
@@ -24,9 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("Uncaught error caught by LOOP ErrorBoundary:", error, errorInfo);
-    }
+    logger.error("Uncaught error caught by LOOP ErrorBoundary:", error, errorInfo);
   }
 
   private handleReset = () => {

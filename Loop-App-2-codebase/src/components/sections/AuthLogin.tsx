@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
 import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail, GraduationCap } from "lucide-react";
@@ -240,9 +241,7 @@ export default function AuthLogin({
       setIsResettingPassword(true);
       setPassword("");
     } catch (error: any) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Recovery OTP verify error:", error);
-      }
+      logger.error("Recovery OTP verify error:", error);
       toast.error(error.message || "Invalid or expired code");
     } finally {
       setIsLoading(false);
@@ -561,9 +560,7 @@ export default function AuthLogin({
                         setIsResetOtp(true);
                         toast.success("Reset code sent! Please check your Inbox and Spam folder.");
                       } catch (err: any) {
-                        if (process.env.NODE_ENV !== "production") {
-                          console.error("Password reset request failed:", err);
-                        }
+                        logger.error("Password reset request failed:", err);
                         const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
                         toast.error(msg);
                       } finally {
