@@ -1,16 +1,27 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const rtlPath = path.dirname(require.resolve('@testing-library/react/package.json'));
+const sharedReactDir = path.dirname(require.resolve('react/package.json', { paths: [rtlPath] }));
+const sharedReactDomDir = path.dirname(require.resolve('react-dom/package.json', { paths: [rtlPath] }));
 
 export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: [],
+    setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'react/jsx-runtime': path.join(sharedReactDir, 'jsx-runtime.js'),
+      'react/jsx-dev-runtime': path.join(sharedReactDir, 'jsx-dev-runtime.js'),
+      'react-dom/client': path.join(sharedReactDomDir, 'client.js'),
+      'react-dom': sharedReactDomDir,
+      'react': sharedReactDir,
     },
   },
 });

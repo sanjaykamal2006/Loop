@@ -44,14 +44,43 @@ export default function RideDetailsView() {
   } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
-  const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() => {
-    if (selectedLoop?.id && membersCache.get(selectedLoop.id)) {
-      return membersCache.get(selectedLoop.id)!;
+  const getOfflineFallbackMembers = (loopId?: string): LoopMember[] => {
+    if (!loopId) return [];
+    const fromMem = membersCache.get(loopId);
+    if (fromMem && fromMem.length > 0) return fromMem;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`loop_members_${loopId}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    if (selectedLoop && (selectedLoop.creator_id === session?.user?.id || userLoops.includes(loopId))) {
+      return [
+        {
+          user_id: session?.user?.id || selectedLoop.creator_id || "creator",
+          profiles: {
+            display_name: profile.display_name || selectedLoop.creator?.display_name || "You",
+            avatar_url: profile.avatar_url || selectedLoop.creator?.avatar_url,
+            gender: profile.gender || "",
+            reg_no: profile.reg_no || selectedLoop.creator?.reg_no,
+            bio: profile.bio,
+            phone_number: profile.phone_number,
+            is_student_verified: profile.is_student_verified,
+          },
+        },
+      ];
     }
     return [];
-  });
+  };
+
+  const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() =>
+    getOfflineFallbackMembers(selectedLoop?.id)
+  );
   const [isLoadingMembers, setIsLoadingMembers] = useState(() => {
-    return !(selectedLoop?.id && membersCache.get(selectedLoop.id));
+    return getOfflineFallbackMembers(selectedLoop?.id).length === 0;
   });
   const [fareInput, setFareInput] = useState<string>("");
   const [isEditingFare, setIsEditingFare] = useState(false);
@@ -88,8 +117,8 @@ export default function RideDetailsView() {
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
-    const cached = membersCache.get(loopId);
-    if (cached) {
+    const cached = getOfflineFallbackMembers(loopId);
+    if (cached.length > 0) {
       setLoopMembers(cached);
       setIsLoadingMembers(false);
     } else {
@@ -160,6 +189,11 @@ export default function RideDetailsView() {
 
         membersCache.set(loopId, mems);
         setLoopMembers(mems);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`loop_members_${loopId}`, JSON.stringify(mems));
+          } catch {}
+        }
       }
     } catch (err) {
       logger.error("fetchLoopMembers error:", err);

@@ -19,8 +19,8 @@ export const avatarLoadedCache = new Set<string>();
  */
 export async function compressAvatarImage(
   file: File,
-  maxDimension = 384,
-  quality = 0.82
+  maxDimension = 256,
+  quality = 0.70
 ): Promise<CompressedImageResult> {
   // If it's an animated GIF or SVG, do not compress via canvas to preserve animation/vector
   if (file.type === "image/gif" || file.type === "image/svg+xml") {

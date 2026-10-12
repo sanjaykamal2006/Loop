@@ -23,11 +23,15 @@ import { openWhatsApp } from "@/lib/whatsapp";
 
 export default function SosModal() {
   const {
+    session,
     showSosModal,
     setShowSosModal,
     setShowEmergencyContactModal,
     emergencyContacts = [],
     selectedLoop,
+    activeLoops = [],
+    userJoinedLoops = [],
+    userLoops = [],
     profile,
     theme,
   } = useLoop();
@@ -76,14 +80,39 @@ export default function SosModal() {
 
   if (!showSosModal) return null;
 
+  // Resolve the active ride manifest (from selected joined ride, active joined/created loop, or local manifest lease buffer)
+  const resolveActiveRideManifest = () => {
+    if (selectedLoop && (userJoinedLoops.includes(selectedLoop.id) || userLoops.includes(selectedLoop.id))) {
+      return selectedLoop;
+    }
+    const fromActiveList = activeLoops.find(
+      (l) => userJoinedLoops.includes(l.id) || userLoops.includes(l.id)
+    );
+    if (fromActiveList) return fromActiveList;
+
+    if (typeof window !== "undefined" && session?.user?.id) {
+      try {
+        const rawLease = localStorage.getItem(`loop_manifest_lease_${session.user.id}`);
+        if (rawLease) {
+          const parsed = JSON.parse(rawLease);
+          if (!parsed.lease_ttl || Date.now() < parsed.lease_ttl) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return selectedLoop;
+  };
+
   // Build the standardized emergency dispatch message
   const buildSosMessage = () => {
+    const targetLoop = resolveActiveRideManifest();
     const sender = profile.display_name?.trim() || "A student";
     const senderReg = profile.reg_no ? ` (${profile.reg_no})` : "";
-    const destination = selectedLoop?.destination || "Destination";
-    const startPoint = selectedLoop?.start_point || "Campus";
-    const departureTime = selectedLoop?.departure_time 
-      ? new Date(selectedLoop.departure_time).toLocaleString("en-US", {
+    const destination = targetLoop?.destination || "Destination";
+    const startPoint = targetLoop?.start_point || "Campus";
+    const departureTime = targetLoop?.departure_time 
+      ? new Date(targetLoop.departure_time).toLocaleString("en-US", {
           month: "short",
           day: "numeric",
           hour: "numeric",
@@ -91,8 +120,8 @@ export default function SosModal() {
           hour12: true,
         })
       : "Current Ride";
-    const host = selectedLoop?.creator?.display_name || "Co-riders";
-    const hostReg = selectedLoop?.creator?.reg_no ? ` (${selectedLoop.creator.reg_no})` : "";
+    const host = targetLoop?.creator?.display_name || "Co-riders";
+    const hostReg = targetLoop?.creator?.reg_no ? ` (${targetLoop.creator.reg_no})` : "";
 
     let text = `[EMERGENCY SOS ALERT] from ${sender}${senderReg}\n`;
     text += `I need immediate help! I am on a LOOP ride:\n`;

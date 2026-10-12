@@ -118,8 +118,15 @@ export default function ChatView() {
   }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, isJoining, setView]);
 
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (selectedLoop?.id && messageCache.get(selectedLoop.id)) {
-      return messageCache.get(selectedLoop.id)!;
+    if (selectedLoop?.id) {
+      const fromMem = messageCache.get(selectedLoop.id);
+      if (fromMem) return fromMem;
+      if (typeof window !== "undefined") {
+        try {
+          const cached = localStorage.getItem(`loop_messages_${selectedLoop.id}`);
+          if (cached) return JSON.parse(cached);
+        } catch {}
+      }
     }
     return [];
   });
@@ -144,7 +151,7 @@ export default function ChatView() {
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSharingLocation, setIsSharingLocation] = useState(false);
-  const channelRef = useRef<any>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -174,6 +181,13 @@ export default function ChatView() {
       const cached = messageCache.get(selectedLoop.id);
       if (cached) {
         setMessages(cached);
+      } else if (typeof window !== "undefined") {
+        try {
+          const localCached = localStorage.getItem(`loop_messages_${selectedLoop.id}`);
+          setMessages(localCached ? JSON.parse(localCached) : []);
+        } catch {
+          setMessages([]);
+        }
       } else {
         setMessages([]);
       }
@@ -182,15 +196,35 @@ export default function ChatView() {
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id]);
 
-  // Lightweight 30s background sync safety net (only when tab is visible)
+  // Poll messages every 3s when tab is visible (replaces Supabase realtime - free tier optimization)
   useEffect(() => {
     if (!selectedLoop?.id) return;
-    const pollInterval = setInterval(() => {
+    const loopId = selectedLoop.id;
+
+    const poll = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        fetchMessages(selectedLoop.id);
+        fetchMessages(loopId);
       }
-    }, 30000);
-    return () => clearInterval(pollInterval);
+    };
+
+    // Poll every 3 seconds for active chat
+    const intervalId = setInterval(poll, 3000);
+    pollIntervalRef.current = intervalId;
+
+    // Also poll on visibility change (when user comes back to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        poll();
+        fetchMembers(loopId);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      pollIntervalRef.current = null;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [selectedLoop?.id]);
 
   const loopMembersRef = useRef<any[]>([]);
@@ -208,129 +242,17 @@ export default function ChatView() {
     }
   };
 
-  // Real-time chat & presence subscription - ONLY when tab is active (Free tier optimization)
+  // Members polling - refresh every 5s
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
-
-    const subscribeChannel = () => {
-      if (channelRef.current) return;
-      const channel = supabase.channel(`chat-${loopId}`);
-      channelRef.current = channel;
-
-      channel
-        .on("broadcast", { event: "new_message" }, (payload) => {
-          if (!payload.payload) return;
-          const msg = payload.payload as Message;
-          if (msg.loop_id !== loopId) return;
-          if (msg.user_id === session.user.id) return;
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === msg.id)) return prev;
-            const updated = [...prev, msg];
-            messageCache.set(loopId, updated);
-            return updated;
-          });
-          requestAnimationFrame(() => scrollToBottom(true));
-          if (typeof document !== "undefined" && document.visibilityState === "hidden") {
-            playNotificationChime();
-            sendLocalNotification("LOOP Chat", {
-              body: msg.content || "New message received",
-              data: { url: `/?loop=${loopId}` },
-              tag: `chat-msg-${loopId}`,
-            });
-          }
-        })
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-          (payload) => {
-            const newMsg = payload.new as any;
-            if (!newMsg?.id) return;
-            if (newMsg.user_id !== session.user.id && typeof document !== "undefined" && document.visibilityState === "hidden") {
-              playNotificationChime();
-              sendLocalNotification("LOOP Chat", {
-                body: newMsg.content || "New message received",
-                data: { url: `/?loop=${loopId}` },
-                tag: `chat-msg-${loopId}`,
-              });
-            }
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === newMsg.id)) return prev;
-              // Instant resolution from loop members without database roundtrip
-              const sender = loopMembersRef.current.find((mem) => mem.user_id === newMsg.user_id);
-              const enriched: Message = {
-                ...newMsg,
-                profiles: sender?.profiles || { display_name: "Member" },
-              };
-              const updated = [...prev, enriched];
-              messageCache.set(loopId, updated);
-              requestAnimationFrame(() => scrollToBottom(true));
-              return updated;
-            });
-          }
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-          (payload) => {
-            const updated = payload.new as any;
-            if (!updated?.id) return;
-            setMessages((prev) => {
-              const next = prev.map((m) =>
-                m.id === updated.id
-                  ? { ...m, ...updated, profiles: m.profiles }
-                  : m
-              );
-              messageCache.set(loopId, next);
-              return next;
-            });
-          }
-        )
-        .on(
-          "postgres_changes",
-          { event: "DELETE", schema: "public", table: "messages", filter: `loop_id=eq.${loopId}` },
-          (payload) => {
-            const deletedId = payload.old?.id;
-            if (!deletedId) return;
-            setMessages((prev) => {
-              const next = prev.filter((m) => m.id !== deletedId);
-              messageCache.set(loopId, next);
-              return next;
-            });
-          }
-        )
-        .subscribe();
-    };
-
-    const unsubscribeChannel = () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+    const memberPoll = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchMembers(loopId);
       }
-    };
-
-    // Only subscribe immediately if tab is currently visible
-    if (typeof document === "undefined" || document.visibilityState === "visible") {
-      subscribeChannel();
-    }
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        // Free WebSocket connection when tab is backgrounded
-        unsubscribeChannel();
-      } else if (document.visibilityState === "visible") {
-        // Re-subscribe and fetch fresh messages when returning to foreground
-        subscribeChannel();
-        fetchMessages(loopId);
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      unsubscribeChannel();
-    };
-  }, [selectedLoop?.id, session.user.id, profile.display_name]);
+    }, 5000);
+    return () => clearInterval(memberPoll);
+  }, [selectedLoop?.id]);
 
   const PAGE_SIZE = 25;
 
@@ -359,6 +281,9 @@ export default function ChatView() {
         });
         messageCache.set(loopId, enriched);
         setMessages(enriched);
+        try {
+          localStorage.setItem(`loop_messages_${loopId}`, JSON.stringify(enriched));
+        } catch {}
         setHasMoreMessages(fallbackData.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
       }
@@ -367,6 +292,9 @@ export default function ChatView() {
       const msgs = (data as unknown as Message[]).reverse();
       messageCache.set(loopId, msgs);
       setMessages(msgs);
+      try {
+        localStorage.setItem(`loop_messages_${loopId}`, JSON.stringify(msgs));
+      } catch {}
       setHasMoreMessages(data.length === PAGE_SIZE);
       requestAnimationFrame(() => scrollToBottom(false));
     }
@@ -531,17 +459,11 @@ export default function ChatView() {
       setMessages((prev) => {
         const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
         messageCache.set(selectedLoop.id, next);
+        try {
+          localStorage.setItem(`loop_messages_${selectedLoop.id}`, JSON.stringify(next));
+        } catch {}
         return next;
       });
-
-      // Broadcast over WebSocket for instant delivery to all connected receivers
-      if (channelRef.current) {
-        channelRef.current.send({
-          type: "broadcast",
-          event: "new_message",
-          payload: realMsg,
-        });
-      }
     }
   };
 
@@ -777,16 +699,11 @@ export default function ChatView() {
           setMessages((prev) => {
             const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
             messageCache.set(selectedLoop.id, next);
+            try {
+              localStorage.setItem(`loop_messages_${selectedLoop.id}`, JSON.stringify(next));
+            } catch {}
             return next;
           });
-
-          if (channelRef.current) {
-            channelRef.current.send({
-              type: "broadcast",
-              event: "new_message",
-              payload: realMsg,
-            });
-          }
 
           toast.success("Spot shared in chat!");
         }

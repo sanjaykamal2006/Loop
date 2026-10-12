@@ -58,6 +58,46 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     const registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
     });
+
+    // Proactively warm the App Shell cache with all currently loaded Next.js JS/CSS chunks
+    // so even on a user's very first session (without refreshing), closing & reopening in Airplane Mode hydrates React
+    const warmAppShell = async () => {
+      try {
+        const assetUrls = new Set<string>(["/", "/manifest.webmanifest", window.location.pathname]);
+        document
+          .querySelectorAll<HTMLScriptElement | HTMLLinkElement>('script[src], link[rel="stylesheet"][href]')
+          .forEach((el) => {
+            const rawUrl = (el as HTMLScriptElement).src || (el as HTMLLinkElement).href;
+            if (rawUrl && rawUrl.startsWith(window.location.origin)) {
+              assetUrls.add(rawUrl);
+            }
+          });
+        const urls = Array.from(assetUrls);
+
+        if ("caches" in window) {
+          const cache = await window.caches.open("loop-app-shell-v2");
+          await Promise.allSettled(
+            urls.map(async (u) => {
+              const existing = await cache.match(u);
+              if (!existing) {
+                const res = await fetch(u);
+                if (res && res.status === 200) {
+                  await cache.put(u, res);
+                }
+              }
+            })
+          );
+        }
+
+        const activeWorker =
+          registration.active || registration.waiting || registration.installing || navigator.serviceWorker.controller;
+        if (activeWorker) {
+          activeWorker.postMessage({ type: "WARM_APP_SHELL", urls });
+        }
+      } catch {}
+    };
+
+    warmAppShell();
     return registration;
   } catch (err) {
     logger.warn("Service Worker registration failed:", err);

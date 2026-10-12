@@ -18,9 +18,31 @@ function checkIsRecovery(): boolean {
   );
 }
 
+function getCachedOfflineSession(): Session | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = localStorage.getItem("loop_offline_session");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed?.user?.id) return parsed as Session;
+    }
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.user?.id) return parsed as Session;
+        }
+      }
+    }
+  } catch {}
+  return null;
+}
+
 export default function Home() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(() => getCachedOfflineSession());
+  const [loading, setLoading] = useState<boolean>(() => !getCachedOfflineSession());
   const [isPasswordReset, setIsPasswordReset] = useState<boolean>(() => checkIsRecovery());
 
   useEffect(() => {
@@ -29,21 +51,57 @@ export default function Home() {
       setIsPasswordReset(true);
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const fallbackTimer = setTimeout(() => {
       setLoading(false);
-    });
+    }, 1500);
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: liveSession } }) => {
+        clearTimeout(fallbackTimer);
+        if (liveSession) {
+          setSession(liveSession);
+          try {
+            localStorage.setItem("loop_offline_session", JSON.stringify(liveSession));
+          } catch {}
+        } else if (typeof navigator !== "undefined" && !navigator.onLine) {
+          const offlineFallback = getCachedOfflineSession();
+          if (offlineFallback) setSession(offlineFallback);
+        } else {
+          setSession(null);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        clearTimeout(fallbackTimer);
+        const offlineFallback = getCachedOfflineSession();
+        if (offlineFallback) setSession(offlineFallback);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsPasswordReset(true);
       }
-      setSession(session);
+      if (nextSession) {
+        setSession(nextSession);
+        try {
+          localStorage.setItem("loop_offline_session", JSON.stringify(nextSession));
+        } catch {}
+      } else if (event === "SIGNED_OUT" && (typeof navigator === "undefined" || navigator.onLine)) {
+        setSession(null);
+        try {
+          localStorage.removeItem("loop_offline_session");
+        } catch {}
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {

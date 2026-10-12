@@ -13,7 +13,7 @@ import { formatLocation } from "@/lib/locationFormatter";
 import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
 
 export default function CreateView() {
-  const { session, profile, setView, fetchLoops, fetchUserMemberships, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
+  const { session, profile, setView, fetchLoops, fetchUserMemberships, registerCreatedLoop, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
   const { isDark, bg, border, cardBg, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState("");
@@ -230,6 +230,18 @@ export default function CreateView() {
         toast.error("Failed to create loop. Please try again.");
       } else if (data) {
         await supabase.from("loop_members").insert({ loop_id: data.id, user_id: session.user.id });
+
+        // Immediately persist newly created loop into activeLoops, userLoops, userJoinedLoops & localStorage
+        // so turning off internet right after creation still preserves the ride on the Home screen and SOS lease
+        registerCreatedLoop?.({
+          ...data,
+          member_count: 1,
+          creator: {
+            display_name: profile.display_name || "You",
+            avatar_url: profile.avatar_url,
+            reg_no: profile.reg_no,
+          },
+        });
 
         if (isReturnTrip) {
           toast.success("Return ride created successfully");

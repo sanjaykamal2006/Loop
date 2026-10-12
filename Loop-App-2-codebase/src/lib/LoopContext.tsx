@@ -41,6 +41,7 @@ interface LoopContextValue {
   fetchUserMemberships: (force?: boolean) => Promise<void>;
 
   // Actions
+  registerCreatedLoop: (loop: Loop) => void;
   joinLoop: (loop: Loop, profileOverride?: Partial<Profile>) => Promise<void>;
   deleteLoop: (loopId: string) => Promise<void>;
   leaveLoop: (loopId: string) => Promise<void>;
@@ -369,24 +370,59 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   const triggerSos = useCallback(() => {
     triggerHaptic(20);
-    const validContacts = emergencyContacts.filter((c) => /^[6-9]\d{9}$/.test(sanitizeIndianPhoneNumber(c.phone)));
-    if (validContacts.length === 0) {
-      toast.error("No emergency contact saved! Please add a trusted contact first.");
-      setShowEmergencyContactModal(true);
-      return;
-    }
     setShowSosModal(true);
-  }, [emergencyContacts]);
+  }, []);
+
+  // State-Leased Client Emergency Buffer: automatically provision local manifest lease
+  // when user has an active joined/created loop, and purge when ride ends or user leaves
+  useEffect(() => {
+    if (typeof window === "undefined" || !session?.user?.id) return;
+    const leaseKey = `loop_manifest_lease_${session.user.id}`;
+    try {
+      const activeUserLoop =
+        (selectedLoop && (userJoinedLoops.includes(selectedLoop.id) || userLoops.includes(selectedLoop.id))
+          ? selectedLoop
+          : null) ||
+        activeLoops.find((l) => userJoinedLoops.includes(l.id) || userLoops.includes(l.id)) ||
+        null;
+
+      if (activeUserLoop) {
+        const depTimeMs = new Date(activeUserLoop.departure_time).getTime();
+        const leaseTtlMs = Number.isFinite(depTimeMs) ? depTimeMs + 5 * 60 * 60 * 1000 : Date.now() + 5 * 60 * 60 * 1000;
+        if (Date.now() < leaseTtlMs) {
+          localStorage.setItem(
+            leaseKey,
+            JSON.stringify({
+              ...activeUserLoop,
+              lease_ttl: leaseTtlMs,
+            })
+          );
+          return;
+        }
+      }
+      localStorage.removeItem(leaseKey);
+    } catch {}
+  }, [activeLoops, userJoinedLoops, userLoops, selectedLoop, session?.user?.id]);
 
   const userJoinedLoopsRef = useRef(userJoinedLoops);
   useEffect(() => {
     userJoinedLoopsRef.current = userJoinedLoops;
-  }, [userJoinedLoops]);
+    if (typeof window !== "undefined" && session?.user?.id) {
+      try {
+        localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(userJoinedLoops));
+      } catch {}
+    }
+  }, [userJoinedLoops, session?.user?.id]);
 
   const userLoopsRef = useRef(userLoops);
   useEffect(() => {
     userLoopsRef.current = userLoops;
-  }, [userLoops]);
+    if (typeof window !== "undefined" && session?.user?.id) {
+      try {
+        localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(userLoops));
+      } catch {}
+    }
+  }, [userLoops, session?.user?.id]);
 
   const viewRef = useRef(view);
   useEffect(() => {
@@ -401,7 +437,51 @@ export function LoopProvider({ session, children }: { session: Session; children
   const activeLoopsRef = useRef(activeLoops);
   useEffect(() => {
     activeLoopsRef.current = activeLoops;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("loop_active_loops_cache", JSON.stringify(activeLoops));
+      } catch {}
+    }
   }, [activeLoops]);
+
+  const registerCreatedLoop = useCallback((newLoop: Loop) => {
+    setActiveLoops((prev) => {
+      const next = prev.some((l) => l.id === newLoop.id)
+        ? prev.map((l) => (l.id === newLoop.id ? newLoop : l))
+        : [newLoop, ...prev];
+      const sorted = [...next].sort(
+        (a, b) => new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime()
+      );
+      activeLoopsRef.current = sorted;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("loop_active_loops_cache", JSON.stringify(sorted));
+        } catch {}
+      }
+      return sorted;
+    });
+    setUserLoops((prev) => {
+      const next = Array.from(new Set([...prev, newLoop.id]));
+      userLoopsRef.current = next;
+      if (typeof window !== "undefined" && session?.user?.id) {
+        try {
+          localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+    setUserJoinedLoops((prev) => {
+      const next = Array.from(new Set([...prev, newLoop.id]));
+      userJoinedLoopsRef.current = next;
+      if (typeof window !== "undefined" && session?.user?.id) {
+        try {
+          localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+    setSelectedLoop(newLoop);
+  }, [session?.user?.id, setSelectedLoop]);
 
   // --- Browser back button support ---
   const setView = useCallback((v: View) => {
@@ -957,6 +1037,9 @@ export function LoopProvider({ session, children }: { session: Session; children
   }, [session.user.id, setSelectedLoop, setView, fetchLoops, fetchUserMemberships]);
 
   const handleSignOut = useCallback(async () => {
+    try {
+      localStorage.removeItem("loop_offline_session");
+    } catch {}
     await supabase.auth.signOut({ scope: "global" });
     // Force reload as fallback — some desktop browsers don't fire the auth state change
     window.location.reload();
@@ -1267,6 +1350,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     userJoinedLoops,
     userLoops,
     fetchUserMemberships,
+    registerCreatedLoop,
     joinLoop,
     deleteLoop,
     leaveLoop,
