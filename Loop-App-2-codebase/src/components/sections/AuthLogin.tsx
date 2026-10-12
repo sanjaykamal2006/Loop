@@ -342,12 +342,23 @@ export default function AuthLogin({
             <ArrowLeft size={20} />
           </button>
 
-          <div className="flex flex-col items-center justify-center flex-1 space-y-8 sm:space-y-10">
+          <div className="flex flex-col items-center justify-center flex-1 space-y-6 sm:space-y-8">
             <div className="text-center space-y-2">
               <h1 className="text-4xl font-black tracking-tighter">VERIFY</h1>
-              <p className="text-sm font-medium opacity-40 max-w-[200px] mx-auto">
-                Enter the code sent to <span className="text-white opacity-100">{email}</span>
+              <p className="text-sm font-medium opacity-50 max-w-[260px] mx-auto">
+                Enter the 6-digit code sent to <span className="text-white font-bold opacity-100">{email}</span>
               </p>
+            </div>
+
+            {/* Prominent Spam Folder Alert for New Signups */}
+            <div className="w-full p-3.5 bg-[#FFC554]/10 border border-[#FFC554]/30 rounded-2xl flex items-start gap-2.5 text-left">
+              <AlertTriangle size={18} className="text-[#FFC554] shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-[#FFC554]">Check your Spam / Junk folder</p>
+                <p className="text-[11px] text-white/75 leading-tight">
+                  VIT-AP Gmail often filters verification codes into Spam. If it&apos;s not in your inbox within 10 seconds, check your <strong className="text-white font-semibold">Spam</strong> folder!
+                </p>
+              </div>
             </div>
 
             <div className="space-y-6 w-full flex flex-col items-center">
@@ -365,17 +376,6 @@ export default function AuthLogin({
                   </div>
                 )}
               />
-
-              {/* Informative Spam / Junk note */}
-              <div className="space-y-1 text-center px-2">
-                <p className="text-xs text-white/60 font-medium flex items-center justify-center gap-1.5">
-                  <Mail size={13} className="text-[#FFC554]/80 shrink-0" />
-                  <span>Can&apos;t find the OTP? Check your <strong className="text-white font-semibold">Spam or Junk</strong> folder.</span>
-                </p>
-                <p className="text-[10px] text-white/35">
-                  Still haven&apos;t received it? Wait a moment and try Resend OTP.
-                </p>
-              </div>
 
               <div className="w-full space-y-3">
                 <button
