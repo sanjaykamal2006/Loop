@@ -938,6 +938,8 @@ export default function ChatView() {
                       reg_no: isMe ? profile.reg_no : msg.profiles?.reg_no,
                       gender: isMe ? profile.gender : msg.profiles?.gender,
                       bio: isMe ? profile.bio : msg.profiles?.bio,
+                      phone_number: isMe ? profile.phone_number : msg.profiles?.phone_number,
+                      is_student_verified: isMe ? profile.is_student_verified : msg.profiles?.is_student_verified,
                     })}
                     className={`flex items-center gap-1.5 mb-1 px-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all ${isMe ? "flex-row-reverse" : ""}`}
                   >
