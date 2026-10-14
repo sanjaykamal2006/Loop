@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOOP — Project Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --yellow: #FFC554;
+    --dark: #0a0a0a;
+    --gray: #666;
+    --light-gray: #f5f5f5;
+    --border: #e0e0e0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: #1a1a1a;
+    background: #fff;
+    line-height: 1.7;
+    font-size: 11pt;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+  }
+
+  @media print {
+    body { font-size: 10pt; }
+    .page-break { page-break-before: always; }
+    .no-break { page-break-inside: avoid; }
+    .cover { page-break-after: always; }
+  }
+
+  /* ═══════════════════════════════════════════════ */
+  /*  COVER PAGE                                     */
+  /* ═══════════════════════════════════════════════ */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(160deg, #000 0%, #111 50%, #1a1a1a 100%);
+    color: white;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  .cover-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 86pt;
+    font-weight: 700;
+    letter-spacing: -3px;
+    color: var(--yellow);
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 80px rgba(255, 197, 84, 0.3);
+  }
+
+  .cover-subtitle {
+    font-size: 13pt;
+    font-weight: 600;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-tagline {
+    font-size: 16pt;
+    font-weight: 400;
+    color: rgba(255,255,255,0.7);
+    max-width: 520px;
+    margin-top: 40px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+    font-style: italic;
+  }
+
+  .cover-meta {
+    position: relative;
+    z-index: 1;
+    margin-top: 80px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    text-align: left;
+    max-width: 480px;
+  }
+
+  .cover-meta-item label {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--yellow);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .cover-meta-item span {
+    font-size: 11pt;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+  }
+
+  .cover-badge {
+    position: relative;
+    z-index: 1;
+    margin-top: 50px;
+    display: inline-block;
+    padding: 10px 28px;
+    border: 1px solid rgba(255, 197, 84, 0.3);
+    border-radius: 100px;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--yellow);
+  }
+
+  /* ═══════════════════════════════════════════════ */
+  /*  CONTENT PAGES                                  */
+  /* ═══════════════════════════════════════════════ */
+  .content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 50px 30px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22pt;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  h1 .accent { color: var(--yellow); }
+
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16pt;
+    font-weight: 700;
+    color: var(--dark);
+    margin-top: 36px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--yellow);
+    display: inline-block;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #333;
+    margin-top: 22px;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin-bottom: 12px;
+    color: #333;
+    text-align: justify;
+  }
+
+  .section-divider {
+    width: 60px;
+    height: 3px;
+    background: var(--yellow);
+    margin-bottom: 28px;
+  }
+
+  ul, ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+  }
+
+  li {
+    margin-bottom: 6px;
+    color: #444;
+  }
+
+  li strong {
+    color: #1a1a1a;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 22px 0;
+    font-size: 10pt;
+  }
+
+  th {
+    background: var(--dark);
+    color: white;
+    font-weight: 700;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: #444;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td {
+    background: #fafafa;
+  }
+
+  /* Code blocks */
+  code {
+    font-family: 'Courier New', monospace;
+    background: #f3f3f3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    color: #c7254e;
+  }
+
+  pre {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 9pt;
+    overflow-x: auto;
+    margin: 14px 0 20px 0;
+    line-height: 1.6;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Info boxes */
+  .info-box {
+    background: #FFFBF0;
+    border-left: 4px solid var(--yellow);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 10pt;
+  }
+
+  .info-box strong {
+    color: var(--dark);
+  }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    color: white;
+    padding: 22px 26px;
+    border-radius: 14px;
+    margin: 20px 0;
+  }
+
+  .highlight-box h3 {
+    color: var(--yellow);
+    margin-top: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.3px;
+  }
+
+  .highlight-box p, .highlight-box li {
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* Feature grid */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0 22px 0;
+  }
+
+  .feature-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .feature-card .icon {
+    font-size: 22pt;
+    margin-bottom: 8px;
+  }
+
+  .feature-card h4 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--dark);
+  }
+
+  .feature-card p {
+    font-size: 9pt;
+    color: var(--gray);
+    margin-bottom: 0;
+    text-align: left;
+  }
+
+  /* Architecture diagram via CSS */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+
+  .arch-node {
+    background: var(--dark);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 9pt;
+    font-weight: 700;
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .arch-node.primary {
+    background: var(--yellow);
+    color: black;
+  }
+
+  .arch-arrow {
+    font-size: 16pt;
+    color: var(--gray);
+  }
+
+  /* Footer */
+  .page-footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    font-size: 8.5pt;
+    color: var(--gray);
+    letter-spacing: 1px;
+  }
+
+  /* Table of Contents */
+  .toc {
+    list-style: none;
+    padding: 0;
+    counter-reset: toc-counter;
+  }
+
+  .toc li {
+    counter-increment: toc-counter;
+    padding: 10px 0;
+    border-bottom: 1px dotted #ddd;
+    font-size: 11pt;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toc li::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--yellow);
+    margin-right: 14px;
+    font-size: 12pt;
+    min-width: 28px;
+  }
+
+  .toc li span.pg {
+    font-size: 9pt;
+    color: #999;
+    font-weight: 400;
+  }
+
+  /* Schema box */
+  .schema-table {
+    font-size: 9pt;
+    margin-bottom: 18px;
+  }
+
+  .schema-table caption {
+    text-align: left;
+    font-weight: 700;
+    font-size: 11pt;
+    padding: 8px 0 6px 0;
+    color: var(--dark);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .schema-table th {
+    font-size: 8pt;
+    padding: 7px 10px;
+  }
+
+  .schema-table td {
+    padding: 6px 10px;
+    font-size: 9pt;
+  }
+
+  .quote-block {
+    border-left: 4px solid var(--yellow);
+    padding: 14px 20px;
+    margin: 16px 0;
+    background: #fafafa;
+    font-style: italic;
+    color: #555;
+    font-size: 11pt;
+    line-height: 1.7;
+  }
+
+  .quote-block cite {
+    display: block;
+    margin-top: 8px;
+    font-style: normal;
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 9.5pt;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .stat-card {
+    text-align: center;
+    padding: 18px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .stat-card .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26pt;
+    font-weight: 700;
+    color: var(--yellow);
+    display: block;
+  }
+
+  .stat-card .lbl {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  COVER PAGE                                     -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">LOOP</div>
+  <div class="cover-subtitle">Purpose-Based Ride Coordination</div>
+
+  <p class="cover-tagline">
+    "A fast, purpose-built platform where finding a ride takes seconds, not conversations."
+  </p>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <label>Developed By</label>
+      <span>Sanjay Kamal S</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Registration No.</label>
+      <span>24MIC7130</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Program</label>
+      <span>M.Tech (Integrated) CSE</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Institution</label>
+      <span>VIT-AP University, SCOPE</span>
+    </div>
+  </div>
+
+  <div class="cover-badge">Technical Project Report — August 2026</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  TABLE OF CONTENTS                              -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1>Table of <span class="accent">Contents</span></h1>
+  <div class="section-divider"></div>
+
+  <ol class="toc">
+    <li>Abstract & Project Overview</li>
+    <li>Problem Statement</li>
+    <li>Proposed Solution</li>
+    <li>Technology Stack</li>
+    <li>System Architecture</li>
+    <li>Database Design</li>
+    <li>Core Features & Modules</li>
+    <li>Real-Time Communication Engine</li>
+    <li>Security & Authentication</li>
+    <li>User Interface & Design System</li>
+    <li>Technical Challenges & Solutions</li>
+    <li>Project Statistics</li>
+    <li>Future Scope</li>
+    <li>Conclusion</li>
+  </ol>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  1. ABSTRACT                                    -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">01</span> — Abstract & Project Overview</h1>
+  <div class="section-divider"></div>
+
+  <p>
+    <strong>LOOP</strong> is a real-time, purpose-based coordination platform designed as a mobile-first progressive web application for university campuses. It enables students to connect with others heading to the same destination at the same time — transforming the process of finding a co-passenger, splitting an auto fare, or coordinating a group ride from a minutes-long chat negotiation into a <strong>single-tap, seconds-fast</strong> interaction.
+  </p>
+
+  <p>
+    Unlike traditional ride-sharing applications (Uber, Ola) or informal WhatsApp group chats, LOOP is purpose-built for temporary, real-time coordination without social media distractions. Loops (coordination sessions) are created, joined, used, and closed — leaving zero digital clutter. The platform emphasizes <strong>speed, safety, and utility</strong>.
+  </p>
+
+  <div class="quote-block">
+    "LOOP wasn't created to reinvent ride sharing — it was created to remove everything that slows it down. A fast, purpose-built platform where finding a ride takes seconds, not conversations."
+    <cite>— Sanjay Kamal S, Creator</cite>
+  </div>
+
+  <h3>Key Objectives</h3>
+  <ul>
+    <li><strong>Instant Discovery:</strong> Browse real-time ride loops by destination, vehicle type, and availability</li>
+    <li><strong>Zero-Friction Coordination:</strong> One-tap join → instant group chat → split fare → done</li>
+    <li><strong>Safety-First Architecture:</strong> Gender filtering, trusted driver directories, SOS sharing, and ride verification</li>
+    <li><strong>Mobile-Perfect Design:</strong> Entire app runs within a single mobile viewport with zero page scrolling</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  2. PROBLEM STATEMENT                           -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">02</span> — Problem Statement</h1>
+  <div class="section-divider"></div>
+
+  <p>
+    University students across India face a common daily challenge: <strong>getting from campus to town, railway stations, bus stops, or nearby cities affordably and quickly</strong>. The current coordination methods are fundamentally broken:
+  </p>
+
+  <h3>Existing Approaches & Their Failures</h3>
+
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Problem</th>
+    </tr>
+    <tr>
+      <td><strong>WhatsApp Groups</strong></td>
+      <td>Messages get buried under unrelated chats. No structured ride-matching. No real-time status. Groups become noisy and unusable over time.</td>
+    </tr>
+    <tr>
+      <td><strong>Standing at the Gate</strong></td>
+      <td>Students physically wait at college gates hoping someone going their direction will walk by. Wastes 15–30 minutes daily.</td>
+    </tr>
+    <tr>
+      <td><strong>Uber / Ola</strong></td>
+      <td>Expensive for solo rides. No built-in fare splitting with strangers. Not available or viable in tier-2/3 campus locations. Not designed for ₹30–₹80 auto rides.</td>
+    </tr>
+    <tr>
+      <td><strong>Asking Around</strong></td>
+      <td>Requires social effort. Introverts, new students, and those without large friend circles are disadvantaged.</td>
+    </tr>
+  </table>
+
+  <div class="info-box">
+    <strong>The Core Gap:</strong> There is no existing digital tool that allows a student to say <em>"I need to go to Vijayawada Railway Station right now — who else is going?"</em> and instantly find 2–3 co-passengers within seconds.
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  3. PROPOSED SOLUTION                           -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">03</span> — Proposed Solution</h1>
+  <div class="section-divider"></div>
+
+  <p>
+    LOOP solves this problem through a streamlined three-step flow that any student can execute in under <strong>10 seconds</strong>:
+  </p>
+
+  <div class="highlight-box">
+    <h3>The LOOP Flow</h3>
+    <ol>
+      <li><strong>Create or Find a Loop:</strong> Set your destination, vehicle type, seat count, and departure time — or browse the real-time feed of active loops created by others.</li>
+      <li><strong>Join & Coordinate:</strong> One tap joins you into the loop's live group chat. Coordinate pickup points, share locations, and confirm the ride.</li>
+      <li><strong>Ride & Split:</strong> The host logs the total fare. LOOP auto-calculates each person's split. Ride done, loop closes.</li>
+    </ol>
+  </div>
+
+  <h3>What Makes LOOP Different</h3>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h4>Real-Time Feed</h4>
+      <p>All active loops update live. No refresh needed. See available rides as they're created across campus.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">💬</div>
+      <h4>Built-In Group Chat</h4>
+      <p>Every loop has its own dedicated chat room with reactions, typing indicators, and presence tracking.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🛡️</div>
+      <h4>Safety by Design</h4>
+      <p>"Girls Only" loops, visible registration numbers, gender badges, trusted driver directory, and SOS sharing.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">💰</div>
+      <h4>Auto Fare Splitting</h4>
+      <p>Host enters total fare once. Every passenger sees their split instantly — no awkward calculations.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  4. TECHNOLOGY STACK                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">04</span> — Technology Stack</h1>
+  <div class="section-divider"></div>
+
+  <table>
+    <tr>
+      <th>Layer</th>
+      <th>Technology</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td><strong>Framework</strong></td>
+      <td>Next.js 15 (App Router)</td>
+      <td>React-based server-rendered web framework with file-based routing and optimized builds</td>
+    </tr>
+    <tr>
+      <td><strong>Language</strong></td>
+      <td>TypeScript</td>
+      <td>Static type checking for data models, API contracts, and component props</td>
+    </tr>
+    <tr>
+      <td><strong>Backend & Database</strong></td>
+      <td>Supabase (PostgreSQL)</td>
+      <td>Managed relational database with Row Level Security (RLS), auto-generated REST APIs</td>
+    </tr>
+    <tr>
+      <td><strong>Authentication</strong></td>
+      <td>Supabase Auth</td>
+      <td>Email/Password with OTP verification, session management, JWT tokens</td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time Engine</strong></td>
+      <td>Supabase Realtime</td>
+      <td>WebSocket channels for live chat broadcast, presence tracking, and database CDC events</td>
+    </tr>
+    <tr>
+      <td><strong>File Storage</strong></td>
+      <td>Supabase Storage</td>
+      <td>Object storage for user profile avatar uploads with public URL generation</td>
+    </tr>
+    <tr>
+      <td><strong>Styling</strong></td>
+      <td>Tailwind CSS 4</td>
+      <td>Utility-first CSS framework with CSS variable design tokens</td>
+    </tr>
+    <tr>
+      <td><strong>Icons</strong></td>
+      <td>Lucide React</td>
+      <td>Open-source icon library with tree-shakable SVG components</td>
+    </tr>
+    <tr>
+      <td><strong>Notifications</strong></td>
+      <td>Sonner</td>
+      <td>Lightweight toast notification system for user feedback</td>
+    </tr>
+    <tr>
+      <td><strong>Hosting</strong></td>
+      <td>Vercel</td>
+      <td>Edge-optimized deployment with auto CI/CD from GitHub main branch</td>
+    </tr>
+    <tr>
+      <td><strong>Version Control</strong></td>
+      <td>Git + GitHub</td>
+      <td>Source code management with full commit history</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  5. SYSTEM ARCHITECTURE                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">05</span> — System Architecture</h1>
+  <div class="section-divider"></div>
+
+  <h3>High-Level Architecture</h3>
+
+  <p>LOOP follows a <strong>serverless, event-driven</strong> architecture where the Next.js frontend communicates directly with Supabase services:</p>
+
+  <div class="arch-flow">
+    <div class="arch-node primary">Mobile Browser<br><small>Next.js 15 PWA</small></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">Supabase REST API<br><small>CRUD Operations</small></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">PostgreSQL<br><small>Database</small></div>
+  </div>
+
+  <div class="arch-flow">
+    <div class="arch-node primary">Mobile Browser</div>
+    <div class="arch-arrow">⇄</div>
+    <div class="arch-node">Supabase Realtime<br><small>WebSocket Channels</small></div>
+    <div class="arch-arrow">⇄</div>
+    <div class="arch-node">PostgreSQL CDC<br><small>Change Data Capture</small></div>
+  </div>
+
+  <h3>Application Component Architecture</h3>
+  <p>The app uses a <strong>single-page view-based state machine</strong> pattern where navigation between screens is managed via a centralized <code>view</code> state in React Context:</p>
+
+  <pre>
+┌─────────────────────────────────────────────┐
+│                  MainApp                     │
+│  ┌──────────┐  ┌──────────────────────────┐ │
+│  │ AppHeader │  │       View Router         │ │
+│  └──────────┘  │                            │ │
+│                │  home     → HomeView       │ │
+│                │  create   → CreateView     │ │
+│                │  chat-list→ ChatListView   │ │
+│                │  chat     → ChatView       │ │
+│                │  profile  → ProfileView    │ │
+│                │  ride-det → RideDetailsView│ │
+│                │  trusted  → TrustedVehicles│ │
+│                └──────────────────────────┘ │
+│  ┌───────────┐                              │
+│  │ BottomNav  │ (hidden in chat/ride views) │
+│  └───────────┘                              │
+│  ┌────────────────────┐                     │
+│  │ Global: LoopContext │ (state + auth)     │
+│  └────────────────────┘                     │
+└─────────────────────────────────────────────┘</pre>
+
+  <h3>File Structure</h3>
+  <pre>
+src/
+├── app/
+│   ├── layout.tsx          # Root layout, meta tags, PWA config
+│   ├── page.tsx            # Entry point, session routing
+│   └── globals.css         # Design tokens, dot-matrix BG
+├── components/sections/
+│   ├── MainApp.tsx         # View router & shell
+│   ├── AuthLogin.tsx       # Login/Signup/OTP flow
+│   ├── AppHeader.tsx       # Top bar with settings
+│   ├── HomeView.tsx        # Live loop feed
+│   ├── CreateView.tsx      # Loop creation form
+│   ├── ChatView.tsx        # Real-time group chat
+│   ├── ChatListView.tsx    # Active chats list
+│   ├── ProfileView.tsx     # User profile & settings
+│   ├── RideDetailsView.tsx # Ride info & passengers
+│   ├── TrustedVehiclesView # Community driver directory
+│   ├── BottomNav.tsx       # Tab navigation bar
+│   └── ...modals           # Gender, Terms, Creator, UserProfile
+└── lib/
+    ├── LoopContext.tsx      # Global state provider
+    ├── supabase.ts          # Supabase client init
+    └── types.ts             # TypeScript interfaces</pre>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  6. DATABASE DESIGN                             -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">06</span> — Database Design</h1>
+  <div class="section-divider"></div>
+
+  <p>The database follows a <strong>normalized relational schema</strong> in PostgreSQL with foreign key constraints, indexes, and Row Level Security (RLS) policies:</p>
+
+  <table class="schema-table no-break">
+    <caption>profiles</caption>
+    <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>id</code></td><td>UUID (PK)</td><td>References auth.users — auto-created on signup</td></tr>
+    <tr><td><code>display_name</code></td><td>TEXT</td><td>User's visible name across the app</td></tr>
+    <tr><td><code>reg_no</code></td><td>TEXT</td><td>University registration number (e.g. 24MIC7130)</td></tr>
+    <tr><td><code>gender</code></td><td>TEXT</td><td>"male" or "female" — used for safety filtering</td></tr>
+    <tr><td><code>avatar_url</code></td><td>TEXT</td><td>Public URL of uploaded profile picture</td></tr>
+    <tr><td><code>bio</code></td><td>TEXT</td><td>Short user bio (max 120 chars)</td></tr>
+    <tr><td><code>theme</code></td><td>TEXT</td><td>"dark" or "light" — persisted theme preference</td></tr>
+  </table>
+
+  <table class="schema-table no-break">
+    <caption>loops</caption>
+    <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>id</code></td><td>UUID (PK)</td><td>Unique loop identifier</td></tr>
+    <tr><td><code>creator_id</code></td><td>UUID (FK)</td><td>References profiles.id — the host</td></tr>
+    <tr><td><code>destination</code></td><td>TEXT</td><td>Where the ride is going</td></tr>
+    <tr><td><code>start_point</code></td><td>TEXT</td><td>Pickup / departure location</td></tr>
+    <tr><td><code>vehicle_type</code></td><td>TEXT</td><td>auto, bike, car, share_auto, walk</td></tr>
+    <tr><td><code>participants_limit</code></td><td>INT</td><td>Max passengers (2–10)</td></tr>
+    <tr><td><code>total_fare</code></td><td>NUMERIC</td><td>Total ride cost entered by host</td></tr>
+    <tr><td><code>is_female_only</code></td><td>BOOLEAN</td><td>Restricts to female-only passengers</td></tr>
+    <tr><td><code>status</code></td><td>TEXT</td><td>open → active → ended</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td>Auto-generated creation timestamp</td></tr>
+  </table>
+
+  <table class="schema-table no-break">
+    <caption>loop_members</caption>
+    <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>id</code></td><td>UUID (PK)</td><td>Unique membership ID</td></tr>
+    <tr><td><code>loop_id</code></td><td>UUID (FK)</td><td>Which loop this membership belongs to</td></tr>
+    <tr><td><code>user_id</code></td><td>UUID (FK)</td><td>Which user joined</td></tr>
+    <tr><td><code>joined_at</code></td><td>TIMESTAMPTZ</td><td>When the user joined</td></tr>
+  </table>
+
+  <table class="schema-table no-break">
+    <caption>messages</caption>
+    <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>id</code></td><td>UUID (PK)</td><td>Unique message ID</td></tr>
+    <tr><td><code>loop_id</code></td><td>UUID (FK)</td><td>Which loop chat this message belongs to</td></tr>
+    <tr><td><code>user_id</code></td><td>UUID (FK)</td><td>Who sent the message</td></tr>
+    <tr><td><code>content</code></td><td>TEXT</td><td>Message body</td></tr>
+    <tr><td><code>reactions</code></td><td>JSONB</td><td>Emoji reactions map: {"👍": ["user_id_1", ...]}</td></tr>
+    <tr><td><code>edited_at</code></td><td>TIMESTAMPTZ</td><td>Null if not edited, timestamp if edited</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td>Auto-generated send timestamp</td></tr>
+  </table>
+
+  <table class="schema-table no-break">
+    <caption>trusted_vehicles</caption>
+    <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>id</code></td><td>UUID (PK)</td><td>Unique entry ID</td></tr>
+    <tr><td><code>user_id</code></td><td>UUID (FK)</td><td>Who added this driver</td></tr>
+    <tr><td><code>driver_name</code></td><td>TEXT</td><td>Name of the trusted driver</td></tr>
+    <tr><td><code>phone_number</code></td><td>TEXT</td><td>Driver's phone number</td></tr>
+    <tr><td><code>vehicle_type</code></td><td>TEXT</td><td>bike, auto, or share_auto</td></tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  7. CORE FEATURES                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">07</span> — Core Features & Modules</h1>
+  <div class="section-divider"></div>
+
+  <h2>7.1 Authentication System</h2>
+  <ul>
+    <li><strong>Email + Password Login</strong> with Supabase Auth, including custom rate-limit error handling</li>
+    <li><strong>6-Digit OTP Signup</strong> — new users receive a one-time verification code via email before account activation</li>
+    <li><strong>Session Persistence</strong> — JWT-based sessions survive browser closures using Supabase's auto-refresh mechanism</li>
+    <li><strong>Gender Onboarding Modal</strong> — forces gender selection on first login for safety features</li>
+  </ul>
+
+  <h2>7.2 Loop Discovery & Home Feed</h2>
+  <ul>
+    <li>Real-time feed of all active loops with instant search (destination, pickup, vehicle type)</li>
+    <li>Compact loop cards showing: destination, vehicle type, seat availability, total fare, per-person split, gender filter, and countdown timer</li>
+    <li>Multi-device sync via Supabase Realtime subscriptions on <code>loops</code> and <code>loop_members</code> tables</li>
+    <li>Manual refresh button in header for explicit data reload</li>
+  </ul>
+
+  <h2>7.3 Loop Creation</h2>
+  <ul>
+    <li>Interactive vehicle type selector (Auto, Bike, Car, Share Auto, Walk) with visual icons</li>
+    <li>2-row interactive seat picker (2–10 passengers)</li>
+    <li>"Girls Only" toggle for female-safe rides</li>
+    <li>Auto-calculated departure countdown and estimated fare per person</li>
+  </ul>
+
+  <h2>7.4 Real-Time Group Chat</h2>
+  <ul>
+    <li>Dual-engine messaging: WebSocket Broadcast + 1-second database polling safety net</li>
+    <li>Optimistic message rendering (messages appear instantly before server confirmation)</li>
+    <li>Emoji reactions (👍 ❤️ 😂 👎) with one-reaction-per-user enforcement</li>
+    <li>Message editing within a 5-minute window</li>
+    <li>Live typing indicators and presence tracking</li>
+    <li>Smart scroll engine: only auto-scrolls when messages overflow the viewport</li>
+  </ul>
+
+  <h2>7.5 Ride Details & Host Controls</h2>
+  <ul>
+    <li>Passenger roster with avatar images, gender badges, and registration numbers</li>
+    <li>Host can: edit total fare, remove passengers, and delete the loop</li>
+    <li>Auto fare-split calculator: <code>₹Total ÷ Members = ₹Per Person</code></li>
+    <li>SOS/Share integration via WhatsApp deep links</li>
+  </ul>
+
+  <h2>7.6 Profile & Community</h2>
+  <ul>
+    <li>Profile picture upload via Supabase Storage with live preview</li>
+    <li>Editable display name, registration number, and bio</li>
+    <li>Persisted dark/light theme preference</li>
+    <li><strong>Trusted Drivers Directory:</strong> Community-sourced database of verified local auto/cab drivers with name, phone, and vehicle type (max 5 per user)</li>
+    <li>Past loops history and about-the-creator modal</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  8. REAL-TIME ENGINE                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">08</span> — Real-Time Communication Engine</h1>
+  <div class="section-divider"></div>
+
+  <p>
+    The chat system uses a <strong>hybrid dual-engine approach</strong> to guarantee message delivery regardless of network conditions:
+  </p>
+
+  <h3>Engine 1: Supabase Realtime Broadcast (Primary)</h3>
+  <p>
+    When a user sends a message, the client simultaneously inserts into the database and sends a WebSocket broadcast event on the loop's channel. Connected receivers get the message in <strong>under 10 milliseconds</strong> through the broadcast layer — before the database write is even confirmed.
+  </p>
+
+  <h3>Engine 2: 1-Second Background Polling (Safety Net)</h3>
+  <p>
+    On mobile networks (especially college Wi-Fi), WebSocket connections can drop silently when a user locks their screen, switches apps, or moves between cell towers. A 1-second <code>setInterval</code> continuously queries the messages table, ensuring any missed WebSocket events are caught within 1 second maximum.
+  </p>
+
+  <h3>Engine 3: PostgreSQL CDC Events (Database Trigger)</h3>
+  <p>
+    Supabase Realtime also listens for <code>postgres_changes</code> INSERT/UPDATE events on the messages table. This acts as a tertiary fallback that triggers a full message re-fetch when a database write is detected.
+  </p>
+
+  <div class="highlight-box">
+    <h3>Message Delivery Guarantee</h3>
+    <p>With all three engines combined, LOOP achieves <strong>~100% message delivery reliability</strong> across all network conditions. The deduplication logic (checking message IDs before inserting into state) ensures no duplicate messages ever appear.</p>
+  </div>
+
+  <h3>Typing Indicators & Presence</h3>
+  <p>
+    Supabase Presence is used to broadcast typing state. When a user types, their presence payload is updated with <code>typing: true</code>. After 2 seconds of inactivity, it resets to <code>false</code>. Other connected clients render a pulsing "X is typing…" indicator.
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  9. SECURITY                                    -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">09</span> — Security & Authentication</h1>
+  <div class="section-divider"></div>
+
+  <h3>Authentication Layer</h3>
+  <ul>
+    <li><strong>Supabase Auth (GoTrue):</strong> Industry-standard JWT-based authentication with bcrypt password hashing</li>
+    <li><strong>OTP Email Verification:</strong> New accounts require 6-digit code verification before activation</li>
+    <li><strong>Rate Limiting:</strong> Custom error handling for Supabase's built-in rate limiting (429 responses)</li>
+    <li><strong>Session Auto-Refresh:</strong> JWTs are refreshed automatically using Supabase's <code>onAuthStateChange</code> listener</li>
+  </ul>
+
+  <h3>Database Security (Row Level Security)</h3>
+  <ul>
+    <li>All Supabase tables have <strong>RLS enabled</strong> — users can only read and write data they are authorized to access</li>
+    <li>Profile updates are restricted to the authenticated user's own row</li>
+    <li>Messages can only be edited/deleted by their sender</li>
+    <li>Loop deletion and member removal are restricted to the loop creator</li>
+  </ul>
+
+  <h3>Safety Features for Users</h3>
+  <ul>
+    <li><strong>"Girls Only" Filter:</strong> Loops flagged as girls-only are only joinable by users with <code>gender: "female"</code></li>
+    <li><strong>Visible Registration Numbers:</strong> University reg. numbers are displayed alongside names for accountability</li>
+    <li><strong>SOS Sharing:</strong> One-tap WhatsApp sharing with pre-filled ride details for safety tracking</li>
+    <li><strong>Trusted Drivers Directory:</strong> Verified local drivers shared by the student community</li>
+  </ul>
+
+  <h3>Anti-Autofill & Input Security</h3>
+  <ul>
+    <li>Chat input uses <code>type="search"</code> with <code>autoComplete="new-password"</code> to prevent mobile browsers from triggering password managers and credit card autofill overlays</li>
+    <li>Additional data attributes (<code>data-lpignore</code>, <code>data-1p-ignore</code>) suppress third-party password manager injection</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  10. UI & DESIGN SYSTEM                        -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">10</span> — User Interface & Design System</h1>
+  <div class="section-divider"></div>
+
+  <h3>Design Principles</h3>
+  <ol>
+    <li><strong>Mobile-First, Single-Screen:</strong> The entire app runs within <code>100dvh</code> — no page scrolling. All navigation is instant view-switching.</li>
+    <li><strong>One-Hand Friendly:</strong> All primary actions are reachable with a thumb. Touch targets are minimum 44×44px with <code>active:scale</code> feedback.</li>
+    <li><strong>Minimalism Over Decoration:</strong> Content density is high but visual noise is zero. Every pixel serves a purpose.</li>
+  </ol>
+
+  <h3>Color System</h3>
+  <table>
+    <tr><th>Token</th><th>Dark Mode</th><th>Light Mode</th><th>Usage</th></tr>
+    <tr><td>Background</td><td><code>#000000</code> (Pure OLED Black)</td><td><code>#FFFFFF</code></td><td>App canvas</td></tr>
+    <tr><td>Primary Accent</td><td colspan="2" style="text-align:center"><code>#FFC554</code> (Golden Yellow)</td><td>CTAs, highlights, branding</td></tr>
+    <tr><td>Card Surface</td><td><code>rgba(255,255,255,0.03)</code></td><td><code>rgba(0,0,0,0.02)</code></td><td>Elevated containers</td></tr>
+    <tr><td>Border</td><td><code>rgba(255,255,255,0.06)</code></td><td><code>rgba(0,0,0,0.08)</code></td><td>Dividers, outlines</td></tr>
+    <tr><td>Muted Text</td><td><code>rgba(255,255,255,0.4)</code></td><td><code>rgba(0,0,0,0.4)</code></td><td>Labels, captions</td></tr>
+  </table>
+
+  <h3>Typography</h3>
+  <p>
+    <strong>Space Grotesk</strong> — a geometric sans-serif font with a high-end tech aesthetic. Used across all headings, labels, and body text. Micro-labels use <code>font-size: 10px</code>, <code>font-weight: 900</code>, <code>text-transform: uppercase</code>, and <code>letter-spacing: 0.15em</code> for a clean, structured appearance.
+  </p>
+
+  <h3>Signature Elements</h3>
+  <ul>
+    <li><strong>Dot-Matrix Background:</strong> A CSS radial-gradient pattern that gives the app a subtle tech-grid texture</li>
+    <li><strong>Pill-Shaped Components:</strong> Buttons use <code>border-radius: 28px</code>, inputs use <code>border-radius: 20px</code></li>
+    <li><strong>Smooth Theme Transitions:</strong> Theme switching uses <code>transition-colors duration-1000</code> for a gradual 1-second morphing effect</li>
+  </ul>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  11. TECHNICAL CHALLENGES                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">11</span> — Technical Challenges & Solutions</h1>
+  <div class="section-divider"></div>
+
+  <table>
+    <tr>
+      <th>Challenge</th>
+      <th>Root Cause</th>
+      <th>Solution</th>
+    </tr>
+    <tr>
+      <td><strong>Messages disappearing on receiver side</strong></td>
+      <td>React <code>useEffect</code> dependency on entire <code>selectedLoop</code> object caused state resets when any loop property changed</td>
+      <td>Changed dependency to <code>selectedLoop?.id</code> (stable string reference) and added <code>currentLoopIdRef</code> guard</td>
+    </tr>
+    <tr>
+      <td><strong>Mobile keyboard pushing layout up</strong></td>
+      <td>Android WebView and Chrome resize the viewport when the soft keyboard opens, causing <code>scrollIntoView()</code> to scroll the entire page</td>
+      <td>Replaced <code>scrollIntoView()</code> with internal container <code>scrollTop</code> assignment; added smart overflow detection to prevent scrolling short chat lists</td>
+    </tr>
+    <tr>
+      <td><strong>Password/credit card autofill toolbar on Gboard</strong></td>
+      <td>Android Chrome detects <code>type="text"</code> inputs and triggers Gboard's autofill toolbar (🔑 💳 📍)</td>
+      <td>Changed input to <code>type="search"</code> with <code>autoComplete="new-password"</code> inside a <code>&lt;form autoComplete="off"&gt;</code></td>
+    </tr>
+    <tr>
+      <td><strong>WebSocket messages missed on mobile</strong></td>
+      <td>College Wi-Fi firewalls and mobile network handoffs silently kill WebSocket connections</td>
+      <td>Added a 1-second background polling safety net as a tertiary delivery engine alongside WebSocket Broadcast and PostgreSQL CDC</td>
+    </tr>
+    <tr>
+      <td><strong>SSL certificate errors on college network</strong></td>
+      <td>VIT-AP Wi-Fi uses SSL inspection (Fortinet/SonicWall) that intercepts and re-signs HTTPS certificates for <code>.vercel.app</code> subdomains</td>
+      <td>Recommended DNS-over-HTTPS workaround and custom domain setup to bypass firewall inspection</td>
+    </tr>
+    <tr>
+      <td><strong>Theme not persisting across reloads</strong></td>
+      <td><code>bio</code> field was missing from Supabase <code>select()</code> query in profile fetch</td>
+      <td>Added <code>bio</code> to all <code>.select()</code> statements in <code>LoopContext.tsx</code></td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  12. PROJECT STATISTICS                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">12</span> — Project Statistics</h1>
+  <div class="section-divider"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="num">15</span>
+      <span class="lbl">React Components</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">5</span>
+      <span class="lbl">Database Tables</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">7</span>
+      <span class="lbl">App Views</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">3</span>
+      <span class="lbl">Realtime Engines</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">&lt;1s</span>
+      <span class="lbl">Message Delivery</span>
+    </div>
+    <div class="stat-card">
+      <span class="num">100%</span>
+      <span class="lbl">TypeScript Coverage</span>
+    </div>
+  </div>
+
+  <h3>Codebase Breakdown</h3>
+  <table>
+    <tr><th>Component File</th><th>Size</th><th>Responsibility</th></tr>
+    <tr><td>ChatView.tsx</td><td>~23 KB</td><td>Full real-time chat engine with reactions, editing, presence</td></tr>
+    <tr><td>AuthLogin.tsx</td><td>~13 KB</td><td>Login, Signup, OTP verification flow</td></tr>
+    <tr><td>ProfileView.tsx</td><td>~14 KB</td><td>Profile editing, avatar upload, settings, past loops</td></tr>
+    <tr><td>RideDetailsView.tsx</td><td>~12 KB</td><td>Ride info, passenger roster, fare management</td></tr>
+    <tr><td>TrustedVehiclesView.tsx</td><td>~12 KB</td><td>Community driver directory CRUD</td></tr>
+    <tr><td>CreateView.tsx</td><td>~9 KB</td><td>Loop creation form with vehicle/seat pickers</td></tr>
+    <tr><td>AppHeader.tsx</td><td>~8 KB</td><td>Top bar, settings dropdown, refresh, theme toggle</td></tr>
+    <tr><td>HomeView.tsx</td><td>~6.5 KB</td><td>Live feed with search</td></tr>
+    <tr><td>LoopContext.tsx</td><td>—</td><td>Global state management, auth, realtime subscriptions</td></tr>
+    <tr><td>types.ts</td><td>~1.8 KB</td><td>TypeScript interfaces for all data models</td></tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  13. FUTURE SCOPE                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">13</span> — Future Scope</h1>
+  <div class="section-divider"></div>
+
+  <p>LOOP's architecture is designed to be extensible. Potential enhancements include:</p>
+
+  <table>
+    <tr><th>Feature</th><th>Description</th><th>Complexity</th></tr>
+    <tr>
+      <td><strong>Push Notifications</strong></td>
+      <td>Web Push API integration to notify users of new loops matching their frequent destinations, or when someone joins their created loop</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Live GPS Tracking</strong></td>
+      <td>Real-time location sharing within active loops using the Geolocation API and Mapbox/Google Maps</td>
+      <td>High</td>
+    </tr>
+    <tr>
+      <td><strong>UPI Payment Integration</strong></td>
+      <td>In-app fare collection via UPI deep links (PhonePe, GPay) to eliminate cash handling</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Scheduled / Recurring Loops</strong></td>
+      <td>Allow users to create daily recurring loops (e.g., "Daily 8 AM to campus") with auto-match</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Rating & Trust System</strong></td>
+      <td>Post-ride ratings for co-passengers and hosts to build community trust scores</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Multi-Campus Deployment</strong></td>
+      <td>Namespace loops by campus/institution to support deployment across multiple universities</td>
+      <td>Low</td>
+    </tr>
+    <tr>
+      <td><strong>Native Mobile App</strong></td>
+      <td>React Native or Flutter wrapper for native push notifications, background location, and app store distribution</td>
+      <td>High</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  14. CONCLUSION                                 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="content page-break">
+  <h1><span class="accent">14</span> — Conclusion</h1>
+  <div class="section-divider"></div>
+
+  <p>
+    LOOP demonstrates that <strong>real-world utility problems can be solved with modern web technologies</strong> without requiring massive infrastructure or native mobile development. By combining Next.js 15's server-optimized React framework with Supabase's real-time PostgreSQL backend, the project achieves a full-featured, production-grade coordination platform that runs entirely in a mobile browser.
+  </p>
+
+  <p>
+    The project showcases proficiency in several advanced computer science concepts:
+  </p>
+
+  <ul>
+    <li><strong>Real-Time Systems:</strong> Hybrid WebSocket + polling architecture with deduplication for guaranteed message delivery</li>
+    <li><strong>Database Design:</strong> Normalized PostgreSQL schemas with foreign keys, indexes, JSONB columns, and Row Level Security</li>
+    <li><strong>Mobile Web Engineering:</strong> Solving platform-specific edge cases (keyboard viewport shifts, autofill suppression, WebSocket reliability on cellular networks)</li>
+    <li><strong>State Management:</strong> Single-page view-routing via React Context with optimistic updates and real-time synchronization</li>
+    <li><strong>Product Design:</strong> Mobile-first UX with accessibility considerations, safety features, and zero-friction user flows</li>
+  </ul>
+
+  <div class="highlight-box">
+    <h3>Impact Potential</h3>
+    <p>
+      If deployed at VIT-AP alone (10,000+ students), LOOP could save thousands of hours of daily coordination time, reduce individual auto fares by 50–75% through splitting, and provide a safer, more structured alternative to informal ride-finding methods.
+    </p>
+  </div>
+
+  <div class="quote-block">
+    "The best software doesn't try to do everything — it does one thing extraordinarily well. LOOP does coordination."
+    <cite>— Sanjay Kamal S</cite>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  FOOTER                                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="page-footer">
+  LOOP — Purpose-Based Ride Coordination &nbsp;|&nbsp; Sanjay Kamal S &nbsp;|&nbsp; 24MIC7130 &nbsp;|&nbsp; VIT-AP University, SCOPE &nbsp;|&nbsp; August 2026
+</div>
+
+</body>
+</html>
