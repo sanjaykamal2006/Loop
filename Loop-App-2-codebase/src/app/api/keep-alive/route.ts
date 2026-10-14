@@ -47,8 +47,9 @@ export async function GET() {
       },
       { status: 503 }
     );
-  } catch (err: any) {
-    logger.error('Keep-alive ping exception:', err?.message || 'Unknown error');
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    logger.error('Keep-alive ping exception:', message);
     return NextResponse.json(
       {
         status: 'error',

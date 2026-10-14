@@ -1,9 +1,10 @@
-// src/lib/pollingManager.ts
-/**
- * Polling manager for free-tier LOOP deployment
- * Replaces Supabase realtime subscriptions with HTTP polling
- * Zero realtime connections used
- */
+import type { Database } from '@/lib/database.types';
+
+type MessageRow = Database['public']['Tables']['messages']['Row'];
+type LoopRow = Database['public']['Tables']['loops']['Row'];
+type LoopMemberRow = Database['public']['Tables']['loop_members']['Row'] & {
+  profiles?: Partial<Database['public']['Tables']['profiles']['Row']> | null;
+};
 
 interface PollingConfig {
   interval: number; // milliseconds
@@ -19,7 +20,7 @@ class PollingManager {
    */
   startMessagePolling(
     loopId: string,
-    onNewMessages: (messages: any[]) => void,
+    onNewMessages: (messages: MessageRow[]) => void,
     lastMessageId?: string
   ) {
     const key = `messages-${loopId}`;
@@ -75,7 +76,7 @@ class PollingManager {
    */
   startLoopPolling(
     userId: string,
-    onLoopUpdates: (loops: any[]) => void
+    onLoopUpdates: (loops: LoopRow[]) => void
   ) {
     const key = `loops-${userId}`;
 
@@ -107,9 +108,9 @@ class PollingManager {
           .select('loop_id')
           .eq('user_id', userId);
 
-        const joinedLoopIds = memberData?.map(m => m.loop_id) || [];
+        const joinedLoopIds = (memberData as { loop_id: string }[] | null)?.map((m) => m.loop_id) || [];
 
-        let joinedLoops = [];
+        let joinedLoops: LoopRow[] = [];
         if (joinedLoopIds.length > 0) {
           const { data } = await supabase
             .from('loops')
@@ -137,7 +138,7 @@ class PollingManager {
    */
   startMemberPolling(
     loopId: string,
-    onMemberUpdates: (members: any[]) => void
+    onMemberUpdates: (members: LoopMemberRow[]) => void
   ) {
     const key = `members-${loopId}`;
 
@@ -166,7 +167,7 @@ class PollingManager {
           .eq('loop_id', loopId);
 
         if (!error && data) {
-          onMemberUpdates(data);
+          onMemberUpdates(data as unknown as LoopMemberRow[]);
         }
       } catch (error) {
         // Silent fail

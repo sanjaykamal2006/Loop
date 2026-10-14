@@ -64,17 +64,17 @@ export default function PastLoopsView() {
             .eq("user_id", session.user.id),
         ]);
 
-        const createdLoops = createdRes.data || [];
+        const createdLoops = (createdRes.data || []) as unknown as Loop[];
         const memberRows = memberRes.data || [];
 
         const memberLoops = memberRows
-          .map((r: any) => r.loops)
-          .filter((l: any) => l && (l.status === "ended" || l.status === "cancelled"));
+          .map((r) => r.loops as unknown as Loop | null)
+          .filter((l): l is Loop => Boolean(l && (l.status === "ended" || l.status === "cancelled")));
 
         // Combine and deduplicate
         const allLoopsMap = new Map<string, Loop>();
-        createdLoops.forEach((l: any) => allLoopsMap.set(l.id, l));
-        memberLoops.forEach((l: any) => allLoopsMap.set(l.id, l));
+        createdLoops.forEach((l) => allLoopsMap.set(l.id, l));
+        memberLoops.forEach((l) => allLoopsMap.set(l.id, l));
 
         const sorted = Array.from(allLoopsMap.values()).sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()

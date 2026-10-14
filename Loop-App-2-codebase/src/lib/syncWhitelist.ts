@@ -63,12 +63,13 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
       success: true,
       syncedEmails: validEmails,
     };
-  } catch (err: any) {
-    logger.error("syncWhitelistToDatabase exception:", err?.message || err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error("syncWhitelistToDatabase exception:", message);
     return {
       success: false,
       syncedEmails: [],
-      error: err?.message || "Unknown error during whitelist sync",
+      error: message || "Unknown error during whitelist sync",
     };
   }
 }

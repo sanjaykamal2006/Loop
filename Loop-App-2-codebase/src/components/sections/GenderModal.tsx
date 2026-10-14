@@ -11,13 +11,13 @@ export default function GenderModal() {
 
   const [name, setName] = useState(profile.display_name || "");
   const [regNo, setRegNo] = useState(profile.reg_no || "");
-  const [gender, setGender] = useState<"male" | "female" | "unspecified" | null>((profile.gender as any) || null);
+  const [gender, setGender] = useState<"male" | "female" | "unspecified" | null>((profile.gender as "male" | "female" | "unspecified") || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setName(profile.display_name || "");
     setRegNo(profile.reg_no || "");
-    setGender((profile.gender as any) || null);
+    setGender((profile.gender as "male" | "female" | "unspecified") || null);
   }, [profile, showGenderSelect]);
 
   if (!showGenderSelect) return null;

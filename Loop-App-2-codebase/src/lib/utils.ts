@@ -1,4 +1,6 @@
-export function cn(...inputs: any[]) {
+export type ClassValue = string | boolean | undefined | null | number;
+
+export function cn(...inputs: (ClassValue | unknown)[]) {
   return inputs.filter(Boolean).join(" ");
 }
 

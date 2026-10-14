@@ -12,14 +12,14 @@ export interface Loop {
   created_at: string;
   member_count?: number;
   status?: "open" | "started" | "in_progress" | "cancelled" | "ended" | "active";
-  start_point?: string;
-  total_fare?: number;
-  is_driver_offering?: boolean;
+  start_point?: string | null;
+  total_fare?: number | null;
+  is_driver_offering?: boolean | null;
   vehicle_type?: "car" | "bike" | "scooter" | null;
   creator?: {
-    display_name?: string;
-    avatar_url?: string;
-    reg_no?: string;
+    display_name?: string | null;
+    avatar_url?: string | null;
+    reg_no?: string | null;
   } | null;
 }
 
@@ -28,19 +28,19 @@ export interface EmergencyContact {
   user_id?: string;
   name: string;
   phone: string;
-  relation?: string;
-  created_at?: string;
+  relation?: string | null;
+  created_at?: string | null;
 }
 
 export interface Profile {
   display_name: string;
   theme: "dark" | "light";
-  gender?: string;
-  reg_no?: string;
-  avatar_url?: string;
-  bio?: string;
-  phone_number?: string;
-  is_student_verified?: boolean;
+  gender?: string | null;
+  reg_no?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  phone_number?: string | null;
+  is_student_verified?: boolean | null;
   emergency_contact?: EmergencyContact | null;
   emergency_contacts?: EmergencyContact[];
 }
@@ -51,21 +51,29 @@ export interface Message {
   user_id: string;
   content: string;
   created_at: string;
-  edited_at?: string;
+  edited_at?: string | null;
   reactions?: Record<string, string[]>;
-  profiles?: { display_name: string; avatar_url?: string; reg_no?: string; gender?: string; bio?: string; phone_number?: string; is_student_verified?: boolean };
+  profiles?: {
+    display_name: string;
+    avatar_url?: string | null;
+    reg_no?: string | null;
+    gender?: string | null;
+    bio?: string | null;
+    phone_number?: string | null;
+    is_student_verified?: boolean | null;
+  };
 }
 
 export interface LoopMember {
   user_id: string;
   profiles: {
     display_name: string;
-    gender: string;
-    avatar_url?: string;
-    reg_no?: string;
-    bio?: string;
-    phone_number?: string;
-    is_student_verified?: boolean;
+    gender?: string | null;
+    avatar_url?: string | null;
+    reg_no?: string | null;
+    bio?: string | null;
+    phone_number?: string | null;
+    is_student_verified?: boolean | null;
   } | null;
 }
 
@@ -76,10 +84,10 @@ export interface LoopParticipant {
   joined_at: string;
   profiles?: {
     display_name: string;
-    avatar_url?: string;
-    reg_no?: string;
-    gender?: string;
-    bio?: string;
+    avatar_url?: string | null;
+    reg_no?: string | null;
+    gender?: string | null;
+    bio?: string | null;
   };
 }
 

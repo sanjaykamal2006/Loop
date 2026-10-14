@@ -240,10 +240,14 @@ export default function EditLoopModal({
         }
       }
 
-      toast.success("Ride details updated!");
+      const updatedData = updated as unknown as {
+        [key: string]: unknown;
+        loop_members?: { count?: number }[];
+      };
+      const memberCount = updatedData.loop_members?.[0]?.count ?? currentMemberCount;
       onUpdated({
-        ...updated,
-        member_count: updated.loop_members?.[0]?.count || currentMemberCount,
+        ...(updated as unknown as Loop),
+        member_count: memberCount,
       });
       onClose();
     } catch (err) {
@@ -423,18 +427,20 @@ export default function EditLoopModal({
               Vehicle
             </label>
             <div className="flex gap-1.5">
-              {[
-                { type: "scooter", label: "Scooter", Icon: ScooterIcon },
-                { type: "bike", label: "Bike", Icon: MotorcycleIcon },
-                { type: "car", label: "Car", Icon: CarIcon },
-              ].map((v) => {
+              {(
+                [
+                  { type: "scooter", label: "Scooter", Icon: ScooterIcon },
+                  { type: "bike", label: "Bike", Icon: MotorcycleIcon },
+                  { type: "car", label: "Car", Icon: CarIcon },
+                ] as const
+              ).map((v) => {
                 const isSelected = vehicleType === v.type;
                 return (
                   <button
                     key={v.type}
                     type="button"
                     onClick={() => {
-                      setVehicleType(v.type as any);
+                      setVehicleType(v.type);
                       if (v.type === "scooter" || v.type === "bike") {
                         setLimit(1);
                       } else if (limit === 1) {

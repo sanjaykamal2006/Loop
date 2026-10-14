@@ -95,6 +95,6 @@ export default function manifest(): MetadataRoute.Manifest {
     ...({
       iarc_rating_id: 'PEGI_3',
       privacy_policy: '/privacy',
-    } as any),
+    } as Record<string, unknown>),
   };
 }

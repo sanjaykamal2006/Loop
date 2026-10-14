@@ -1,5 +1,29 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+  : "script-src 'self' 'unsafe-inline';";
+
+const connectSrc = isDev
+  ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://localhost:* http://localhost:*;"
+  : "connect-src 'self' https://*.supabase.co wss://*.supabase.co;";
+
+const cspHeader = [
+  "default-src 'self';",
+  scriptSrc,
+  "style-src 'self' 'unsafe-inline';",
+  "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://api.qrserver.com;",
+  "media-src 'self' https://cdn.freesound.org;",
+  "font-src 'self' data:;",
+  connectSrc,
+  "object-src 'none';",
+  "frame-ancestors 'none';",
+  "base-uri 'self';",
+  "form-action 'self' https://wa.me;",
+].join(" ");
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -10,6 +34,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.qrserver.com',
       },
     ],
   },
@@ -43,18 +71,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: [
-              "default-src 'self';",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
-              "style-src 'self' 'unsafe-inline';",
-              "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://api.qrserver.com;",
-              "media-src 'self' https://cdn.freesound.org;",
-              "font-src 'self' data:;",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co;",
-              "frame-ancestors 'none';",
-              "base-uri 'self';",
-              "form-action 'self' https://wa.me;",
-            ].join(" "),
+            value: cspHeader,
           },
         ],
       },

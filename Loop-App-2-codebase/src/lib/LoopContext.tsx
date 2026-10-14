@@ -11,6 +11,14 @@ import { parseStudentEmail } from "./studentParser";
 import { preloadAvatars } from "./imageOptimization";
 import { triggerHaptic } from "./haptics";
 import { sanitizeIndianPhoneNumber } from "./utils";
+import type { Database } from "./database.types";
+
+type LoopRow = Database["public"]["Tables"]["loops"]["Row"];
+type MessageRow = Database["public"]["Tables"]["messages"]["Row"];
+type LoopQueryResult = LoopRow & {
+  creator?: { display_name?: string | null; avatar_url?: string | null; reg_no?: string | null } | null;
+  loop_members?: { count: number }[];
+};
 
 interface LoopContextValue {
   // Session
@@ -310,7 +318,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       });
 
       if (!rpcError && rpcData) {
-        setEmergencyContacts(rpcData);
+        setEmergencyContacts(rpcData as unknown as EmergencyContact[]);
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(rpcData));
@@ -325,7 +333,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         .select("id")
         .eq("user_id", session.user.id);
 
-      const existingIds = (existing || []).map((e: any) => e.id);
+      const existingIds = (existing || []).map((e: { id: string }) => e.id);
 
       if (trimmed.length > 0) {
         const insertPayload = trimmed.map((c) => ({
@@ -343,7 +351,7 @@ export function LoopProvider({ session, children }: { session: Session; children
           if (existingIds.length > 0) {
             await supabase.from("emergency_contacts").delete().in("id", existingIds);
           }
-          setEmergencyContacts(inserted);
+          setEmergencyContacts(inserted as EmergencyContact[]);
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
@@ -505,9 +513,9 @@ export function LoopProvider({ session, children }: { session: Session; children
 
           if (data && !error) {
             // Check if ride has ended, cancelled, or expired
-            const isEnded = ['cancelled', 'ended', 'expired'].includes(data.status);
+            const isEnded = ['cancelled', 'ended', 'expired'].includes(data.status || "");
             const isExpired = data.expires_at && new Date(data.expires_at) < new Date();
-            const isOld = (Date.now() - new Date(data.departure_time).getTime()) > 2 * 60 * 60 * 1000;
+            const isOld = (Date.now() - new Date(data.departure_time || "").getTime()) > 2 * 60 * 60 * 1000;
             if (isEnded || isExpired || isOld) {
               toast.info("This ride has already ended or expired.");
               setViewState("home");
@@ -531,10 +539,14 @@ export function LoopProvider({ session, children }: { session: Session; children
               }
             }
 
-            const formatted = {
+            const formatted: Loop = {
               ...data,
-              member_count: data.loop_members?.[0]?.count || 0,
-            };
+              creator_id: data.creator_id || "",
+              departure_time: data.departure_time || "",
+              created_at: data.created_at || "",
+              is_female_only: Boolean(data.is_female_only),
+              member_count: (data.loop_members as unknown as { count: number }[])?.[0]?.count || 0,
+            } as Loop;
             setSelectedLoop(formatted);
             setViewState("ride-details");
             window.history.replaceState({ view: "ride-details" }, "", window.location.pathname);
@@ -703,8 +715,8 @@ export function LoopProvider({ session, children }: { session: Session; children
       } catch {}
     }
 
-    const { phone_number, ...profileUpdates } = updates;
-    const promises: PromiseLike<any>[] = [];
+    const { phone_number, emergency_contact, emergency_contacts, ...profileUpdates } = updates;
+    const promises: PromiseLike<{ error?: unknown }>[] = [];
 
     if (Object.keys(profileUpdates).length > 0) {
       promises.push(
@@ -733,7 +745,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     }
 
     const results = await Promise.all(promises);
-    const dbError = results.find((r) => r?.error)?.error;
+    const dbError = (results as { error?: unknown }[]).find((r) => r?.error)?.error;
 
     if (dbError) {
       // Revert on error
@@ -787,9 +799,9 @@ export function LoopProvider({ session, children }: { session: Session; children
 
       if (!error && data) {
         const nowDate = new Date();
-        const filtered = data.filter((l: any) => {
+        const filtered = (data as unknown as LoopQueryResult[]).filter((l) => {
           // Keep rides active until 2 hours after their departure time
-          const depTime = new Date(l.departure_time);
+          const depTime = new Date(l.departure_time || "");
           if (nowDate.getTime() - depTime.getTime() > 2 * 60 * 60 * 1000) return false;
 
           if (l.expires_at && new Date(l.expires_at) < nowDate) return false;
@@ -798,7 +810,14 @@ export function LoopProvider({ session, children }: { session: Session; children
           if (l.is_female_only && userGender !== "female") return false;
           return true;
         });
-        const formatted = filtered.map((l: any) => ({ ...l, member_count: l.loop_members?.[0]?.count || 0 }));
+        const formatted: Loop[] = filtered.map((l) => ({
+          ...l,
+          creator_id: l.creator_id || "",
+          departure_time: l.departure_time || "",
+          created_at: l.created_at || "",
+          is_female_only: Boolean(l.is_female_only),
+          member_count: l.loop_members?.[0]?.count || 0
+        } as Loop));
         setActiveLoops(formatted);
         if (typeof window !== "undefined") {
           try {
@@ -806,8 +825,8 @@ export function LoopProvider({ session, children }: { session: Session; children
           } catch {}
         }
         const creatorAvatars = formatted
-          .map((l: any) => l.creator?.avatar_url)
-          .filter(Boolean);
+          .map((l) => l.creator?.avatar_url)
+          .filter((url): url is string => Boolean(url));
         if (creatorAvatars.length > 0) {
           preloadAvatars(creatorAvatars);
         }
@@ -840,7 +859,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       ]);
 
       if (joinedData) {
-        const joinedIds = joinedData.map((m: any) => m.loop_id);
+        const joinedIds = (joinedData as { loop_id: string }[]).map((m) => m.loop_id);
         setUserJoinedLoops(joinedIds);
         if (typeof window !== "undefined") {
           try {
@@ -849,7 +868,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         }
       }
       if (creatorData) {
-        const creatorIds = creatorData.map((l: any) => l.id);
+        const creatorIds = (creatorData as { id: string }[]).map((l) => l.id);
         setUserLoops(creatorIds);
         if (typeof window !== "undefined") {
           try {
@@ -960,8 +979,9 @@ export function LoopProvider({ session, children }: { session: Session; children
       let isSuccess = false;
 
       if (!rpcError) {
-        if (rpcData && typeof rpcData === "object" && (rpcData as any).success === false) {
-          toast.error((rpcData as any).error || "Failed to delete loop");
+        const rpcResult = rpcData as { success?: boolean; error?: string } | null;
+        if (rpcResult && typeof rpcResult === "object" && rpcResult.success === false) {
+          toast.error(rpcResult.error || "Failed to delete loop");
           setIsDeleting(false);
           return;
         }
@@ -993,7 +1013,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         fetchLoops(true);
         fetchUserMemberships(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error("Unexpected error deleting loop:", err);
       toast.error("Failed to delete loop");
     } finally {
@@ -1090,16 +1110,20 @@ export function LoopProvider({ session, children }: { session: Session; children
               .single();
 
             if (!error && loopData) {
-              const formatted = {
+              const formatted: Loop = {
                 ...loopData,
-                member_count: loopData.loop_members?.[0]?.count || 0,
-              };
+                creator_id: loopData.creator_id || "",
+                departure_time: loopData.departure_time || "",
+                created_at: loopData.created_at || "",
+                is_female_only: Boolean(loopData.is_female_only),
+                member_count: (loopData.loop_members as unknown as { count: number }[])?.[0]?.count || 0,
+              } as Loop;
               setActiveLoops((prev) => {
                 const list = prev.some((l) => l.id === formatted.id)
                   ? prev.map((l) => (l.id === formatted.id ? formatted : l))
                   : [...prev, formatted];
                 return list.sort(
-                  (a, b) => new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime()
+                  (a, b) => new Date(a.departure_time || "").getTime() - new Date(b.departure_time || "").getTime()
                 );
               });
             }
@@ -1109,15 +1133,16 @@ export function LoopProvider({ session, children }: { session: Session; children
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "loops" },
           (payload) => {
-            const updated = payload.new as any;
+            const updated = payload.new as Partial<LoopRow>;
             if (!updated?.id) return;
 
             const inactiveStatuses = ["cancelled", "completed", "ended", "expired"];
-            if (inactiveStatuses.includes(updated.status)) {
+            if (updated.status && inactiveStatuses.includes(updated.status)) {
               setActiveLoops((prev) => prev.filter((l) => l.id !== updated.id));
               setSelectedLoopState((prev) => {
-                if (prev?.id === updated.id) {
-                  return { ...prev, ...updated };
+                if (!prev) return null;
+                if (prev.id === updated.id) {
+                  return { ...prev, ...updated, creator_id: updated.creator_id || prev.creator_id } as Loop;
                 }
                 return prev;
               });
@@ -1125,13 +1150,13 @@ export function LoopProvider({ session, children }: { session: Session; children
               setActiveLoops((prev) =>
                 prev.map((l) =>
                   l.id === updated.id
-                    ? { ...l, ...updated, creator: l.creator, member_count: l.member_count }
+                    ? ({ ...l, ...updated, creator_id: updated.creator_id || l.creator_id, creator: l.creator, member_count: l.member_count } as Loop)
                     : l
                 )
               );
               setSelectedLoopState((prev) => {
                 if (prev && prev.id === updated.id) {
-                  return { ...prev, ...updated, creator: prev.creator, member_count: prev.member_count };
+                  return { ...prev, ...updated, creator_id: updated.creator_id || prev.creator_id, creator: prev.creator, member_count: prev.member_count } as Loop;
                 }
                 return prev;
               });
@@ -1226,7 +1251,7 @@ export function LoopProvider({ session, children }: { session: Session; children
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "messages" },
           (payload) => {
-            const newMsg = payload.new as any;
+            const newMsg = payload.new as Partial<MessageRow>;
             if (!newMsg?.id || !newMsg.loop_id) return;
             if (newMsg.user_id === session.user.id) return;
 
@@ -1240,11 +1265,12 @@ export function LoopProvider({ session, children }: { session: Session; children
               viewRef.current === "chat" &&
               selectedLoopRef.current?.id === newMsg.loop_id;
 
-            if (!isCurrentlyInThisChat) {
-              setUnreadLoopIds((prev) => Array.from(new Set([...prev, newMsg.loop_id])));
+            if (!isCurrentlyInThisChat && newMsg.loop_id) {
+              const targetId = newMsg.loop_id;
+              setUnreadLoopIds((prev) => Array.from(new Set([...prev, targetId])));
 
               try {
-                const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
                 if (AudioCtx) {
                   const ctx = new AudioCtx();
                   const osc = ctx.createOscillator();

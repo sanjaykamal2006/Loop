@@ -5,6 +5,8 @@ import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X, MapPin } from "lucide-react";
 import { AutoRickshawIcon, ScooterIcon, MotorcycleIcon, CarIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
+import type { Database } from "@/lib/database.types";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 function formatDepartureDate(departureIso: string): string {
   try {
@@ -161,7 +163,15 @@ export default function ChatListView() {
         .order("created_at", { ascending: false })
         .limit(fetchLimit);
 
-      let list = data;
+      interface RecentMsgQueryRow {
+        loop_id: string | null;
+        content: string;
+        created_at: string | null;
+        user_id: string | null;
+        profiles?: { display_name: string | null } | { display_name: string | null }[] | null;
+      }
+
+      let list: RecentMsgQueryRow[] | null = data as unknown as RecentMsgQueryRow[] | null;
       if (error || !data) {
         const fallback = await supabase
           .from("messages")
@@ -169,13 +179,16 @@ export default function ChatListView() {
           .in("loop_id", loopIds)
           .order("created_at", { ascending: false })
           .limit(fetchLimit);
-        list = fallback.data as any;
+        list = fallback.data as RecentMsgQueryRow[] | null;
       }
 
       if (list && list.length > 0) {
         const missingUserIds = list
-          .filter((m: any) => !m.profiles?.display_name && m.user_id)
-          .map((m: any) => m.user_id);
+          .filter((m) => {
+            const prof = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+            return !prof?.display_name && m.user_id;
+          })
+          .map((m) => m.user_id as string);
 
         const profileNameMap: Record<string, string> = {};
         if (missingUserIds.length > 0) {
@@ -184,7 +197,7 @@ export default function ChatListView() {
             .select("id, display_name")
             .in("id", Array.from(new Set(missingUserIds)));
           if (profs) {
-            profs.forEach((p: any) => {
+            profs.forEach((p) => {
               if (p.id && p.display_name) profileNameMap[p.id] = p.display_name;
             });
           }
@@ -192,16 +205,17 @@ export default function ChatListView() {
 
         const msgMap: Record<string, RecentMsgData> = {};
         for (const m of list) {
+          if (!m.loop_id) continue;
           if (!msgMap[m.loop_id]) {
-            const joinedProfiles = (m as any).profiles;
+            const joinedProfiles = m.profiles;
             const joinedName = Array.isArray(joinedProfiles)
               ? joinedProfiles[0]?.display_name
               : joinedProfiles?.display_name;
-            const senderName = joinedName || profileNameMap[m.user_id] || "";
+            const senderName = joinedName || (m.user_id ? profileNameMap[m.user_id] : "") || "";
             msgMap[m.loop_id] = {
               content: m.content,
-              created_at: m.created_at,
-              user_id: m.user_id,
+              created_at: m.created_at || "",
+              user_id: m.user_id || "",
               sender_name: senderName,
             };
           }
@@ -221,7 +235,7 @@ export default function ChatListView() {
   useEffect(() => {
     fetchRecentMessages();
 
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const subscribeChannel = () => {
       if (channel) return;
@@ -231,8 +245,9 @@ export default function ChatListView() {
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "messages" },
           async (payload) => {
-            const msg = payload.new as any;
-            if (!msg?.loop_id || !msg.content) return;
+            const msg = payload.new as Partial<Database['public']['Tables']['messages']['Row']>;
+            const loopId = msg.loop_id;
+            if (!loopId || !msg.content) return;
 
             const isMe = msg.user_id === session?.user?.id;
             let senderName = isMe ? (profile?.display_name || "You") : "";
@@ -240,10 +255,10 @@ export default function ChatListView() {
             setRecentMessages((prev) => {
               const next = {
                 ...prev,
-                [msg.loop_id]: {
-                  content: msg.content,
-                  created_at: msg.created_at,
-                  user_id: msg.user_id,
+                [loopId]: {
+                  content: msg.content || "",
+                  created_at: msg.created_at || "",
+                  user_id: msg.user_id || "",
                   sender_name: senderName,
                 },
               };
@@ -263,9 +278,9 @@ export default function ChatListView() {
                 .single();
               if (data?.display_name) {
                 setRecentMessages((prev) => {
-                  const cur = prev[msg.loop_id];
+                  const cur = prev[loopId];
                   if (cur && cur.created_at === msg.created_at) {
-                    const next = { ...prev, [msg.loop_id]: { ...cur, sender_name: data.display_name } };
+                    const next = { ...prev, [loopId]: { ...cur, sender_name: data.display_name || "" } };
                     if (typeof window !== "undefined") {
                       try {
                         localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));

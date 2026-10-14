@@ -11,6 +11,7 @@ import { SteeringWheelIcon, ScooterIcon, MotorcycleIcon, CarIcon, AutoRickshawIc
 import { triggerHaptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
 import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
+import type { Loop } from "@/lib/types";
 
 export default function CreateView() {
   const { session, profile, setView, fetchLoops, fetchUserMemberships, registerCreatedLoop, setShowGenderSelect, setPendingAction, pendingAction, showGenderSelect, theme, isProfileLoaded, createPrefill, setCreatePrefill } = useLoop();
@@ -235,13 +236,14 @@ export default function CreateView() {
         // so turning off internet right after creation still preserves the ride on the Home screen and SOS lease
         registerCreatedLoop?.({
           ...data,
+          creator_id: data.creator_id || session.user.id,
           member_count: 1,
           creator: {
             display_name: profile.display_name || "You",
             avatar_url: profile.avatar_url,
             reg_no: profile.reg_no,
           },
-        });
+        } as Loop);
 
         if (isReturnTrip) {
           toast.success("Return ride created successfully");
@@ -523,18 +525,20 @@ export default function CreateView() {
         {/* Compact 1-Row Vehicle Selection Pills */}
         {isDriver && (
           <div className="pt-2 border-t border-white/5 flex gap-2 animate-fade-in">
-            {[
-              { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
-              { type: "bike", label: "Bike (1)", Icon: MotorcycleIcon },
-              { type: "car", label: "Car (1-6)", Icon: CarIcon }
-            ].map(v => {
+            {(
+              [
+                { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
+                { type: "bike", label: "Bike (1)", Icon: MotorcycleIcon },
+                { type: "car", label: "Car (1-6)", Icon: CarIcon }
+              ] as const
+            ).map(v => {
               const isSelected = vehicleType === v.type;
               return (
                 <button
                   key={v.type}
                   type="button"
                   onClick={() => {
-                    setVehicleType(v.type as any);
+                    setVehicleType(v.type);
                     if (v.type === "scooter" || v.type === "bike") {
                       setLimit(1);
                     } else if (limit === 1) {

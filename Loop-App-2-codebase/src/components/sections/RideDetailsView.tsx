@@ -169,23 +169,25 @@ export default function RideDetailsView() {
       if (!membersRes.error && membersRes.data) {
         const contactsMap = new Map<string, string>();
         if (contactsRes?.data && Array.isArray(contactsRes.data)) {
-          contactsRes.data.forEach((c: any) => {
+          contactsRes.data.forEach((c) => {
             if (c.user_id && c.phone_number) {
               contactsMap.set(c.user_id, c.phone_number);
             }
           });
         }
 
-        const mems = (membersRes.data as any[]).map((m: any) => {
+        const mems = (membersRes.data as unknown as LoopMember[]).map((m) => {
           const phone = contactsMap.get(m.user_id) || "";
           return {
             ...m,
-            profiles: {
-              ...m.profiles,
-              phone_number: phone,
-            },
+            profiles: m.profiles
+              ? {
+                  ...m.profiles,
+                  phone_number: phone,
+                }
+              : null,
           };
-        }) as LoopMember[];
+        });
 
         membersCache.set(loopId, mems);
         setLoopMembers(mems);
@@ -265,8 +267,8 @@ export default function RideDetailsView() {
           text: text,
         });
         return;
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") return;
       }
     }
 
@@ -663,7 +665,7 @@ export default function RideDetailsView() {
                   triggerHaptic(10);
                   setCreatePrefill({
                     startPoint: selectedLoop.destination,
-                    destination: selectedLoop.start_point,
+                    destination: selectedLoop.start_point || undefined,
                     isReturn: true,
                   });
                   setView("create");

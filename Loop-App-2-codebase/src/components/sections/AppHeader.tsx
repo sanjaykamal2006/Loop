@@ -5,6 +5,11 @@ import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 export default function AppHeader() {
   const {
     view,
@@ -26,20 +31,21 @@ export default function AppHeader() {
   } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     // Check if app is already running in standalone mode (installed)
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+    const isIOSStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (window.matchMedia('(display-mode: standalone)').matches || isIOSStandalone) {
       setIsInstalled(true);
     }
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener("beforeinstallprompt", handler);

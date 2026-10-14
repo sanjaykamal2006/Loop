@@ -54,11 +54,12 @@ export async function POST(request: NextRequest) {
       message: 'Old rides and unconfirmed users cleaned up successfully',
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Cleanup route error:', error);
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({
       success: false,
-      error: error?.message || 'Internal Server Error',
+      error: message,
     }, { status: 500 });
   }
 }

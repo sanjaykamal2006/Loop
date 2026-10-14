@@ -283,16 +283,18 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             <div className="space-y-1.5">
               <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Vehicle Type</label>
               <div className="grid grid-cols-4 gap-2">
-                {[
-                  { id: "auto", label: "Auto", icon: AutoIcon },
-                  { id: "bike", label: "Bike", icon: BikeIcon },
-                  { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon },
-                  { id: "cab", label: "Cab", icon: CarIcon }
-                ].map(t => (
+                {(
+                  [
+                    { id: "auto", label: "Auto", icon: AutoIcon },
+                    { id: "bike", label: "Bike", icon: BikeIcon },
+                    { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon },
+                    { id: "cab", label: "Cab", icon: CarIcon }
+                  ] as const
+                ).map(t => (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setVType(t.id as any)}
+                    onClick={() => setVType(t.id)}
                     className={`flex flex-col items-center justify-center py-3 gap-1 rounded-2xl border transition-all ${
                       vType === t.id
                         ? isDark

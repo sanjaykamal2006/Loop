@@ -97,8 +97,9 @@ export async function POST(request: NextRequest) {
       },
       { status: 403 }
     );
-  } catch (err: any) {
-    logger.error('validate-email route exception:', err?.message || 'Unknown');
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown';
+    logger.error('validate-email route exception:', message);
     return NextResponse.json(
       { allowed: false, error: 'Unable to validate email at this time. Please try again.' },
       { status: 500 }

@@ -312,14 +312,16 @@ export default function TrustedVehiclesView() {
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Vehicle Type</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "bike", label: "Bike", icon: BikeIcon },
-                    { id: "auto", label: "Auto", icon: AutoIcon },
-                    { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon }
-                  ].map(t => (
+                  {(
+                    [
+                      { id: "bike", label: "Bike", icon: BikeIcon },
+                      { id: "auto", label: "Auto", icon: AutoIcon },
+                      { id: "share_auto", label: "Share Auto", icon: ShareAutoIcon }
+                    ] as const
+                  ).map(t => (
                     <button
                       key={t.id}
-                      onClick={() => setType(t.id as any)}
+                      onClick={() => setType(t.id)}
                       className={`flex flex-col items-center justify-center py-2.5 gap-1 rounded-2xl border ${type === t.id ? 'bg-[#FFC554] border-[#FFC554] text-black shadow-md' : `${isDark ? "bg-white/5" : "bg-black/5"} border-transparent ${mutedText}`}`}
                     >
                       <t.icon className="w-5 h-5" />

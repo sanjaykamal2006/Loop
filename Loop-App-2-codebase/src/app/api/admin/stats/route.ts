@@ -95,9 +95,10 @@ export async function GET(request: NextRequest) {
         critical_at_users: Math.floor(FREE_TIER.database_mb * 1024 * 0.95 / 5),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({
-      error: error?.message || 'Internal Server Error',
+      error: message,
     }, { status: 500 });
   }
 }

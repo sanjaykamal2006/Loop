@@ -166,10 +166,11 @@ export default function ProfileView() {
 
       await updateProfile({ avatar_url: publicUrl });
       toast.success("Profile photo updated!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error("Avatar upload error:", err);
       setOptimisticAvatarUrl(null); // Revert optimistic preview on error
-      toast.error(err?.message || "Failed to upload image. Please try again.");
+      const message = err instanceof Error ? err.message : "Failed to upload image. Please try again.";
+      toast.error(message);
     } finally {
       setIsUploading(false);
       e.target.value = "";
@@ -595,9 +596,10 @@ export default function ProfileView() {
 
                     await supabase.auth.signOut({ scope: "global" });
                     toast.success("Account permanently deleted.");
-                  } catch (error: any) {
+                  } catch (error: unknown) {
                     logger.error("Account delete error:", error);
-                    toast.error(error.message || "Failed to delete account. Please try again.");
+                    const message = error instanceof Error ? error.message : "Failed to delete account. Please try again.";
+                    toast.error(message);
                   } finally {
                     setIsDeleting(false);
                     setShowDeleteConfirm(false);

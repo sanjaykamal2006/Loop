@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Send, Edit2, Trash2, Copy, MoreHorizontal, Check, X, Share2, MapPin, Navigation, Map as MapIcon, ChevronRight, Search, Repeat, ShieldAlert } from "lucide-react";
-import type { Message } from "@/lib/types";
+import type { Message, Loop, LoopMember } from "@/lib/types";
 import { LRUCache } from "@/lib/cache";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import FastAvatar from "@/components/ui/FastAvatar";
@@ -30,7 +30,7 @@ const parseReturnTripMessage = (content: string) => {
 
 const playNotificationChime = () => {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
@@ -146,7 +146,7 @@ export default function ChatView() {
       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
     };
   }, []);
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<LoopMember[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
@@ -228,7 +228,7 @@ export default function ChatView() {
     };
   }, [selectedLoop?.id]);
 
-  const loopMembersRef = useRef<any[]>([]);
+  const loopMembersRef = useRef<LoopMember[]>([]);
 
   useEffect(() => {
     loopMembersRef.current = members;
@@ -276,9 +276,18 @@ export default function ChatView() {
         .order("created_at", { ascending: false })
         .limit(PAGE_SIZE);
       if (fallbackData) {
-        const enriched = fallbackData.reverse().map((m: any) => {
+        const enriched = fallbackData.reverse().map((m) => {
           const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
-          return { ...m, profiles: sender?.profiles || { display_name: "Member" } } as Message;
+          return {
+            id: m.id,
+            loop_id: m.loop_id || loopId,
+            user_id: m.user_id || "",
+            content: m.content,
+            created_at: m.created_at || new Date().toISOString(),
+            edited_at: m.edited_at,
+            reactions: (m.reactions && typeof m.reactions === "object" ? m.reactions : {}) as Message["reactions"],
+            profiles: sender?.profiles || { display_name: "Member" },
+          } as Message;
         });
         messageCache.set(loopId, enriched);
         setMessages(enriched);
@@ -342,7 +351,7 @@ export default function ChatView() {
       }
 
       const rawMemberRows = memberRows || [];
-      const userIds = Array.from(new Set(rawMemberRows.map((r: any) => r.user_id)));
+      const userIds = Array.from(new Set(rawMemberRows.map((r: { user_id: string }) => r.user_id)));
 
       if (!selectedLoop) return;
       const isCreator = selectedLoop.creator_id === session?.user?.id || userLoops.includes(selectedLoop.id);
@@ -379,28 +388,38 @@ export default function ChatView() {
         supabase.rpc("get_loop_contacts", { target_loop_id: loopId }),
       ]);
 
-      const profMap: Record<string, any> = {};
+      type ProfileData = {
+        id: string;
+        display_name: string | null;
+        avatar_url: string | null;
+        reg_no: string | null;
+        gender: string | null;
+        bio: string | null;
+        is_student_verified: boolean | null;
+      };
+
+      const profMap: Record<string, ProfileData> = {};
       if (profs) {
-        profs.forEach((p: any) => {
+        (profs as ProfileData[]).forEach((p) => {
           profMap[p.id] = p;
         });
       }
 
       const contactsMap = new Map<string, string>();
       if (contacts && Array.isArray(contacts)) {
-        contacts.forEach((c: any) => {
+        (contacts as { user_id?: string; phone_number?: string }[]).forEach((c) => {
           if (c.user_id && c.phone_number) {
             contactsMap.set(c.user_id, c.phone_number);
           }
         });
       }
 
-      const memberList = [...rawMemberRows];
-      if (session?.user?.id && !memberList.some((r: any) => r.user_id === session.user.id)) {
+      const memberList: { user_id: string }[] = [...rawMemberRows];
+      if (session?.user?.id && !memberList.some((r) => r.user_id === session.user.id)) {
         memberList.push({ user_id: session.user.id });
       }
 
-      const formatted = memberList.map((r: any) => {
+      const formatted = memberList.map((r) => {
         const isMe = r.user_id === session.user.id;
         const fetchedProf = profMap[r.user_id] || {};
         const contactPhone = contactsMap.get(r.user_id) || "";
@@ -455,6 +474,10 @@ export default function ChatView() {
     } else {
       const realMsg: Message = {
         ...inserted,
+        loop_id: inserted.loop_id || selectedLoop.id,
+        user_id: inserted.user_id || session.user.id,
+        created_at: inserted.created_at || new Date().toISOString(),
+        reactions: (inserted.reactions && typeof inserted.reactions === "object" ? inserted.reactions : {}) as Message["reactions"],
         profiles: { display_name: profile.display_name, avatar_url: profile.avatar_url },
       };
       setMessages((prev) => {
@@ -493,7 +516,7 @@ export default function ChatView() {
         toast.error("Unable to load return ride details");
         return;
       }
-      setSelectedLoop(data);
+      setSelectedLoop(data as unknown as Loop);
       setView("ride-details");
     } catch {
       toast.error("Failed to open return ride");
@@ -677,6 +700,9 @@ export default function ChatView() {
         } else {
           const realMsg: Message = {
             ...inserted,
+            loop_id: inserted.loop_id || selectedLoop.id,
+            user_id: inserted.user_id || session.user.id,
+            created_at: inserted.created_at || new Date().toISOString(),
             profiles: {
               display_name: profile.display_name || "Me",
               avatar_url: profile.avatar_url,
@@ -729,8 +755,8 @@ export default function ChatView() {
           text: rawShareMessage,
         });
         return;
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return;
       }
     }
     openWhatsApp({ text: rawShareMessage });

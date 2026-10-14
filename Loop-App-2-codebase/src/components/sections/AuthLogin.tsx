@@ -128,8 +128,9 @@ export default function AuthLogin({
           setCountdown(60);
         }
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An error occurred";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -152,8 +153,9 @@ export default function AuthLogin({
       } else {
         setIsResettingPassword(false);
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update password");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update password";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -187,8 +189,9 @@ export default function AuthLogin({
         setIsLogin(true);
         setIsVerifying(false);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Invalid or expired code");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Invalid or expired code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -207,8 +210,9 @@ export default function AuthLogin({
       setCountdown(60);
       setOtp("");
       toast.success("New code sent!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to resend code");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to resend code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -240,9 +244,10 @@ export default function AuthLogin({
       setIsResetOtp(false);
       setIsResettingPassword(true);
       setPassword("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Recovery OTP verify error:", error);
-      toast.error(error.message || "Invalid or expired code");
+      const message = error instanceof Error ? error.message : "Invalid or expired code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -260,8 +265,9 @@ export default function AuthLogin({
       setCountdown(60);
       setOtp("");
       toast.success("New reset code sent! Please check your Spam folder.");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to resend reset code");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to resend reset code";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -559,9 +565,9 @@ export default function AuthLogin({
                         setCountdown(60);
                         setIsResetOtp(true);
                         toast.success("Reset code sent! Please check your Inbox and Spam folder.");
-                      } catch (err: any) {
+                      } catch (err: unknown) {
                         logger.error("Password reset request failed:", err);
-                        const msg = typeof err?.message === "string" && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
+                        const msg = err instanceof Error && err.message.trim() ? err.message : "Failed to send reset code. Please check your email or try again.";
                         toast.error(msg);
                       } finally {
                         setIsLoading(false);

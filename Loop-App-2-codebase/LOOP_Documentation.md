@@ -196,7 +196,7 @@ Loop-App-2-codebase/
 ┌─────────────────────────────────────────────────────────┐
 │                     CLIENT (Browser)                     │
 │                                                          │
-│   Next.js 15 App Router → React 19 → Tailwind CSS 4    │
+│   Next.js 16 App Router → React 19 → Tailwind CSS 4    │
 │                                                          │
 │   ┌──────────┐   ┌──────────┐   ┌──────────────────┐   │
 │   │ AuthLogin│   │ MainApp  │   │  LoopContext      │   │

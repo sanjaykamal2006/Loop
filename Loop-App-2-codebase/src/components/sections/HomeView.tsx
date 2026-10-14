@@ -7,9 +7,10 @@ import { getDepartureDateBadge } from "@/lib/dateFormatter";
 import { Users, Clock, MapPin, Search, X, CarFront, Repeat } from "lucide-react";
 import { SteeringWheelIcon, VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
+import type { Loop } from "@/lib/types";
 
 interface LoopCardProps {
-  loop: any;
+  loop: Loop;
   isJoined: boolean;
   isHost: boolean;
   isDark: boolean;

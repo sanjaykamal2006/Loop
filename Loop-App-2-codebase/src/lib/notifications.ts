@@ -11,8 +11,9 @@ export function isIOS(): boolean {
 
 export function isStandalonePWA(): boolean {
   if (typeof window === "undefined") return false;
+  const isIOSStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
   return (
-    (window.navigator as any).standalone === true ||
+    isIOSStandalone ||
     window.matchMedia("(display-mode: standalone)").matches
   );
 }
@@ -134,7 +135,7 @@ export async function requestNotificationPermission(): Promise<{
       registerServiceWorker();
       return { granted: true };
     }
-    return { granted: false, reason: result as any };
+    return { granted: false, reason: result };
   } catch (err) {
     logger.error("Error requesting notification permission:", err);
     return { granted: false, reason: "error" };
@@ -161,7 +162,7 @@ export async function sendLocalNotification(
     return false;
   }
 
-  const defaultOptions: any = {
+  const defaultOptions: NotificationOptions & { url?: string; vibrate?: number[] } = {
     icon: "/logo.png",
     badge: "/icon.png",
     vibrate: [100, 50, 100],

@@ -20,14 +20,14 @@ import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { toast } from "@/components/ui/NativeToast";
 
 export interface UserProfileData {
-  user_id?: string;
+  user_id?: string | null;
   display_name: string;
-  avatar_url?: string;
-  reg_no?: string;
-  gender?: string;
-  bio?: string;
-  phone_number?: string;
-  is_student_verified?: boolean;
+  avatar_url?: string | null;
+  reg_no?: string | null;
+  gender?: string | null;
+  bio?: string | null;
+  phone_number?: string | null;
+  is_student_verified?: boolean | null;
 }
 
 export default function UserProfileModal({

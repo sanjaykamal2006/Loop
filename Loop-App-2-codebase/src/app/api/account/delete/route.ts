@@ -100,8 +100,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: "Account deleted successfully" });
-  } catch (err: any) {
-    logger.error("Account delete error:", err?.message || "Unknown error");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    logger.error("Account delete error:", message);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
