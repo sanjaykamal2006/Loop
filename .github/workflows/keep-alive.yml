@@ -14,7 +14,17 @@ jobs:
       - name: Ping Supabase Database Activity
         run: |
           echo "Sending keep-alive ping to Supabase..."
-          curl -f -s "https://molpzciemegendacaglt.supabase.co/rest/v1/loops?select=id&limit=1" \
-            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" || echo "Ping dispatched"
-          echo "Keep-alive ping completed."
+          ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
+          if [ -z "$ANON_KEY" ]; then
+            ANON_KEY="sb_publishable_2KCVfEqwyTQbGu4ajrZGyQ_oeKs73S0"
+          fi
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://molpzciemegendacaglt.supabase.co/rest/v1/loops?select=id&limit=1" \
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY")
+          echo "Supabase responded with HTTP $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "Keep-alive ping completed successfully."
+          else
+            echo "Keep-alive ping failed with status $HTTP_STATUS" >&2
+            exit 1
+          fi

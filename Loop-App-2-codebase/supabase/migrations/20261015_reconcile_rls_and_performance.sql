@@ -1,7 +1,8 @@
 -- ==============================================================================
 -- LOOP Database Migration: 20261015_reconcile_rls_and_performance.sql
 -- Reconcile all RLS policies to use (SELECT auth.uid()) initplan caching,
--- enforce strict search_path on functions, and ensure missing FK indexes are created.
+-- enforce strict search_path on functions, ensure missing FK indexes are created,
+-- and guarantee 100% reproducibility for fresh database rebuilds.
 -- ==============================================================================
 
 -- 1. SECURITY: Enforce explicit search_path on maintenance functions
@@ -115,6 +116,20 @@ CREATE POLICY "messages_delete" ON public.messages FOR DELETE TO authenticated
     OR EXISTS (SELECT 1 FROM public.loops WHERE loops.id = messages.loop_id AND loops.creator_id = (SELECT auth.uid()))
   );
 
+-- profiles: INSERT, UPDATE
+DROP POLICY IF EXISTS "profiles_select" ON public.profiles;
+CREATE POLICY "profiles_select" ON public.profiles FOR SELECT TO authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "profiles_insert" ON public.profiles;
+CREATE POLICY "profiles_insert" ON public.profiles FOR INSERT TO authenticated 
+  WITH CHECK ((SELECT auth.uid()) = id);
+
+DROP POLICY IF EXISTS "profiles_update" ON public.profiles;
+CREATE POLICY "profiles_update" ON public.profiles FOR UPDATE TO authenticated 
+  USING ((SELECT auth.uid()) = id) 
+  WITH CHECK ((SELECT auth.uid()) = id);
+
 -- trusted_vehicles
 DROP POLICY IF EXISTS "trusted_vehicles_select" ON public.trusted_vehicles;
 CREATE POLICY "trusted_vehicles_select" ON public.trusted_vehicles FOR SELECT TO authenticated
@@ -133,6 +148,21 @@ CREATE POLICY "trusted_vehicles_update" ON public.trusted_vehicles FOR UPDATE TO
 DROP POLICY IF EXISTS "Users can delete their own trusted vehicles." ON public.trusted_vehicles;
 DROP POLICY IF EXISTS "trusted_vehicles_delete" ON public.trusted_vehicles;
 CREATE POLICY "trusted_vehicles_delete" ON public.trusted_vehicles FOR DELETE TO authenticated 
+  USING ((SELECT auth.uid()) = user_id);
+
+-- expected_fares
+DROP POLICY IF EXISTS "expected_fares_select" ON public.expected_fares;
+CREATE POLICY "expected_fares_select" ON public.expected_fares FOR SELECT TO authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert expected fares." ON public.expected_fares;
+DROP POLICY IF EXISTS "expected_fares_insert" ON public.expected_fares;
+CREATE POLICY "expected_fares_insert" ON public.expected_fares FOR INSERT TO authenticated 
+  WITH CHECK (((SELECT auth.role()) = 'authenticated') AND ((SELECT auth.uid()) = user_id));
+
+DROP POLICY IF EXISTS "Users can delete their own expected fares." ON public.expected_fares;
+DROP POLICY IF EXISTS "expected_fares_delete" ON public.expected_fares;
+CREATE POLICY "expected_fares_delete" ON public.expected_fares FOR DELETE TO authenticated 
   USING ((SELECT auth.uid()) = user_id);
 
 -- profile_contacts
