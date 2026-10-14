@@ -16,7 +16,7 @@ console.log(`Syncing from ${sourceDir} to ${targetDir}...`);
 const excludeDirs = ['.git', 'node_modules', '.next', 'graphify-out', '.agents', '.orchids', 'scratch'];
 const excludeFiles = ['.env', '.env*.local', '*.tsbuildinfo'];
 
-const cmd = `robocopy "${sourceDir}" "${targetDir}" /E /XD ${excludeDirs.join(' ')} /XF ${excludeFiles.join(' ')} /NDL /NJH /NJS /NC /NS /NP`;
+const cmd = `robocopy "${sourceDir}" "${targetDir}" /MIR /XD ${excludeDirs.join(' ')} /XF ${excludeFiles.join(' ')} /NDL /NJH /NJS /NC /NS /NP`;
 
 try {
   execSync(cmd, { stdio: 'inherit' });
