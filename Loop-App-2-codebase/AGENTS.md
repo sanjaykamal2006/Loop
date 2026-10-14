@@ -2,7 +2,7 @@
 LOOP is a real-time, purpose-based coordination platform designed as a mobile-first responsive website. It allows users to connect with others going to the same destination or doing the same thing at the same time. The app emphasizes speed, utility, and temporary coordination without social media distractions.
 
 ## Tech Stack
-- Framework: Next.js 15 (App Router)
+- Framework: Next.js 16 (App Router)
 - Language: TypeScript
 - Backend: Supabase (Auth, Database, Realtime)
 - Styling: Tailwind CSS 4

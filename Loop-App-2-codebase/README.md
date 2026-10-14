@@ -39,7 +39,7 @@ LOOP solves this in one tap.
 
 ### Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
 - **Styling**: Tailwind CSS
 - **Backend & Auth**: Supabase (PostgreSQL, Realtime Engine, Row Level Security)
 - **Hosting**: Vercel

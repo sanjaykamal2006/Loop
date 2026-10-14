@@ -41,6 +41,21 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(self)",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self';",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+              "style-src 'self' 'unsafe-inline';",
+              "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://api.qrserver.com;",
+              "media-src 'self' https://cdn.freesound.org;",
+              "font-src 'self' data:;",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co;",
+              "frame-ancestors 'none';",
+              "base-uri 'self';",
+              "form-action 'self' https://wa.me;",
+            ].join(" "),
+          },
         ],
       },
     ];
