@@ -14,18 +14,14 @@ function checkIsRecovery(): boolean {
   return (
     hash.includes("type=recovery") ||
     search.includes("type=recovery") ||
-    (hash.includes("access_token=") && hash.includes("recovery"))
+    (hash.includes("access_token=") && hash.includes("recovery")) ||
+    (search.includes("code=") && (search.includes("recovery") || hash.includes("recovery")))
   );
 }
 
 function getCachedOfflineSession(): Session | null {
   if (typeof window === "undefined") return null;
   try {
-    const cached = localStorage.getItem("loop_offline_session");
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed?.user?.id) return parsed as Session;
-    }
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
@@ -35,6 +31,11 @@ function getCachedOfflineSession(): Session | null {
           if (parsed?.user?.id) return parsed as Session;
         }
       }
+    }
+    const legacy = localStorage.getItem("loop_offline_session");
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      if (parsed?.user?.id) return parsed as Session;
     }
   } catch {}
   return null;
@@ -61,9 +62,6 @@ export default function Home() {
         clearTimeout(fallbackTimer);
         if (liveSession) {
           setSession(liveSession);
-          try {
-            localStorage.setItem("loop_offline_session", JSON.stringify(liveSession));
-          } catch {}
         } else if (typeof navigator !== "undefined" && !navigator.onLine) {
           const offlineFallback = getCachedOfflineSession();
           if (offlineFallback) setSession(offlineFallback);
@@ -87,9 +85,6 @@ export default function Home() {
       }
       if (nextSession) {
         setSession(nextSession);
-        try {
-          localStorage.setItem("loop_offline_session", JSON.stringify(nextSession));
-        } catch {}
       } else if (event === "SIGNED_OUT" && (typeof navigator === "undefined" || navigator.onLine)) {
         setSession(null);
         try {

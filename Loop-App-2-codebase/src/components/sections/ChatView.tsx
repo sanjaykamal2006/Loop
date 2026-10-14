@@ -14,6 +14,7 @@ import { sendLocalNotification } from "@/lib/notifications";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { triggerHaptic } from "@/lib/haptics";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { getMapsUrlFromMessage } from "@/lib/utils";
 
 const messageCache = new LRUCache<string, Message[]>({ maxSize: 30 });
 
@@ -626,19 +627,6 @@ export default function ChatView() {
   if (!selectedLoop) return null;
 
   const isHost = selectedLoop?.creator_id === session.user.id;
-
-  const getMapsUrlFromMessage = (content: string): string | null => {
-    if (!content) return null;
-    const coordsMatch = content.match(/[?&]q=([-0-9.]+),([-0-9.]+)/) || content.match(/[?&]query=([-0-9.]+),([-0-9.]+)/);
-    if (coordsMatch) {
-      return `https://maps.google.com/maps?q=${coordsMatch[1]},${coordsMatch[2]}`;
-    }
-    if (content.includes("google.com/maps") || content.includes("maps.google.com")) {
-      const match = content.match(/https?:\/\/[^\s]+/);
-      if (match) return match[0];
-    }
-    return null;
-  };
 
   const handleShareLocation = async () => {
     if (!navigator.geolocation) {

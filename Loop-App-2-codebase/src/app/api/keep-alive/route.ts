@@ -23,29 +23,20 @@ export async function GET() {
       });
     }
 
-    // 2. Fallback: Server-side check if RPC is not yet registered
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // 2. Fallback: Ping public loops table using standard client (least privilege, no service role key)
+    const { error: pingError } = await supabase
+      .from('loops')
+      .select('id')
+      .limit(1);
 
-    if (supabaseUrl && serviceRoleKey) {
-      const serverClient = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
+    if (!pingError) {
+      const duration = Date.now() - start;
+      return NextResponse.json({
+        status: 'healthy',
+        message: 'Database ping successful',
+        durationMs: duration,
+        timestamp: new Date().toISOString(),
       });
-
-      const { error: pingError } = await serverClient
-        .from('profiles')
-        .select('id')
-        .limit(1);
-
-      if (!pingError) {
-        const duration = Date.now() - start;
-        return NextResponse.json({
-          status: 'healthy',
-          message: 'Server-side ping successful',
-          durationMs: duration,
-          timestamp: new Date().toISOString(),
-        });
-      }
     }
 
     // If both failed, return safe failure without leaking internal details

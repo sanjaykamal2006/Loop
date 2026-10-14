@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Free-tier monitoring endpoint
@@ -10,14 +18,14 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('authorization') || '';
     const expectedToken = process.env.ADMIN_STATS_SECRET || process.env.CLEANUP_CRON_SECRET;
 
     if (!expectedToken) {
       return NextResponse.json({ error: 'Server misconfigured - no admin secret set' }, { status: 500 });
     }
 
-    if (authHeader !== `Bearer ${expectedToken}`) {
+    if (!safeCompare(authHeader, `Bearer ${expectedToken}`)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -32,3 +32,38 @@ export function sanitizeIndianPhoneNumber(input: string): string {
   // Limit to maximum 10 digits
   return digits.slice(0, 10);
 }
+
+/**
+ * Safely extracts genuine Google Maps location URLs from message content.
+ * Prevents open-redirect / phishing where attacker inputs like "google.com/maps https://evil.com"
+ * would mistakenly render as trusted green Google Maps cards.
+ */
+export function getMapsUrlFromMessage(content: string): string | null {
+  if (!content) return null;
+
+  // 1. Direct coordinate format extraction (?q=lat,lng or ?query=lat,lng)
+  const coordsMatch = content.match(/[?&]q=([-0-9.]+),([-0-9.]+)/) || content.match(/[?&]query=([-0-9.]+),([-0-9.]+)/);
+  if (coordsMatch) {
+    return `https://maps.google.com/maps?q=${coordsMatch[1]},${coordsMatch[2]}`;
+  }
+
+  // 2. Strict URL validation
+  const urlMatch = content.match(/https?:\/\/[^\s]+/i);
+  if (urlMatch) {
+    try {
+      const parsed = new URL(urlMatch[0]);
+      const host = parsed.hostname.toLowerCase();
+      const isMapsHost = host === "maps.google.com" || host === "maps.app.goo.gl";
+      const isGoogleMapsPath = (host === "google.com" || host === "www.google.com") && parsed.pathname.startsWith("/maps");
+
+      if (isMapsHost || isGoogleMapsPath) {
+        return parsed.toString();
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+

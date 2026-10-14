@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncWhitelistToDatabase } from "@/lib/syncWhitelist";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Admin API route to sync the code-based EXTERNAL_EMAIL_WHITELIST in authConfig.ts
@@ -22,7 +30,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get("authorization") || "";
 
   if (!cronSecret) {
     return NextResponse.json(
@@ -31,7 +39,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+  if (!safeCompare(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json(
       { error: "Unauthorized: Invalid or missing authorization bearer token." },
       { status: 401 }

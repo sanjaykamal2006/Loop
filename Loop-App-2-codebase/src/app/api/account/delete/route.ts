@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
             // Inform passengers via chat
             await adminClient.from("messages").insert({
               loop_id: loop.id,
-              user_id: userId,
+              user_id: null,
               content: "[Notice] The ride host's account was closed. This ride has been cancelled.",
             });
           } else {
