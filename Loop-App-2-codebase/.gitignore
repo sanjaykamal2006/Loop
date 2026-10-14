@@ -55,5 +55,8 @@ brag-output/
 PHASE_*_REPORT.md
 comprehensive-testing-strategy.html
 
+# supabase cli cache
+supabase/.temp/
+
 
 

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:db": "vitest run tests/integration",
     "sync-repo": "node scripts/sync-repo.js"
   },
   "dependencies": {
