@@ -14,7 +14,7 @@ const cspHeader = [
   "default-src 'self';",
   scriptSrc,
   "style-src 'self' 'unsafe-inline';",
-  "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://api.qrserver.com;",
+  "img-src 'self' data: blob: https://*.supabase.co https://api.qrserver.com;",
   "media-src 'self' https://cdn.freesound.org;",
   "font-src 'self' data:;",
   connectSrc,
@@ -30,10 +30,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
       },
       {
         protocol: 'https',

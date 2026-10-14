@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +12,14 @@ export async function GET() {
     // Tests database connectivity without querying sensitive user/ride tables
     const { data: rpcData, error: rpcError } = await supabase.rpc('health_check');
 
-    if (!rpcError && rpcData?.status === 'healthy') {
+    const isHealthy = Boolean(
+      typeof rpcData === 'object' &&
+      rpcData !== null &&
+      !Array.isArray(rpcData) &&
+      (rpcData as { status?: string }).status === 'healthy'
+    );
+
+    if (!rpcError && isHealthy) {
       const duration = Date.now() - start;
       return NextResponse.json({
         status: 'healthy',

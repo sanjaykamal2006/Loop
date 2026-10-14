@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import {
   isAllowedInstitutionalEmail,
   INSTITUTIONAL_ERROR_MESSAGE,
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (supabaseUrl && serviceRoleKey) {
       try {
-        const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        const adminClient = createClient<Database>(supabaseUrl, serviceRoleKey, {
           auth: { autoRefreshToken: false, persistSession: false },
         });
         const { data: dbEntry } = await adminClient

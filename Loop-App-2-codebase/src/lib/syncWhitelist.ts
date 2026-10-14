@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { EXTERNAL_EMAIL_WHITELIST } from "./authConfig";
 import { logger } from "./logger";
+import type { Database } from "@/lib/database.types";
 
 export interface WhitelistSyncResult {
   success: boolean;
@@ -37,7 +38,7 @@ export async function syncWhitelistToDatabase(): Promise<WhitelistSyncResult> {
   }
 
   try {
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    const adminClient = createClient<Database>(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 

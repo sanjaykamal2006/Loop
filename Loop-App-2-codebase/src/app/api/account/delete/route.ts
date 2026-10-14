@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
+import type { Database } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Verify user identity using user token
-    const userClient = createClient(supabaseUrl, supabaseAnonKey);
+    const userClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
     const { data: { user }, error: userError } = await userClient.auth.getUser(token);
 
     if (userError || !user) {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     const userId = user.id;
 
     // 2. Service role admin client to perform safe account decommissioning
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+    const adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         if (hasOtherPassengers) {
           // If the ride is active, mark it cancelled so co-riders are not left in limbo
-          const isActive = ["open", "started", "active", "in_progress"].includes(loop.status);
+          const isActive = Boolean(loop.status && ["open", "started", "active", "in_progress"].includes(loop.status));
           if (isActive) {
             await adminClient
               .from("loops")
