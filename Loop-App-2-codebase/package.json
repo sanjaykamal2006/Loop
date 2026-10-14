@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "sync-repo": "node scripts/sync-repo.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.91.0",
