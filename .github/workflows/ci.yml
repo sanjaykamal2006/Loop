@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Dependency Integrity
+        run: npm ls --all --omit=optional
+
       - name: Lint
         run: npm run lint
 

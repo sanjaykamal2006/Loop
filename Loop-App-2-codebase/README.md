@@ -146,13 +146,17 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 ### Setup
 ```bash
 git clone https://github.com/sanjaykamal2006/Loop.git
-cd Loop
-npm install
+cd Loop/Loop-App-2-codebase
+npm ci
+npm run verify:deps
 cp .env.example .env
 ```
 
 ### Running the Test Suite
 ```bash
+# Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
+npm run verify:deps
+
 # Run 124 unit, component, and API integration tests
 npm run test:run
 
