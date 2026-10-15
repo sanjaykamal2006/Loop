@@ -68,7 +68,14 @@ export function MessageList({
   const { isDark, border, cardBg, mutedText, text } = theme;
 
   return (
-    <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4">
+    <div
+      ref={chatScrollRef}
+      role="log"
+      aria-live="polite"
+      aria-atomic="false"
+      aria-label="Chat messages"
+      className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide space-y-1 pb-4"
+    >
       {hasMoreMessages && (
         <div className="flex justify-center py-2">
           <button

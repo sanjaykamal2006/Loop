@@ -119,37 +119,40 @@ export function ChatHeader({
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 ml-2 shrink-0">
+        <div className="flex items-center gap-2 ml-2 shrink-0">
           <button
+            type="button"
             onClick={onTriggerSos}
             aria-label="Emergency SOS"
             title={!hasEmergencyContacts ? "Add emergency contact to enable SOS" : "Emergency SOS"}
-            className="h-8 px-2 rounded-full bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm shadow-red-600/30 transition-all shrink-0 cursor-pointer"
+            className="relative min-h-[36px] px-3 rounded-full bg-red-600 hover:bg-red-500 text-white text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm shadow-red-600/30 transition-all shrink-0 cursor-pointer before:absolute before:-inset-1.5 before:content-['']"
           >
-            <ShieldAlert size={12} strokeWidth={2.6} />
+            <ShieldAlert size={14} strokeWidth={2.6} />
             <span>SOS</span>
           </button>
 
           <button
+            type="button"
             onClick={onShareLocation}
             disabled={isSharingLocation}
             aria-label="Share current location pin"
-            className={`h-8 px-2.5 rounded-full ${
+            className={`relative min-h-[36px] px-3 rounded-full ${
               isDark
-                ? "bg-[#FFC554]/15 text-[#FFC554] border-[#FFC554]/30 hover:bg-[#FFC554]/25"
-                : "bg-[#881337]/10 text-[#881337] border-[#881337]/25 hover:bg-[#881337]/20"
-            } text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm transition-all shrink-0`}
+                ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/30 hover:bg-[#FFC554]/25"
+                : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25 hover:bg-[#881337]/20"
+            } text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50 before:absolute before:-inset-1.5 before:content-['']`}
           >
-            <MapPin size={12} strokeWidth={2.5} className={isSharingLocation ? "animate-pulse" : ""} />
+            <MapPin size={13} strokeWidth={2.5} className={isSharingLocation ? "animate-pulse" : ""} />
             <span>{isSharingLocation ? "..." : "Spot"}</span>
           </button>
 
           <button
+            type="button"
             onClick={onShareInvite}
             aria-label="Share ride invite"
-            className="h-8 px-2.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 shadow-sm hover:bg-emerald-500/25 transition-all shrink-0"
+            className="relative min-h-[36px] px-3 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-sm hover:bg-emerald-500/25 transition-all shrink-0 cursor-pointer before:absolute before:-inset-1.5 before:content-['']"
           >
-            <Share2 size={12} strokeWidth={2.5} />
+            <Share2 size={13} strokeWidth={2.5} />
             <span>Share</span>
           </button>
         </div>

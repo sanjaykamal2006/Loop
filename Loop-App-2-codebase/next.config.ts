@@ -15,7 +15,7 @@ const cspHeader = [
   scriptSrc,
   "style-src 'self' 'unsafe-inline';",
   "img-src 'self' data: blob: https://*.supabase.co https://api.qrserver.com;",
-  "media-src 'self' https://cdn.freesound.org;",
+  "media-src 'self';",
   "font-src 'self' data:;",
   connectSrc,
   "object-src 'none';",

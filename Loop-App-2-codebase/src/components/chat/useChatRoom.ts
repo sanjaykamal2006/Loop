@@ -293,46 +293,64 @@ export function useChatRoom({
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id, fetchMessages, fetchMembers]);
 
-  // Poll messages every 3s when tab is visible
+  // Realtime WebSocket subscription for instant message & member updates with relaxed 25s fallback
   useEffect(() => {
     if (!selectedLoop?.id) return;
     const loopId = selectedLoop.id;
 
-    const poll = () => {
+    const channel = supabase
+      .channel(`chat-room-${loopId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `loop_id=eq.${loopId}`,
+        },
+        () => {
+          fetchMessages(loopId);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "loop_members",
+          filter: `loop_id=eq.${loopId}`,
+        },
+        () => {
+          fetchMembers(loopId);
+        }
+      )
+      .subscribe();
+
+    // Fallback polling: relaxed to 25s (reduced from 3s/5s) to preserve connection limits
+    const fallbackPoll = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         fetchMessages(loopId);
+        fetchMembers(loopId);
       }
     };
 
-    const intervalId = setInterval(poll, 3000);
+    const intervalId = setInterval(fallbackPoll, 25000);
     pollIntervalRef.current = intervalId;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        poll();
-        fetchMembers(loopId);
+        fallbackPoll();
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      supabase.removeChannel(channel);
       clearInterval(intervalId);
       pollIntervalRef.current = null;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [selectedLoop?.id, fetchMessages, fetchMembers]);
-
-  // Members polling - refresh every 5s
-  useEffect(() => {
-    if (!selectedLoop?.id) return;
-    const loopId = selectedLoop.id;
-    const memberPoll = setInterval(() => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        fetchMembers(loopId);
-      }
-    }, 5000);
-    return () => clearInterval(memberPoll);
-  }, [selectedLoop?.id, fetchMembers]);
 
   const loadMoreMessages = async () => {
     if (!selectedLoop?.id || messages.length === 0 || isLoadingMore) return;
