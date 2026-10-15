@@ -4,18 +4,18 @@ import React, { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
-
-import { MapPin, Clock, Trash2, LogOut as LeaveIcon, XCircle, CheckCircle2, UserMinus, Receipt, Check, X, ArrowLeft, Edit3, Share2, Shield, Phone, MessageCircle, ShieldCheck, Repeat, ShieldAlert, Users } from "lucide-react";
+import { MapPin, Clock, XCircle, CheckCircle2, Shield, Repeat, Users } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import type { LoopMember } from "@/lib/types";
 import UserProfileModal, { UserProfileData } from "./UserProfileModal";
 import EditLoopModal from "./EditLoopModal";
-import FastAvatar from "@/components/ui/FastAvatar";
-import { SteeringWheelIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { LRUCache } from "@/lib/cache";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { FareSplitterCard } from "@/components/ride/FareSplitterCard";
+import { PassengerList } from "@/components/ride/PassengerList";
+import { RideActionButtons } from "@/components/ride/RideActionButtons";
 
 const membersCache = new LRUCache<string, LoopMember[]>({ maxSize: 30 });
 
@@ -34,7 +34,6 @@ export default function RideDetailsView() {
     setSelectedLoop,
     setView,
     fetchLoops,
-    formatTime,
     theme,
     setChatSource,
     setCreatePrefill,
@@ -42,7 +41,7 @@ export default function RideDetailsView() {
     emergencyContacts = [],
     setShowTermsModal,
   } = useLoop();
-  const { isDark, bg, border, cardBg, mutedText } = theme;
+  const { isDark, border, cardBg, mutedText } = theme;
 
   const getOfflineFallbackMembers = (loopId?: string): LoopMember[] => {
     if (!loopId) return [];
@@ -250,7 +249,7 @@ export default function RideDetailsView() {
     if (!selectedLoop) return;
     const shareUrl = typeof window !== "undefined"
       ? `${window.location.origin}/?loop=${selectedLoop.id}`
-      : `https://loop-demo-app.vercel.app/?loop=${selectedLoop.id}`;
+      : `https://loop-app.runs-on.dev/?loop=${selectedLoop.id}`;
 
     const seatsLeft = Math.max(0, selectedLoop.participants_limit - (loopMembers.length || 1));
     const totalOfferedSeats = selectedLoop.is_driver_offering
@@ -323,7 +322,7 @@ export default function RideDetailsView() {
         </div>
       )}
 
-      {/* Destination */}
+      {/* Destination Card */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
           <MapPin size={18} strokeWidth={2.5} />
@@ -342,7 +341,7 @@ export default function RideDetailsView() {
         </div>
       </div>
 
-      {/* Starting Time / Schedule */}
+      {/* Starting Time / Schedule Card */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
         <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
           <Clock size={18} strokeWidth={2.5} />
@@ -356,76 +355,18 @@ export default function RideDetailsView() {
       </div>
 
       {/* Fare Splitter or Student Driver Personal Ride Info */}
-      {selectedLoop.is_driver_offering ? (
-        <div className={`p-4 ${cardBg} ${isDark ? "border border-[#FFC554]/30" : "border border-[#881337]/30"} rounded-[28px] flex items-center justify-between shadow-sm`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl ${isDark ? "bg-[#FFC554]/15 border border-[#FFC554]/25 text-[#FFC554]" : "bg-[#881337]/10 border border-[#881337]/20 text-[#881337]"} flex items-center justify-center shrink-0`}>
-              <SteeringWheelIcon size={20} />
-            </div>
-            <div>
-              <p className={`text-[9px] font-black ${mutedText} uppercase tracking-wider`}>Student Driver</p>
-              <h4 className={`font-black text-sm uppercase ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
-                Personal {selectedLoop.vehicle_type || "Vehicle"} Drop
-              </h4>
-            </div>
-          </div>
-          <span className={`text-[9px] font-black ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/25" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"} px-2.5 py-1 rounded-full uppercase tracking-wider`}>
-            Coordinate in chat
-          </span>
-        </div>
-      ) : (
-        <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Receipt size={14} className={mutedText} strokeWidth={2.5} />
-              <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Fare Splitter</p>
-            </div>
-            {isCreator && !isEditingFare && !isPast && (
-              <button onClick={() => setIsEditingFare(true)} className={`text-[10px] font-black ${isDark ? "text-[#FFC554]" : "text-[#881337]"} uppercase tracking-wider active:scale-95`}>
-                {selectedLoop.total_fare ? "Edit Fare" : "Set Fare"}
-              </button>
-            )}
-          </div>
-
-          {isEditingFare && !isPast ? (
-            <div className="flex items-center gap-2">
-              <div className={`flex-1 flex items-center h-10 ${bg} border ${border} rounded-[16px] px-3`}>
-                <span className={`font-black ${mutedText} mr-2`}>₹</span>
-                <input 
-                  type="number" 
-                  value={fareInput} 
-                  onChange={e => setFareInput(e.target.value)} 
-                  placeholder="Total Fare"
-                  className="flex-1 bg-transparent text-sm font-bold outline-none"
-                  autoFocus
-                />
-              </div>
-              <button onClick={saveTotalFare} className="w-10 h-10 bg-green-500/10 text-green-500 flex items-center justify-center rounded-[16px] active:scale-95">
-                <Check size={16} strokeWidth={3} />
-              </button>
-              <button onClick={() => setIsEditingFare(false)} className={`w-10 h-10 ${cardBg} border border-red-500/20 text-red-500 flex items-center justify-center rounded-[16px] active:scale-95`}>
-                <X size={16} strokeWidth={3} />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between w-full">
-              <div>
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Total Fare</p>
-                <h3 className="font-black text-lg">
-                  {selectedLoop.total_fare ? `₹${selectedLoop.total_fare}` : "Not Set"}
-                </h3>
-              </div>
-              
-              <div className="text-right">
-                <p className={`text-[9px] font-bold ${mutedText} uppercase tracking-wider`}>Split (Per Person)</p>
-                <h3 className="font-black text-lg text-[#FFC554]">
-                  {selectedLoop.total_fare ? `₹${Math.ceil((selectedLoop.total_fare) / Math.max(1, loopMembers.length))}` : "—"}
-                </h3>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <FareSplitterCard
+        loop={selectedLoop}
+        isCreator={isCreator}
+        isPast={isPast}
+        memberCount={loopMembers.length}
+        fareInput={fareInput}
+        setFareInput={setFareInput}
+        isEditingFare={isEditingFare}
+        setIsEditingFare={setIsEditingFare}
+        onSaveFare={saveTotalFare}
+        theme={theme}
+      />
 
       {/* Peer-to-Peer Non-Commercial Safety Disclaimer */}
       <div className="flex items-center justify-between px-2.5 py-0.5">
@@ -442,302 +383,51 @@ export default function RideDetailsView() {
         </button>
       </div>
 
+      {/* Passengers Roster */}
+      <PassengerList
+        loop={selectedLoop}
+        loopMembers={loopMembers}
+        isLoadingMembers={isLoadingMembers}
+        sessionUserId={session.user.id}
+        profile={profile}
+        isCreator={isCreator}
+        isJoined={isJoined}
+        isPast={isPast}
+        onSelectUser={setSelectedUser}
+        onRemoveMember={removeMember}
+        theme={theme}
+      />
 
-      {/* Passengers */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] space-y-3`}>
-        <div className="flex items-center justify-between">
-          <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>
-            {selectedLoop.is_driver_offering ? "Driver & Passengers" : "Passengers"}
-          </p>
-          <span className="text-xs font-black text-[#FFC554]">
-            {isLoadingMembers
-              ? `${selectedLoop.member_count || 1}/${selectedLoop.participants_limit}`
-              : `${loopMembers.length}/${selectedLoop.participants_limit}`}
-          </span>
-        </div>
-        
-        {isLoadingMembers ? (
-          <div className="space-y-2">
-            {Array.from({ length: Math.max(1, selectedLoop.member_count || 1) }).map((_, i) => (
-              <div
-                key={i}
-                className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl animate-pulse`}
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
-                  <div className="h-4 w-28 bg-white/10 rounded-md" />
-                </div>
-                <div className="h-3 w-10 bg-white/10 rounded-md shrink-0" />
-              </div>
-            ))}
-          </div>
-        ) : loopMembers.length > 0 ? (
-          <div className="space-y-2">
-            {loopMembers.map((member, i) => {
-              const isMe = member.user_id === session.user.id;
-              const avatar = member.profiles?.avatar_url || (isMe ? profile.avatar_url : undefined);
-              const displayName = (isMe && profile.display_name) ? profile.display_name : (member.profiles?.display_name || "Member");
-              const regNo = (isMe && profile.reg_no) ? profile.reg_no : member.profiles?.reg_no;
-              const gender = (isMe && profile.gender) ? profile.gender : member.profiles?.gender;
-              const bio = (isMe && profile.bio) ? profile.bio : member.profiles?.bio;
-              const phone = (isMe && profile.phone_number) ? profile.phone_number : member.profiles?.phone_number;
-              const isStudentVerified = (isMe && profile.is_student_verified) ? profile.is_student_verified : member.profiles?.is_student_verified;
-              const canDirectContact = (isJoined || isCreator) && !isMe;
-
-              return (
-                <div
-                  key={member.user_id || i}
-                  className={`flex items-center justify-between px-3 py-2.5 ${bg} border ${border} rounded-2xl`}
-                >
-                  <div
-                    className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
-                    onClick={() => setSelectedUser({
-                      user_id: member.user_id,
-                      display_name: displayName,
-                      avatar_url: avatar,
-                      reg_no: regNo,
-                      gender: gender,
-                      bio: bio,
-                      phone_number: (canDirectContact || isMe) ? phone : undefined,
-                      is_student_verified: isStudentVerified,
-                    })}
-                  >
-                    <FastAvatar
-                      src={avatar}
-                      name={displayName}
-                      sizeClassName="w-8 h-8"
-                      borderClassName="border border-white/10"
-                      initialsClassName="text-xs font-black text-[#FFC554]"
-                      fallbackBgClassName="bg-[#FFC554]/20 border border-[#FFC554]/30"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-sm font-bold leading-tight break-words">{displayName}</span>
-                        {isStudentVerified && (
-                          <span title="Campus Verified Student" className="shrink-0 text-emerald-400">
-                            <ShieldCheck size={13} strokeWidth={2.5} />
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                        {regNo && (
-                          <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-zinc-400 truncate max-w-[90px]">
-                            {regNo}
-                          </span>
-                        )}
-                        {member.user_id === selectedLoop.creator_id && selectedLoop.is_driver_offering ? (
-                          <span className="text-[8px] bg-[#FFC554]/15 border border-[#FFC554]/25 text-[#FFC554] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
-                            Driver
-                          </span>
-                        ) : member.user_id === selectedLoop.creator_id ? (
-                          <span className="text-[8px] bg-white/10 text-zinc-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
-                            Host
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Direct Contact Actions for Confirmed Ride Participants */}
-                    {canDirectContact && !isPast && (
-                      <div className="flex items-center gap-2 mr-3">
-                        {phone ? (
-                          <>
-                            <a
-                              href={`https://wa.me/91${phone}?text=${encodeURIComponent(`Hey ${displayName}, reaching out regarding our LOOP ride to ${selectedLoop?.destination || "our destination"}.`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label="Message on WhatsApp"
-                              className="w-8 h-8 rounded-full bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
-                            >
-                              <MessageCircle size={15} strokeWidth={2.5} />
-                            </a>
-                            <a
-                              href={`tel:+91${phone}`}
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label="Call passenger"
-                              className="w-8 h-8 rounded-full bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 flex items-center justify-center active:scale-90 transition-transform shadow-sm"
-                            >
-                              <Phone size={15} strokeWidth={2.5} />
-                            </a>
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toast.info("Phone not shared. Coordinate via in-app chat!");
-                            }}
-                            title="Phone not shared"
-                            className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-zinc-500 flex items-center justify-center active:scale-90 opacity-60"
-                          >
-                            <Phone size={14} strokeWidth={2} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    <span className={`text-[10px] font-black ${mutedText} capitalize`}>
-                      {gender || "—"}
-                    </span>
-
-                    {isCreator && !isPast && !isMe && (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeMember(member.user_id);
-                        }}
-                        aria-label="Remove member"
-                        className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center active:scale-90 ml-1 transition-colors"
-                      >
-                        <UserMinus size={13} strokeWidth={2.5} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col gap-2 pt-1">
-        {isPast ? (
-          <button
-            onClick={() => setView("past-loops")}
-            className={`w-full py-3.5 ${cardBg} border ${border} rounded-[22px] text-xs font-black uppercase tracking-wider active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-sm`}
-          >
-            <ArrowLeft size={16} />
-            Back to Ride History
-          </button>
-        ) : (
-          <>
-            {selectedLoop.is_female_only && !isJoined && (
-              <p className="text-[10px] text-center text-pink-400 font-bold px-2 py-0.5">
-                Female-Only Ride: Based on self-reported gender at signup. Not independently verified.
-              </p>
-            )}
-            <button
-              onClick={() => {
-                triggerHaptic(12);
-                if (isJoined) enterChat();
-                else joinLoop(selectedLoop);
-              }}
-              disabled={isJoining}
-              className={`w-full h-12 ${
-                isDark 
-                  ? "bg-[#FFC554] text-black" 
-                  : "bg-[#881337] text-white"
-              } font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all`}
-            >
-              {isJoining ? "Joining..." : isJoined ? "Open Chat" : "Join Loop"}
-            </button>
-
-            {/* WhatsApp / Social Share */}
-            <button
-              onClick={handleShareLoop}
-              className="w-full py-3 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-black text-[10px] uppercase tracking-[0.2em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-2 transition-all shadow-sm"
-            >
-              <Share2 size={13} strokeWidth={2.5} />
-              Share Loop (WhatsApp / Friends)
-            </button>
-
-            {isCreator && (
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className={`w-full py-3 ${cardBg} ${
-                  isDark 
-                    ? "border border-[#FFC554]/30 hover:border-[#FFC554]/60 text-[#FFC554]" 
-                    : "border border-[#881337]/30 hover:border-[#881337]/60 text-[#881337]"
-                } rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
-              >
-                <Edit3 size={13} strokeWidth={2.5} />
-                Edit Ride Details
-              </button>
-            )}
-
-            {isCreator && selectedLoop.purpose !== "return" && (
-              <button
-                onClick={() => {
-                  triggerHaptic(10);
-                  setCreatePrefill({
-                    startPoint: selectedLoop.destination,
-                    destination: selectedLoop.start_point || undefined,
-                    isReturn: true,
-                  });
-                  setView("create");
-                }}
-                className={`w-full py-3 ${cardBg} border border-indigo-500/30 hover:border-indigo-500/60 rounded-[20px] text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm`}
-              >
-                <Repeat size={13} strokeWidth={2.5} />
-                Plan Return Ride
-              </button>
-            )}
-
-            {!isPast && (
-              <button
-                type="button"
-                onClick={triggerSos}
-                aria-label="Emergency SOS"
-                className={`w-full py-3 ${
-                  emergencyContacts.length === 0
-                    ? "bg-red-600/10 hover:bg-red-600/20 border border-red-500/25 text-red-400/80"
-                    : "bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 hover:border-red-500/70 text-red-400 hover:text-red-300"
-                } rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer`}
-              >
-                <ShieldAlert size={14} strokeWidth={2.5} />
-                <span>{emergencyContacts.length === 0 ? "Setup Emergency Contact (Required for SOS)" : "Emergency SOS"}</span>
-              </button>
-            )}
-
-            {isCreator && (
-              showDeleteConfirm ? (
-                <div className="flex gap-2 animate-fade-in">
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isDeleting}
-                    className={`flex-1 py-3 ${cardBg} border ${border} rounded-[20px] text-xs font-bold text-zinc-400 active:scale-[0.98] disabled:opacity-50`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      deleteLoop(selectedLoop.id);
-                    }}
-                    disabled={isDeleting}
-                    className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.15em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
-                  >
-                    <Trash2 size={13} strokeWidth={2.5} className={isDeleting ? "animate-spin" : ""} />
-                    {isDeleting ? "Deleting..." : "Confirm Delete"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  disabled={isDeleting}
-                  className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-400 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50`}
-                >
-                  <Trash2 size={13} strokeWidth={2.5} />
-                  Delete Loop
-                </button>
-              )
-            )}
-
-            {isJoined && !isCreator && (
-              <button
-                onClick={() => leaveLoop(selectedLoop.id)}
-                className={`w-full py-3 ${cardBg} border ${border} rounded-[20px] text-red-500/70 hover:text-red-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5`}
-              >
-                <LeaveIcon size={13} strokeWidth={2.5} />
-                Leave Loop
-              </button>
-            )}
-          </>
-        )}
-      </div>
+      {/* Bottom Action Buttons */}
+      <RideActionButtons
+        loop={selectedLoop}
+        isPast={isPast}
+        isCreator={isCreator}
+        isJoined={isJoined}
+        isJoining={isJoining}
+        isDeleting={isDeleting}
+        showDeleteConfirm={showDeleteConfirm}
+        setShowDeleteConfirm={setShowDeleteConfirm}
+        emergencyContactsCount={emergencyContacts.length}
+        onJoin={() => joinLoop(selectedLoop)}
+        onEnterChat={enterChat}
+        onShareLoop={handleShareLoop}
+        onOpenEditModal={() => setIsEditModalOpen(true)}
+        onPlanReturnRide={() => {
+          triggerHaptic(10);
+          setCreatePrefill({
+            startPoint: selectedLoop.destination,
+            destination: selectedLoop.start_point || undefined,
+            isReturn: true,
+          });
+          setView("create");
+        }}
+        onTriggerSos={triggerSos}
+        onDeleteLoop={() => deleteLoop(selectedLoop.id)}
+        onLeaveLoop={() => leaveLoop(selectedLoop.id)}
+        onBackToHistory={() => setView("past-loops")}
+        theme={theme}
+      />
 
       <UserProfileModal user={selectedUser} isOpen={!!selectedUser} onClose={() => setSelectedUser(null)} />
 
