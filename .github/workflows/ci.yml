@@ -10,6 +10,22 @@ jobs:
   test-and-build:
     name: Test & Build
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: loop_test
+          POSTGRES_PASSWORD: loop_test_password
+          POSTGRES_DB: loop_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: ./Loop-App-2-codebase
@@ -34,8 +50,16 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run Test Suite
+      - name: Run Unit & Component Tests
         run: npm run test:run
+
+      - name: Initialize Database Contract Schema
+        run: PGPASSWORD=loop_test_password psql -h localhost -U loop_test -d loop_test_db -f tests/integration/schema_contract_init.sql
+
+      - name: Run Live Database Contract Tests
+        run: npm run test:db
+        env:
+          TEST_DATABASE_URL: "postgresql://loop_test:loop_test_password@localhost:5432/loop_test_db"
 
       - name: Verify Production Build
         run: npm run build

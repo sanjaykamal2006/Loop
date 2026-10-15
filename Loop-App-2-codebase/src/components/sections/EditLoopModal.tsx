@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Loop } from "@/lib/types";
 import { formatLocation } from "@/lib/locationFormatter";
-import { X, Clock, MapPin, Edit3, Calendar } from "lucide-react";
-import { getLocalTodayStr, buildDepartureDate, formatDepartureFull, formatDDMMYYYY } from "@/lib/dateFormatter";
-import { ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
-import { triggerHaptic } from "@/lib/haptics";
+import { X, MapPin, Edit3 } from "lucide-react";
+import { getLocalTodayStr, buildDepartureDate, formatDepartureFull } from "@/lib/dateFormatter";
+import { LoopDateTimePicker } from "@/components/loop/LoopDateTimePicker";
+import { LoopCapacityPicker } from "@/components/loop/LoopCapacityPicker";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -37,64 +37,6 @@ export default function EditLoopModal({
   const [ampm, setAmpm] = useState<"AM" | "PM">("PM");
   const todayStr = getLocalTodayStr();
   const [travelDate, setTravelDate] = useState("");
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const timeInputRef = useRef<HTMLInputElement>(null);
-
-  const rawTime24 = React.useMemo(() => {
-    if (!hour || !minute) return "";
-    let h = parseInt(hour, 10);
-    if (ampm === "PM" && h < 12) h += 12;
-    if (ampm === "AM" && h === 12) h = 0;
-    return `${String(h).padStart(2, "0")}:${minute.padStart(2, "0")}`;
-  }, [hour, minute, ampm]);
-
-  const hasTime = Boolean(hour && minute);
-
-  const handleOpenTimePicker = () => {
-    triggerHaptic(8);
-    if (timeInputRef.current) {
-      try {
-        if ("showPicker" in HTMLInputElement.prototype) {
-          timeInputRef.current.showPicker();
-        } else {
-          timeInputRef.current.focus();
-        }
-      } catch {
-        timeInputRef.current.focus();
-      }
-    }
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (!val) {
-      setHour("");
-      setMinute("");
-      return;
-    }
-    const [hStr, mStr] = val.split(":");
-    const h = parseInt(hStr, 10);
-    const newAmpm = h >= 12 ? "PM" : "AM";
-    const h12 = h % 12 || 12;
-    setHour(String(h12).padStart(2, "0"));
-    setMinute(mStr.padStart(2, "0"));
-    setAmpm(newAmpm);
-    triggerHaptic(8);
-  };
-
-  const handleOpenDatePicker = () => {
-    if (dateInputRef.current) {
-      try {
-        if ('showPicker' in HTMLInputElement.prototype) {
-          dateInputRef.current.showPicker();
-        } else {
-          dateInputRef.current.focus();
-        }
-      } catch {
-        dateInputRef.current.focus();
-      }
-    }
-  };
   const [limit, setLimit] = useState(loop.participants_limit || 4);
   const [isFemaleOnly, setIsFemaleOnly] = useState(Boolean(loop.is_female_only));
   const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">(loop.vehicle_type || "bike");
@@ -262,11 +204,12 @@ export default function EditLoopModal({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close edit modal"
             className={`w-8 h-8 rounded-full ${
               isDark ? "bg-white/10" : "bg-black/5"
-            } flex items-center justify-center active:scale-90 transition-transform`}
+            } flex items-center justify-center active:scale-90 transition-transform cursor-pointer`}
           >
             <X size={15} />
           </button>
@@ -301,257 +244,32 @@ export default function EditLoopModal({
           </div>
         </div>
 
-        {/* Date of Travel */}
-        <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1`}>
-            <Calendar size={11} className="text-[#FFC554]" /> Date of Travel
-          </label>
-          <div
-            onClick={handleOpenDatePicker}
-            className={`w-full h-11 ${bg} border ${
-              travelDate ? "border-[#FFC554]" : border
-            } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Calendar size={15} className={travelDate ? "text-[#FFC554]" : mutedText} />
-              <span className={`text-xs font-bold ${travelDate ? (isDark ? "text-white" : "text-black") : mutedText}`}>
-                {travelDate ? formatDDMMYYYY(travelDate) : "Pick a Date (DD/MM/YYYY)"}
-              </span>
-            </div>
-            <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
-              travelDate
-                ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
-                : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
-            }`}>
-              {travelDate ? "Change" : "Select"}
-            </span>
-            <input
-              ref={dateInputRef}
-              type="date"
-              min={todayStr}
-              value={travelDate}
-              onChange={(e) => setTravelDate(e.target.value)}
-              onClick={(e) => {
-                e.stopPropagation();
-                try {
-                  if ('showPicker' in HTMLInputElement.prototype) {
-                    e.currentTarget.showPicker();
-                  }
-                } catch {}
-              }}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-          </div>
-        </div>
+        {/* Date and Time Picker */}
+        <LoopDateTimePicker
+          travelDate={travelDate}
+          setTravelDate={setTravelDate}
+          todayStr={todayStr}
+          hour={hour}
+          setHour={setHour}
+          minute={minute}
+          setMinute={setMinute}
+          ampm={ampm}
+          setAmpm={setAmpm}
+          theme={theme}
+        />
 
-        {/* Time of Travel */}
-        <div className="space-y-1">
-          <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1 flex items-center gap-1.5`}>
-            <Clock size={11} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} /> Time of Travel
-          </label>
-          <div
-            onClick={handleOpenTimePicker}
-            className={`w-full h-11 ${bg} border ${
-              hasTime ? (isDark ? "border-[#FFC554]" : "border-[#881337]") : border
-            } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Clock size={15} className={hasTime ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText} />
-              {hasTime ? (
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-                    {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
-                  </span>
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                    isDark
-                      ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
-                      : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
-                  }`}>
-                    {ampm}
-                  </span>
-                </div>
-              ) : (
-                <span className={`text-xs font-bold ${mutedText}`}>
-                  Pick a Time (from clock)
-                </span>
-              )}
-            </div>
-            <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
-              hasTime
-                ? (isDark ? "bg-[#FFC554] text-black shadow-sm" : "bg-[#881337] text-white shadow-sm")
-                : isDark ? "bg-white/10 text-zinc-400" : "bg-black/5 text-zinc-500"
-            }`}>
-              {hasTime ? "Change" : "Select"}
-            </span>
-            <input
-              ref={timeInputRef}
-              type="time"
-              value={rawTime24}
-              onChange={handleTimeChange}
-              onClick={(e) => {
-                e.stopPropagation();
-                try {
-                  if ("showPicker" in HTMLInputElement.prototype) {
-                    e.currentTarget.showPicker();
-                  }
-                } catch {}
-              }}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-          </div>
-        </div>
-
-        {/* Student Driver Vehicle Selection (if offering ride) */}
-        {loop.is_driver_offering && (
-          <div className="space-y-1.5">
-            <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em] ml-1`}>
-              Vehicle
-            </label>
-            <div className="flex gap-1.5">
-              {(
-                [
-                  { type: "scooter", label: "Scooter", Icon: ScooterIcon },
-                  { type: "bike", label: "Bike", Icon: MotorcycleIcon },
-                  { type: "car", label: "Car", Icon: CarIcon },
-                ] as const
-              ).map((v) => {
-                const isSelected = vehicleType === v.type;
-                return (
-                  <button
-                    key={v.type}
-                    type="button"
-                    onClick={() => {
-                      setVehicleType(v.type);
-                      if (v.type === "scooter" || v.type === "bike") {
-                        setLimit(1);
-                      } else if (limit === 1) {
-                        setLimit(3);
-                      }
-                    }}
-                    className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs ${
-                      isSelected
-                        ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm" : "bg-[#881337] border-[#881337] text-white font-black shadow-sm")
-                        : `${bg} ${border} ${mutedText} font-bold`
-                    }`}
-                  >
-                    <v.Icon size={14} strokeWidth={2.2} className={isSelected ? (isDark ? "text-black" : "text-white") : (isDark ? "text-[#FFC554]" : "text-[#881337]")} />
-                    <span className="text-[10px] font-black uppercase">{v.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Available Seats / Limit */}
-        {loop.is_driver_offering && vehicleType === "car" ? (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between ml-1">
-              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
-                Passenger Seats to Offer
-              </label>
-              <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
-                {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
-              </span>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex gap-1.5">
-                {[1, 2, 3, 4, 5, 6].map((n) => {
-                  const isDisabled = n < minPassengerSeats;
-                  return (
-                    <button
-                      key={n}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => setLimit(n)}
-                      className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
-                        limit === n
-                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
-                          : isDisabled
-                          ? "opacity-25 cursor-not-allowed border-white/5"
-                          : `${border} ${bg} ${mutedText}`
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        ) : loop.is_driver_offering && (vehicleType === "bike" || vehicleType === "scooter") ? (
-          <div className={`p-3 ${bg} border ${border} rounded-[18px] flex items-center justify-between`}>
-            <div>
-              <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
-              <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
-            </div>
-            <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20" : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"} px-2.5 py-1 rounded-full`}>
-              Driver + 1 Rider
-            </span>
-          </div>
-        ) : !loop.is_driver_offering ? (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between ml-1">
-              <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
-                Total Group Size / Limit
-              </label>
-              {currentMemberCount > 1 && (
-                <span className={`text-[9px] ${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-bold`}>
-                  Min {minAllowedSeats} (Joined: {currentMemberCount})
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex gap-1.5">
-                {[2, 3, 4, 5, 6].map((n) => {
-                  const isDisabled = n < minAllowedSeats;
-                  return (
-                    <button
-                      key={n}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => setLimit(n)}
-                      className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
-                        limit === n
-                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
-                          : isDisabled
-                          ? "opacity-25 cursor-not-allowed border-white/5"
-                          : `${border} ${bg} ${mutedText}`
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex gap-1.5">
-                {[7, 8, 9, 10].map((n) => {
-                  const isDisabled = n < minAllowedSeats;
-                  return (
-                    <button
-                      key={n}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => setLimit(n)}
-                      className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all ${
-                        limit === n
-                          ? (isDark ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm" : "bg-[#881337] border-[#881337] text-white shadow-sm")
-                          : isDisabled
-                          ? "opacity-25 cursor-not-allowed border-white/5"
-                          : `${border} ${bg} ${mutedText}`
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {/* Capacity / Vehicle Selection */}
+        <LoopCapacityPicker
+          isDriverOffering={loop.is_driver_offering}
+          vehicleType={vehicleType}
+          setVehicleType={setVehicleType}
+          limit={limit}
+          setLimit={setLimit}
+          minPassengerSeats={minPassengerSeats}
+          minAllowedSeats={minAllowedSeats}
+          currentMemberCount={currentMemberCount}
+          theme={theme}
+        />
 
         {/* Female Only Preference (Only if creator is female) */}
         {profile.gender === "female" && (
@@ -570,7 +288,7 @@ export default function EditLoopModal({
             <button
               type="button"
               onClick={() => setIsFemaleOnly(!isFemaleOnly)}
-              className={`w-11 h-6 rounded-full p-0.5 transition-colors ${
+              className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${
                 isFemaleOnly ? "bg-pink-500" : "bg-white/20"
               }`}
             >

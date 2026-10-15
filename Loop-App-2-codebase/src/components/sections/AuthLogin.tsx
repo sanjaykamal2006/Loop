@@ -4,8 +4,7 @@ import React, { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Eye, EyeOff, ArrowLeft, AlertTriangle, GraduationCap } from "lucide-react";
-import { OTPInput, SlotProps } from "input-otp";
+import { Eye, EyeOff, GraduationCap } from "lucide-react";
 import PrivacyPolicyView from "./PrivacyPolicyView";
 import { parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
 import {
@@ -14,6 +13,8 @@ import {
   PLUS_ADDRESSING_ERROR_MESSAGE,
   hasPlusAddressing,
 } from "@/lib/authConfig";
+import { AuthOtpView } from "@/components/auth/AuthOtpView";
+import { AuthResetPasswordView } from "@/components/auth/AuthResetPasswordView";
 
 interface AuthLoginProps {
   initialPasswordReset?: boolean;
@@ -279,214 +280,66 @@ export default function AuthLogin({
 
   if (isResettingPassword) {
     return (
-      <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
-        <div className="dot-matrix-bg text-white" />
-        <div className="flex flex-col h-full px-8 relative z-10 pt-12">
-          <button 
-            onClick={async () => {
-              setIsResettingPassword(false);
-              await supabase.auth.signOut({ scope: "global" }).catch(() => {});
-              if (onPasswordResetComplete) onPasswordResetComplete();
-            }}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex flex-col items-center justify-center flex-1 space-y-8">
-            <div className="text-center space-y-3">
-              <h1 className="text-4xl font-black tracking-tighter">NEW PASSWORD</h1>
-              <p className="text-sm font-medium opacity-40 max-w-[240px] mx-auto">
-                Set a new 8+ character password for your account
-              </p>
-            </div>
-
-            <form onSubmit={handleSetNewPassword} className="space-y-6 w-full">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black opacity-30 tracking-[0.2em] ml-4">New Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full h-14 bg-white/10 border border-white/20 text-white rounded-full px-7 pr-14 text-sm font-bold outline-none focus:border-[#FFC554] focus:bg-white/[0.12] transition-all placeholder:text-white/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 z-10 text-white/80 hover:text-[#FFC554] active:scale-95 transition-all"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-              >
-                {isLoading ? "Updating..." : "Update Password & Continue"}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      <AuthResetPasswordView
+        password={password}
+        setPassword={setPassword}
+        showPassword={showPassword}
+        setShowPassword={setShowPassword}
+        isLoading={isLoading}
+        onSubmit={handleSetNewPassword}
+        onBack={async () => {
+          setIsResettingPassword(false);
+          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+          if (onPasswordResetComplete) onPasswordResetComplete();
+        }}
+      />
     );
   }
 
   if (isVerifying) {
     return (
-      <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
-        <div className="dot-matrix-bg text-white" />
-        <div className="flex flex-col h-full px-8 relative z-10 pt-12">
-          <button 
-            onClick={() => setIsVerifying(false)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 mb-8 active:scale-90 transition-transform"
-          >
-            <ArrowLeft size={20} />
-          </button>
-
-          <div className="flex flex-col items-center justify-center flex-1 space-y-6 sm:space-y-8">
-            <div className="text-center space-y-2">
-              <h1 className="text-4xl font-black tracking-tighter">VERIFY</h1>
-              <p className="text-sm font-medium opacity-50 max-w-[260px] mx-auto">
-                Enter the 6-digit code sent to <span className="text-white font-bold opacity-100">{email}</span>
-              </p>
-            </div>
-
-            {/* Prominent Spam Folder Alert for New Signups */}
-            <div className="w-full p-3.5 bg-[#FFC554]/10 border border-[#FFC554]/30 rounded-2xl flex items-start gap-2.5 text-left">
-              <AlertTriangle size={18} className="text-[#FFC554] shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <p className="text-xs font-bold text-[#FFC554]">Check your Spam / Junk folder</p>
-                <p className="text-[11px] text-white/75 leading-tight">
-                  VIT-AP Gmail often filters verification codes into Spam. If it&apos;s not in your inbox within 10 seconds, check your <strong className="text-white font-semibold">Spam</strong> folder!
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6 w-full flex flex-col items-center">
-              <OTPInput
-                maxLength={6}
-                value={otp}
-                onChange={setOtp}
-                onComplete={handleVerifyOtp}
-                containerClassName="flex gap-2"
-                render={({ slots }) => (
-                  <div className="flex gap-2">
-                    {slots.map((slot, idx) => (
-                      <Slot key={idx} {...slot} />
-                    ))}
-                  </div>
-                )}
-              />
-
-              <div className="w-full space-y-3">
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={isLoading || otp.length < 6}
-                  className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
-                >
-                  {isLoading ? "Verifying..." : "Verify & Continue"}
-                </button>
-
-                <button 
-                  onClick={resendOtp}
-                  disabled={isLoading || countdown > 0}
-                  className="w-full py-2 text-xs font-bold opacity-40 disabled:opacity-20 transition-opacity"
-                >
-                  {countdown > 0 ? `Resend code in ${countdown}s` : "Resend verification code"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AuthOtpView
+        title="VERIFY"
+        email={email}
+        otp={otp}
+        setOtp={setOtp}
+        onVerify={handleVerifyOtp}
+        onResend={resendOtp}
+        onBack={() => setIsVerifying(false)}
+        isLoading={isLoading}
+        countdown={countdown}
+        verifyButtonText="Verify & Continue"
+        resendButtonText="Resend verification code"
+      />
     );
   }
 
   if (isResetOtp) {
     return (
-      <div className="flex flex-col h-[100dvh] max-w-md mx-auto relative overflow-hidden bg-black text-white font-sans no-scroll">
-        <div className="dot-matrix-bg text-white" />
-        <div className="flex flex-col h-full px-8 relative z-10 pt-10 pb-8 justify-between">
-          <div>
-            <button 
-              onClick={() => {
-                setIsResetOtp(false);
-                setOtp("");
-              }}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 active:scale-90 transition-transform mb-6"
-            >
-              <ArrowLeft size={20} />
-            </button>
-
-            <div className="text-center space-y-2 mb-6">
-              <h1 className="text-4xl font-black tracking-tighter">RESET CODE</h1>
-              <p className="text-sm font-medium opacity-50 max-w-[260px] mx-auto">
-                Enter the 6-digit code sent to <span className="text-white font-bold opacity-100">{email}</span>
-              </p>
-            </div>
-
-            {/* Spam Folder Alert */}
-            <div className="w-full p-3.5 bg-[#FFC554]/10 border border-[#FFC554]/30 rounded-2xl flex items-start gap-2.5 text-left mb-6">
-              <AlertTriangle size={18} className="text-[#FFC554] shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <p className="text-xs font-bold text-[#FFC554]">Check your Spam / Junk folder</p>
-                <p className="text-[11px] text-white/75 leading-tight">
-                  Verification emails often land in Spam. If you don't see the code in your inbox, please check your Spam folder.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6 w-full flex flex-col items-center">
-              <OTPInput
-                maxLength={6}
-                value={otp}
-                onChange={setOtp}
-                onComplete={handleVerifyResetOtp}
-                containerClassName="flex gap-2"
-                render={({ slots }) => (
-                  <div className="flex gap-2">
-                    {slots.map((slot, idx) => (
-                      <Slot key={idx} {...slot} />
-                    ))}
-                  </div>
-                )}
-              />
-
-              <button
-                onClick={handleVerifyResetOtp}
-                disabled={isLoading || otp.length < 6}
-                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-sm transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-40"
-              >
-                {isLoading ? "Verifying..." : "Verify Code & Set Password"}
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-center w-full">
-            <button 
-              onClick={resendResetOtp}
-              disabled={isLoading || countdown > 0}
-              className="w-full py-2 text-xs font-bold text-[#FFC554] opacity-90 disabled:opacity-30 transition-opacity"
-            >
-              {countdown > 0 ? `Resend code in ${countdown}s` : "Resend reset code"}
-            </button>
-            <button
-              onClick={() => {
-                setIsResetOtp(false);
-                setOtp("");
-              }}
-              className="w-full py-1 text-xs font-bold opacity-40 hover:opacity-80 transition-opacity"
-            >
-              Back to Login
-            </button>
-          </div>
-        </div>
-      </div>
+      <AuthOtpView
+        title="RESET CODE"
+        email={email}
+        otp={otp}
+        setOtp={setOtp}
+        onVerify={handleVerifyResetOtp}
+        onResend={resendResetOtp}
+        onBack={() => {
+          setIsResetOtp(false);
+          setOtp("");
+        }}
+        isLoading={isLoading}
+        countdown={countdown}
+        verifyButtonText="Verify Code & Set Password"
+        resendButtonText="Resend reset code"
+        alertText="Verification emails often land in Spam. If you don't see the code in your inbox, please check your Spam folder."
+        secondaryAction={{
+          label: "Back to Login",
+          onClick: () => {
+            setIsResetOtp(false);
+            setOtp("");
+          },
+        }}
+      />
     );
   }
 
@@ -536,7 +389,8 @@ export default function AuthLogin({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 z-10 text-white/80 hover:text-[#FFC554] active:scale-95 transition-all"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 z-10 text-white/80 hover:text-[#FFC554] active:scale-95 transition-all cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -573,7 +427,7 @@ export default function AuthLogin({
                         setIsLoading(false);
                       }
                     }}
-                    className="text-xs font-extrabold text-[#FFC554] hover:underline tracking-wider transition-colors inline-block"
+                    className="text-xs font-extrabold text-[#FFC554] hover:underline tracking-wider transition-colors inline-block cursor-pointer"
                   >
                     Forgot Password?
                   </button>
@@ -592,11 +446,11 @@ export default function AuthLogin({
                     className="accent-[#FFC554]"
                   />
                   <label htmlFor="privacy-consent" className="text-xs text-white/80 font-medium">
-                    I have read and agree to LOOP's{" "}
+                    I have read and agree to LOOP&apos;s{" "}
                     <button 
                       type="button"
                       onClick={() => setShowPrivacy(true)}
-                      className="text-[#FFC554] hover:underline font-bold"
+                      className="text-[#FFC554] hover:underline font-bold cursor-pointer"
                     >
                       Privacy Notice
                     </button>
@@ -606,7 +460,7 @@ export default function AuthLogin({
               <button
                 type="submit"
                 disabled={isLoading || (!isLogin && !agreedToPrivacy)}
-                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-base tracking-wide transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50"
+                className="w-full h-14 bg-[#FFC554] text-black font-black rounded-full text-base tracking-wide transition-all active:scale-[0.98] shadow-xl shadow-[#FFC554]/10 disabled:opacity-50 cursor-pointer"
               >
                 {isLoading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
               </button>
@@ -614,7 +468,7 @@ export default function AuthLogin({
               <div className="text-center pt-1">
                 <button 
                   type="button"
-                  className="text-xs font-extrabold text-white/80 hover:text-white transition-colors tracking-wide"
+                  className="text-xs font-extrabold text-white/80 hover:text-white transition-colors tracking-wide cursor-pointer"
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setShowPassword(false);
@@ -627,25 +481,6 @@ export default function AuthLogin({
           </form>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Slot(props: SlotProps) {
-  return (
-    <div
-      className={`
-        relative w-11 h-12 text-2xl font-black flex items-center justify-center
-        transition-all duration-300 border-b-2
-        ${props.isActive ? "border-[#FFC554] text-[#FFC554]" : "border-white/10 text-white/40"}
-      `}
-    >
-      {props.char !== null && <div>{props.char}</div>}
-      {props.hasFakeCaret && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-px h-6 bg-[#FFC554] animate-caret-blink" />
-        </div>
-      )}
     </div>
   );
 }
