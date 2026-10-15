@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
@@ -31,11 +31,7 @@ export default function TrustedVehiclesView() {
   const myVehiclesCount = vehicles.filter(v => v.user_id === session.user.id).length;
   const canAdd = myVehiclesCount < 5;
 
-  useEffect(() => {
-    fetchVehicles();
-  }, []);
-
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("trusted_vehicles")
@@ -45,7 +41,11 @@ export default function TrustedVehiclesView() {
     if (error) toast.error("Failed to fetch drivers");
     else setVehicles((data || []) as unknown as TrustedVehicle[]);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
 
   const handleAdd = async () => {
     if (!canAdd) {

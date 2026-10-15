@@ -1,17 +1,27 @@
-import nextPlugin from '@next/eslint-plugin-next';
+import nextConfig from "eslint-config-next";
 
 const eslintConfig = [
+  ...nextConfig,
   {
-    ignores: ['.next/**', 'node_modules/**', 'dist/**', 'out/**'],
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "dist/**",
+      "out/**",
+      "coverage/**",
+      "graphify-out/**",
+    ],
   },
-  nextPlugin.configs['core-web-vitals'],
   {
+    files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     rules: {
-      'react/no-unescaped-entities': 'off',
-      '@next/next/no-img-element': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      'react-hooks/exhaustive-deps': 'off',
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-img-element": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 ];

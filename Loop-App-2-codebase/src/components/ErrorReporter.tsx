@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { logger } from "@/lib/logger";
 
 type ReporterProps = {
   error?: Error & { digest?: string };
@@ -10,7 +11,7 @@ type ReporterProps = {
 export default function ErrorReporter({ error, reset }: ReporterProps) {
   useEffect(() => {
     if (error) {
-      console.error("Global application error:", error);
+      logger.captureException(error, { source: "ErrorReporter" });
     }
   }, [error]);
 

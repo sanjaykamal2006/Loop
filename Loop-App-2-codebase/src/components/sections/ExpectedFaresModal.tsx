@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
@@ -27,14 +27,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
   const [vType, setVType] = useState<"auto" | "bike" | "share_auto" | "cab">("auto");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setViewMode("list");
-      fetchFares();
-    }
-  }, [isOpen]);
-
-  const fetchFares = async () => {
+  const fetchFares = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -50,7 +43,14 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setViewMode("list");
+      fetchFares();
+    }
+  }, [isOpen, fetchFares]);
 
   const handleAddFare = async () => {
     if (!toLoc.trim()) return toast.error("Please enter a destination");

@@ -230,7 +230,7 @@ export default function ChatListView() {
     } catch {} finally {
       isFetchingRecentRef.current = false;
     }
-  }, [joinedLoopIdsKey, recentMessages]);
+  }, [recentMessages, userJoinedLoops]);
 
   useEffect(() => {
     fetchRecentMessages();

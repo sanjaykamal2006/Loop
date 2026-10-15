@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { useLoop } from "@/lib/LoopContext";
@@ -43,7 +43,7 @@ export default function RideDetailsView() {
   } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
-  const getOfflineFallbackMembers = (loopId?: string): LoopMember[] => {
+  const getOfflineFallbackMembers = useCallback((loopId?: string): LoopMember[] => {
     if (!loopId) return [];
     const fromMem = membersCache.get(loopId);
     if (fromMem && fromMem.length > 0) return fromMem;
@@ -73,7 +73,7 @@ export default function RideDetailsView() {
       ];
     }
     return [];
-  };
+  }, [selectedLoop, session?.user?.id, userLoops, profile]);
 
   const [loopMembers, setLoopMembers] = useState<LoopMember[]>(() =>
     getOfflineFallbackMembers(selectedLoop?.id)
@@ -87,9 +87,12 @@ export default function RideDetailsView() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const isTimePast = selectedLoop?.departure_time
-    ? new Date(selectedLoop.departure_time).getTime() < Date.now()
-    : false;
+  const isTimePast = useMemo(() => {
+    return selectedLoop?.departure_time
+      ? new Date(selectedLoop.departure_time).getTime() < Date.now()
+      : false;
+  }, [selectedLoop?.departure_time]);
+
   const isPast =
     selectedLoop?.status === "ended" ||
     selectedLoop?.status === "cancelled" ||
@@ -99,7 +102,7 @@ export default function RideDetailsView() {
     if (selectedLoop) {
       setFareInput(selectedLoop.total_fare?.toString() || "");
     }
-  }, [selectedLoop?.total_fare]);
+  }, [selectedLoop, selectedLoop?.total_fare]);
 
   useEffect(() => {
     if (!selectedLoop) {
@@ -113,40 +116,7 @@ export default function RideDetailsView() {
     }
   }, [selectedLoop, session?.user?.id, userLoops, profile.gender, setView]);
 
-  useEffect(() => {
-    if (!selectedLoop?.id) return;
-    const loopId = selectedLoop.id;
-    const cached = getOfflineFallbackMembers(loopId);
-    if (cached.length > 0) {
-      setLoopMembers(cached);
-      setIsLoadingMembers(false);
-    } else {
-      setIsLoadingMembers(true);
-    }
-    fetchLoopMembers(loopId);
-
-    const memberSub = supabase
-      .channel(`members-${loopId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "loop_members",
-          filter: `loop_id=eq.${loopId}`,
-        },
-        () => {
-          fetchLoopMembers(loopId);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(memberSub);
-    };
-  }, [selectedLoop?.id]);
-
-  const fetchLoopMembers = async (loopId: string) => {
+  const fetchLoopMembers = useCallback(async (loopId: string) => {
     try {
       const isAuthorized = Boolean(
         selectedLoop &&
@@ -201,7 +171,41 @@ export default function RideDetailsView() {
     } finally {
       setIsLoadingMembers(false);
     }
-  };
+  }, [selectedLoop, session?.user?.id, userLoops, userJoinedLoops]);
+
+  useEffect(() => {
+    if (!selectedLoop?.id) return;
+    const loopId = selectedLoop.id;
+    const cached = getOfflineFallbackMembers(loopId);
+    if (cached.length > 0) {
+      setLoopMembers(cached);
+      setIsLoadingMembers(false);
+    } else {
+      setIsLoadingMembers(true);
+    }
+    fetchLoopMembers(loopId);
+
+    const memberSub = supabase
+      .channel(`members-${loopId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "loop_members",
+          filter: `loop_id=eq.${loopId}`,
+        },
+        () => {
+          fetchLoopMembers(loopId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(memberSub);
+    };
+  }, [selectedLoop?.id, fetchLoopMembers, getOfflineFallbackMembers]);
+
 
   const enterChat = () => {
     if (!selectedLoop) return;
