@@ -128,6 +128,12 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 - **Timing-Safe Crypto:** All administrative and webhook bearer tokens are verified using `crypto.timingSafeEqual`.
 - **Zero-Trust Client Bundling:** Service role keys and database connection strings are never exposed to browser bundles.
 
+### Observability & Diagnostics
+- **Server Runtime:** Structured JSON log output for Vercel and Node serverless functions.
+- **Client Runtime:** Local 20-entry circular diagnostic buffer (`getDiagnosticLogs()`) and crash persistence in `sessionStorage["loop_last_crash"]`.
+- **Forensic Triage:** Diagnostic history inspectable via `window.__LOOP_DIAGNOSTICS__()` and rendered in the `ErrorReporter` debug panel.
+- **Pluggable Telemetry:** Extensible handler registration via `logger.registerTelemetryHandler()` for external monitoring services.
+
 ---
 
 ## 6. Development & Verification Guide
