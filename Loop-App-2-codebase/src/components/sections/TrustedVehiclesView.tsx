@@ -14,7 +14,7 @@ import { triggerHaptic } from "@/lib/haptics";
 
 export default function TrustedVehiclesView() {
   const { session, theme, setView } = useLoop();
-  const { isDark, cardBg, border, mutedText, text } = theme;
+  const { isDark, cardBg, border, mutedText } = theme;
 
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
   const [filterType, setFilterType] = useState<"all" | "auto" | "bike" | "share_auto">("all");

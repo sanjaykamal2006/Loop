@@ -27,8 +27,8 @@ export default function EditLoopModal({
   currentMemberCount,
   onUpdated,
 }: EditLoopModalProps) {
-  const { theme, profile, formatTime } = useLoop();
-  const { isDark, bg, border, cardBg, mutedText } = theme;
+  const { theme, profile } = useLoop();
+  const { isDark, bg, border, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState(loop.start_point || "");
   const [dest, setDest] = useState(loop.destination || "");
@@ -49,9 +49,6 @@ export default function EditLoopModal({
   }, [hour, minute, ampm]);
 
   const hasTime = Boolean(hour && minute);
-  const formattedTimeDisplay = hasTime
-    ? `${hour.padStart(2, "0")}:${minute.padStart(2, "0")} ${ampm}`
-    : "Select Departure Time";
 
   const handleOpenTimePicker = () => {
     triggerHaptic(8);
@@ -137,22 +134,6 @@ export default function EditLoopModal({
 
   const minAllowedSeats = Math.max(2, currentMemberCount || 1);
   const minPassengerSeats = Math.max(1, (currentMemberCount || 1) - 1);
-
-  const handleHourChange = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 2);
-    if (!digits) { setHour(""); return; }
-    const num = parseInt(digits);
-    if (num > 12) setHour("12");
-    else setHour(digits);
-  };
-
-  const handleMinuteChange = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 2);
-    if (!digits) { setMinute(""); return; }
-    const num = parseInt(digits);
-    if (num > 59) setMinute("59");
-    else setMinute(digits);
-  };
 
   const handleSave = async () => {
     const formattedStart = formatLocation(startPoint);

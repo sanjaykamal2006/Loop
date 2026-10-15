@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, Sparkles, ArrowLeft, Search, Car } from "lucide-react";
+import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, Sparkles, ArrowLeft, Search } from "lucide-react";
 import type { ExpectedFare } from "@/lib/types";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon, CarIcon } from "@/components/ui/VehicleIcons";
 
@@ -13,7 +13,7 @@ import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon, CarIcon } from "@/c
 
 export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { session, theme } = useLoop();
-  const { isDark, border, cardBg, mutedText, text } = theme;
+  const { isDark, border, cardBg, mutedText } = theme;
 
   const [viewMode, setViewMode] = useState<"list" | "add">("list");
   const [fares, setFares] = useState<ExpectedFare[]>([]);

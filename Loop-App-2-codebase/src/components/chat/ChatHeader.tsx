@@ -10,7 +10,7 @@ interface ChatHeaderProps {
   members: LoopMember[];
   sessionUserId: string;
   currentProfile: Profile;
-  avatarErrors: Record<string, boolean>;
+  avatarErrors?: Record<string, boolean>;
   isDark: boolean;
   border: string;
   cardBg: string;
@@ -33,7 +33,6 @@ export function ChatHeader({
   members,
   sessionUserId,
   currentProfile,
-  avatarErrors: _avatarErrors,
   isDark,
   border,
   cardBg,

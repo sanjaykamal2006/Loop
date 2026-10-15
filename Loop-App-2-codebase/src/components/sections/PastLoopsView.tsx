@@ -34,7 +34,7 @@ export default function PastLoopsView() {
       try {
         const cached = localStorage.getItem(`loop_past_loops_cache_${session.user.id}`);
         if (cached && JSON.parse(cached).length > 0) return false;
-      } catch (e) {}
+      } catch {}
     }
     return true;
   });
@@ -86,7 +86,7 @@ export default function PastLoopsView() {
         if (typeof window !== "undefined" && session?.user?.id) {
           try {
             localStorage.setItem(`loop_past_loops_cache_${session.user.id}`, JSON.stringify(sorted));
-          } catch (e) {}
+          } catch {}
         }
       } catch (err) {
         logger.error("Error fetching past loops:", err);

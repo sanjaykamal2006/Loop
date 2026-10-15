@@ -29,7 +29,7 @@ export default function AppHeader() {
     toggleMessageSearch,
     toggleChatSearch,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, border, cardBg } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);

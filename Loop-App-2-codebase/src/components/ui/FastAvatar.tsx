@@ -73,7 +73,7 @@ export default function FastAvatar({
           alt={name}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          // @ts-ignore - fetchpriority is standard HTML
+          // @ts-expect-error - fetchpriority is standard HTML5 attribute supported in modern browsers but pending React 19 types
           fetchpriority={priority ? "high" : "auto"}
           onLoad={() => {
             avatarLoadedCache.add(cleanSrc);

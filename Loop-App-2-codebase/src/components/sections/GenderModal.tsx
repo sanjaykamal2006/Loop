@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 
 export default function GenderModal() {
   const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop, setView } = useLoop();
-  const { bg, border, cardBg, mutedText, isDark } = theme;
+  const { border, cardBg, mutedText, isDark } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
   const [regNo, setRegNo] = useState(profile.reg_no || "");

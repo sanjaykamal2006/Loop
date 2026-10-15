@@ -40,7 +40,7 @@ export default function UserProfileModal({
   onClose: () => void;
 }) {
   const { theme, session, profile } = useLoop();
-  const { isDark, border, mutedText, accentText } = theme;
+  const { isDark, mutedText, accentText } = theme;
   const currentUserId = session?.user?.id;
   const [copiedRegNo, setCopiedRegNo] = useState(false);
 

@@ -9,7 +9,6 @@ import type { Session } from "@supabase/supabase-js";
 import { LRUCache } from "@/lib/cache";
 import { formatDepartureFull } from "@/lib/dateFormatter";
 import { triggerHaptic } from "@/lib/haptics";
-import { openWhatsApp } from "@/lib/whatsapp";
 import { useChatSearch } from "./useChatSearch";
 import { useMessageHoldActions } from "./useMessageHoldActions";
 import { useChatRoster } from "./useChatRoster";
@@ -87,7 +86,7 @@ export function useChatRoom({
   } = useMessageHoldActions();
 
   // Sub-hook 3: Member Roster & Contacts
-  const { members, setMembers, selectedUser, setSelectedUser, fetchMembers } = useChatRoster({
+  const { members, selectedUser, setSelectedUser, fetchMembers } = useChatRoster({
     session,
     selectedLoop,
     setSelectedLoop,

@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { Eye, EyeOff, ArrowLeft, AlertTriangle, Mail, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, AlertTriangle, GraduationCap } from "lucide-react";
 import { OTPInput, SlotProps } from "input-otp";
 import PrivacyPolicyView from "./PrivacyPolicyView";
-import { isAllowedStudentEmail, parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
+import { parseStudentEmail, validateEmailWithQuota } from "@/lib/studentParser";
 import {
   isAllowedInstitutionalEmail,
   INSTITUTIONAL_ERROR_MESSAGE,
@@ -226,7 +226,7 @@ export default function AuthLogin({
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      const { error } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token: otp.trim(),
         type: "recovery",

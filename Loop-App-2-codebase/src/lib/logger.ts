@@ -35,7 +35,21 @@ type TelemetryHandler = (entry: StructuredLogEntry) => void;
 const isDev = process.env.NODE_ENV !== "production";
 const isBrowser = typeof window !== "undefined";
 
-let activeTelemetryHandler: TelemetryHandler | null = null;
+// Diagnostic ring-buffer for client-side crash triage (stores up to 20 structured entries)
+const diagnosticBuffer: StructuredLogEntry[] = [];
+
+let activeTelemetryHandler: TelemetryHandler | null = (entry: StructuredLogEntry) => {
+  if (entry.level === "error") {
+    diagnosticBuffer.push(entry);
+    if (diagnosticBuffer.length > 20) {
+      diagnosticBuffer.shift();
+    }
+  }
+};
+
+export function getDiagnosticLogs(): readonly StructuredLogEntry[] {
+  return diagnosticBuffer;
+}
 
 function formatLogEntry(level: LogLevel, message: string, ...args: unknown[]): StructuredLogEntry {
   const entry: StructuredLogEntry = {

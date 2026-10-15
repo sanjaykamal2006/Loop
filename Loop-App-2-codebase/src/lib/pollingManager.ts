@@ -58,7 +58,7 @@ class PollingManager {
         if (!error && data && data.length > 0) {
           onNewMessages(data);
         }
-      } catch (error) {
+      } catch {
         // Silent fail - will retry on next poll
       }
     };
@@ -123,7 +123,7 @@ class PollingManager {
 
         const allLoops = [...(createdLoops || []), ...joinedLoops];
         onLoopUpdates(allLoops);
-      } catch (error) {
+      } catch {
         // Silent fail
       }
     };
@@ -169,7 +169,7 @@ class PollingManager {
         if (!error && data) {
           onMemberUpdates(data as unknown as LoopMemberRow[]);
         }
-      } catch (error) {
+      } catch {
         // Silent fail
       }
     };

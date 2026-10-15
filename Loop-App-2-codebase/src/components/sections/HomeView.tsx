@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
-import { getDepartureDateBadge } from "@/lib/dateFormatter";
-import { Users, Clock, MapPin, Search, X, CarFront, Repeat } from "lucide-react";
-import { SteeringWheelIcon, VehicleTypeIcon } from "@/components/ui/VehicleIcons";
+import { MapPin, Search, X, Repeat } from "lucide-react";
+import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import type { Loop } from "@/lib/types";
 

@@ -7,12 +7,10 @@ import {
   ShieldAlert, 
   X, 
   Phone, 
-  MapPin, 
   Send, 
   MessageSquare, 
   AlertTriangle, 
   Edit3, 
-  Navigation, 
   CheckCircle2, 
   Loader2 
 } from "lucide-react";

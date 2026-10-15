@@ -120,7 +120,6 @@ export default function ChatListView() {
     unreadLoopIds,
     markLoopAsRead,
     isChatSearchOpen,
-    setIsChatSearchOpen,
   } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
@@ -136,7 +135,6 @@ export default function ChatListView() {
   });
 
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
-  const joinedLoopIdsKey = userJoinedLoops.join(",");
 
   const lastFetchRecentTimeRef = React.useRef<number>(0);
   const isFetchingRecentRef = React.useRef<boolean>(false);
@@ -250,7 +248,7 @@ export default function ChatListView() {
             if (!loopId || !msg.content) return;
 
             const isMe = msg.user_id === session?.user?.id;
-            let senderName = isMe ? (profile?.display_name || "You") : "";
+            const senderName = isMe ? (profile?.display_name || "You") : "";
 
             setRecentMessages((prev) => {
               const next = {

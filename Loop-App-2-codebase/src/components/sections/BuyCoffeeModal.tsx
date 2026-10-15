@@ -2,12 +2,11 @@
 
 import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { X, Coffee, Copy, Check, ExternalLink, Heart, QrCode, Zap, ArrowRight } from "lucide-react";
+import { X, Coffee, Copy, Check, QrCode, Zap, ArrowRight } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 
 const UPI_ID = "8825680623@slc";
-const CREATOR_NAME = "Sanjay Kamal";
 
 const PRESET_AMOUNTS = [
   { amount: 20, label: "Chai" },

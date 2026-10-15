@@ -13,11 +13,7 @@ import {
   Navigation,
   Plus,
   ArrowLeft,
-  Share2,
-  Calendar,
-  Sparkles,
   Coffee,
-  Heart,
   CarFront,
   Star,
 } from "lucide-react";
@@ -26,7 +22,6 @@ import {
   ShareAutoIcon,
   MotorcycleIcon,
   CarIcon,
-  SteeringWheelIcon,
 } from "@/components/ui/VehicleIcons";
 
 function ScreenshotContent() {

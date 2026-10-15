@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import type { Profile, ThemeClasses } from "@/lib/types";
 import { preloadAvatars } from "@/lib/imageOptimization";
 import { parseStudentEmail } from "@/lib/studentParser";
@@ -175,7 +176,16 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
         } catch {}
       }
 
-      const { phone_number, emergency_contact, emergency_contacts, ...profileUpdates } = updates;
+      const phone_number = updates.phone_number;
+      const profileUpdates: Partial<Database["public"]["Tables"]["profiles"]["Insert"]> = {};
+      if (updates.display_name !== undefined) profileUpdates.display_name = updates.display_name;
+      if (updates.theme !== undefined) profileUpdates.theme = updates.theme;
+      if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
+      if (updates.reg_no !== undefined) profileUpdates.reg_no = updates.reg_no;
+      if (updates.avatar_url !== undefined) profileUpdates.avatar_url = updates.avatar_url;
+      if (updates.bio !== undefined) profileUpdates.bio = updates.bio;
+      if (updates.is_student_verified !== undefined) profileUpdates.is_student_verified = updates.is_student_verified;
+
       const promises: PromiseLike<{ error?: unknown }>[] = [];
 
       if (Object.keys(profileUpdates).length > 0) {

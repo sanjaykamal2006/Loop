@@ -146,7 +146,7 @@ export async function validateEmailWithQuota(
       allowed: false,
       reason: data?.reason || INSTITUTIONAL_ERROR_MESSAGE,
     };
-  } catch (err) {
+  } catch {
     return {
       allowed: false,
       reason: INSTITUTIONAL_ERROR_MESSAGE,
