@@ -53,8 +53,10 @@ jobs:
       - name: Run Unit & Component Tests
         run: npm run test:run
 
-      - name: Initialize Database Contract Schema
-        run: PGPASSWORD=loop_test_password psql -h localhost -U loop_test -d loop_test_db -f tests/integration/schema_contract_init.sql
+      - name: Apply Real Database Migrations
+        run: node scripts/run-migrations.js
+        env:
+          TEST_DATABASE_URL: "postgresql://loop_test:loop_test_password@localhost:5432/loop_test_db"
 
       - name: Run Live Database Contract Tests
         run: npm run test:db
@@ -63,6 +65,15 @@ jobs:
 
       - name: Verify Production Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npm run test:e2e
         env:
           NEXT_PUBLIC_SUPABASE_URL: "https://test.supabase.co"
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key"
