@@ -1,5 +1,18 @@
 import type { NextConfig } from "next";
 
+/**
+ * Content Security Policy (CSP) Configuration
+ *
+ * NOTE ON SCRIPT-SRC 'UNSAFE-INLINE':
+ * Next.js App Router (RSC) emits dynamic inline hydration scripts (e.g. self.__next_f.push)
+ * during server-side page emission. In static/serverless deployment without edge middleware
+ * nonces, 'unsafe-inline' is required for React 19 client component hydration.
+ *
+ * Security defenses in depth:
+ * - 'unsafe-eval' is strictly gated to development mode only and banned in production.
+ * - object-src 'none', frame-ancestors 'none', and base-uri 'self' prevent plugin-based injection and clickjacking.
+ * - media-src is restricted to 'self' (internal Web Audio API synthesizer).
+ */
 const isDev = process.env.NODE_ENV === "development";
 
 const scriptSrc = isDev

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChatView from '@/components/sections/ChatView';
 
@@ -101,46 +101,62 @@ describe('ChatView Component', () => {
     mockUseLoop.mockReturnValue(baseContext);
   });
 
-  it('redirects to home if selectedLoop is null', () => {
+  it('redirects to home if selectedLoop is null', async () => {
     mockUseLoop.mockReturnValue({
       ...baseContext,
       selectedLoop: null,
     });
 
-    const { container } = render(<ChatView />);
+    let container: HTMLElement | undefined;
+    await act(async () => {
+      const rendered = render(<ChatView />);
+      container = rendered.container;
+    });
+
     expect(container).toBeEmptyDOMElement();
     expect(baseContext.setView).toHaveBeenCalledWith('home');
   });
 
-  it('renders ChatHeader and ChatComposer for authorized ride host', () => {
-    render(<ChatView />);
+  it('renders ChatHeader and ChatComposer for authorized ride host', async () => {
+    await act(async () => {
+      render(<ChatView />);
+    });
 
     expect(screen.getByPlaceholderText('Message...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sos/i })).toBeInTheDocument();
   });
 
   it('allows typing and triggers message sending', async () => {
-    render(<ChatView />);
+    await act(async () => {
+      render(<ChatView />);
+    });
 
     const input = screen.getByPlaceholderText('Message...');
-    fireEvent.change(input, { target: { value: 'Leaving at 6 sharp!' } });
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Leaving at 6 sharp!' } });
+    });
     expect(input).toHaveValue('Leaving at 6 sharp!');
 
     const form = input.closest('form');
     expect(form).not.toBeNull();
-    fireEvent.submit(form!);
+    await act(async () => {
+      fireEvent.submit(form!);
+    });
 
     await waitFor(() => {
-      // Input resets upon submission
       expect(input).toHaveValue('');
     });
   });
 
-  it('triggers SOS when SOS header button is pressed', () => {
-    render(<ChatView />);
+  it('triggers SOS when SOS header button is pressed', async () => {
+    await act(async () => {
+      render(<ChatView />);
+    });
 
     const sosBtn = screen.getByRole('button', { name: /sos/i });
-    fireEvent.click(sosBtn);
+    await act(async () => {
+      fireEvent.click(sosBtn);
+    });
 
     expect(baseContext.triggerSos).toHaveBeenCalledTimes(1);
   });
