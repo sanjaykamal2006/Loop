@@ -3,8 +3,10 @@
  *
  * Provides:
  * 1. Development: Human-friendly colored terminal/console output.
- * 2. Production: Clean structured JSON logs on server runtime (Vercel/Node)
- *    and pluggable client-side exception telemetry.
+ * 2. Server Runtime: Clean structured JSON logs (Vercel/Node).
+ * 3. Client Runtime: Local diagnostic ring buffer (latest 20 entries) + session
+ *    crash persistence in sessionStorage, inspectable via window.__LOOP_DIAGNOSTICS__
+ *    and rendered in ErrorReporter triage panel (pluggable via registerTelemetryHandler).
  */
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
