@@ -22,6 +22,25 @@ import TeluguGuideModal from "./TeluguGuideModal";
 import BuyCoffeeModal from "./BuyCoffeeModal";
 import EmergencyContactModal from "./EmergencyContactModal";
 import SosModal from "./SosModal";
+import { logger, getDiagnosticLogs } from "@/lib/logger";
+
+if (typeof window !== "undefined") {
+  // Wire client-side crash telemetry sink to session buffer
+  logger.registerTelemetryHandler((entry) => {
+    if (entry.level === "error") {
+      try {
+        sessionStorage.setItem("loop_last_crash", JSON.stringify({
+          time: entry.timestamp,
+          message: entry.message,
+          error: entry.error,
+        }));
+      } catch {}
+    }
+  });
+
+  // Expose diagnostic buffer on window for DevTools and live triage
+  (window as unknown as { __LOOP_DIAGNOSTICS__?: typeof getDiagnosticLogs }).__LOOP_DIAGNOSTICS__ = getDiagnosticLogs;
+}
 
 const TAB_ORDER: Record<string, number> = {
   home: 0,

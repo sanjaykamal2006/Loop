@@ -160,7 +160,7 @@ self.addEventListener("push", (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-  } catch (e) {
+  } catch {
     data = { body: event.data ? event.data.text() : "" };
   }
   const title = data.title || "LOOP Ride Alert 🚗";

@@ -4,10 +4,8 @@ import {
   getLocalTomorrowStr,
   extractLocalDateStr,
   isSameLocalCalendarDay,
-  formatShortDate,
   buildDepartureDate,
   getDepartureDateBadge,
-  formatDepartureFull,
   formatDDMMYYYY,
 } from "@/lib/dateFormatter";
 

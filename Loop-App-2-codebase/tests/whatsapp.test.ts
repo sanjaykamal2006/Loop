@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getWhatsAppUrl, openWhatsApp, isMobileDevice } from "@/lib/whatsapp";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { getWhatsAppUrl, isMobileDevice } from "@/lib/whatsapp";
 
 describe("whatsapp utility", () => {
-  const originalUserAgent = navigator.userAgent;
 
   afterEach(() => {
     vi.restoreAllMocks();

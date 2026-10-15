@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   ALLOWED_INSTITUTIONAL_DOMAINS,
-  EXTERNAL_EMAIL_WHITELIST,
   INSTITUTIONAL_ERROR_MESSAGE,
   PLUS_ADDRESSING_ERROR_MESSAGE,
   hasPlusAddressing,

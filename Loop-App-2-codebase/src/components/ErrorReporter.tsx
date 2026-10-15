@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { logger } from "@/lib/logger";
+import { logger, getDiagnosticLogs } from "@/lib/logger";
 
 type ReporterProps = {
   error?: Error & { digest?: string };
@@ -53,6 +53,16 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
                 {error.digest && (
                   <div className="mt-2 text-zinc-500">
                     Digest: {error.digest}
+                  </div>
+                )}
+                {getDiagnosticLogs().length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-zinc-800 text-zinc-400 text-[10px]">
+                    Recent Diagnostic Logs ({getDiagnosticLogs().length}):
+                    {getDiagnosticLogs().map((d, i) => (
+                      <div key={i} className="text-zinc-500 font-mono">
+                        [{d.level.toUpperCase()}] {d.message}
+                      </div>
+                    ))}
                   </div>
                 )}
               </pre>
