@@ -129,16 +129,20 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
 };
 
 const EXPECTED_FOREIGN_KEYS = [
-  { table: "expected_fares", column: "user_id", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "loop_members", column: "loop_id", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "loop_members", column: "user_id", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "loop_participants", column: "loop_id", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "loop_participants", column: "user_id", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "loops", column: "creator_id", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
-  { table: "messages", column: "loop_id", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
-  { table: "messages", column: "user_id", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
-  { table: "trusted_vehicles", column: "user_id", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "emergency_contacts", column: "user_id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "expected_fares", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "loop_members", column: "loop_id", refSchema: "public", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "loop_members", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "loop_participants", column: "loop_id", refSchema: "public", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "loop_participants", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "loops", column: "creator_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
+  { table: "messages", column: "loop_id", refSchema: "public", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "messages", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
+  { table: "profile_contacts", column: "user_id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "profiles", column: "id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "trusted_vehicles", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
 ];
+
 
 describe.skipIf(!hasDb)("database schema contract", () => {
   let sql: ReturnType<typeof postgres>;
@@ -215,46 +219,56 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     const fks = await sql<{
       table_name: string;
       column_name: string;
+      foreign_table_schema: string;
       foreign_table_name: string;
       foreign_column_name: string;
       delete_rule: string;
     }[]>`
       select
-        tc.table_name,
-        kcu.column_name,
-        ccu.table_name as foreign_table_name,
-        ccu.column_name as foreign_column_name,
-        rc.delete_rule
-      from information_schema.table_constraints as tc
-      join information_schema.key_column_usage as kcu
-        on tc.constraint_name = kcu.constraint_name and tc.table_schema = kcu.table_schema
-      join information_schema.constraint_column_usage as ccu
-        on ccu.constraint_name = tc.constraint_name and ccu.table_schema = tc.table_schema
-      join information_schema.referential_constraints as rc
-        on rc.constraint_name = tc.constraint_name
-      where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public'
-      order by tc.table_name, kcu.column_name
+        rel.relname as table_name,
+        att.attname as column_name,
+        f_nsp.nspname as foreign_table_schema,
+        f_rel.relname as foreign_table_name,
+        f_att.attname as foreign_column_name,
+        case con.confdeltype
+          when 'a' then 'NO ACTION'
+          when 'r' then 'RESTRICT'
+          when 'c' then 'CASCADE'
+          when 'n' then 'SET NULL'
+          when 'd' then 'SET DEFAULT'
+        end as delete_rule
+      from pg_constraint con
+      join pg_class rel on rel.oid = con.conrelid
+      join pg_namespace nsp on nsp.oid = rel.relnamespace
+      join pg_attribute att on att.attrelid = con.conrelid and att.attnum = any(con.conkey)
+      join pg_class f_rel on f_rel.oid = con.confrelid
+      join pg_namespace f_nsp on f_nsp.oid = f_rel.relnamespace
+      join pg_attribute f_att on f_att.attrelid = con.confrelid and f_att.attnum = any(con.confkey)
+      where con.contype = 'f' and nsp.nspname = 'public'
+      order by rel.relname, att.attname, con.conname
     `;
 
-    // 1. Assert exact total foreign key count matches production (exactly 9)
+    // 1. Assert exact total foreign key count matches production (all 12 FKs across all schemas)
     expect(fks.length, `Expected exactly ${EXPECTED_FOREIGN_KEYS.length} foreign keys, received ${fks.length}`).toBe(EXPECTED_FOREIGN_KEYS.length);
 
-    // 2. Assert every expected foreign key matches full tuple: table, column, refTable, refColumn, deleteRule
+    // 2. Assert every expected foreign key matches full 6-tuple: table, column, refSchema, refTable, refColumn, deleteRule
     for (const expFk of EXPECTED_FOREIGN_KEYS) {
       const match = fks.find(
         (f) =>
           f.table_name === expFk.table &&
           f.column_name === expFk.column &&
+          f.foreign_table_schema === expFk.refSchema &&
           f.foreign_table_name === expFk.refTable &&
           f.foreign_column_name === expFk.refColumn &&
           f.delete_rule === expFk.deleteRule,
       );
       expect(
         match,
-        `Missing or mismatched FK: ${expFk.table}.${expFk.column} -> ${expFk.refTable}.${expFk.refColumn} [${expFk.deleteRule}]`,
+        `Missing or mismatched FK: ${expFk.table}.${expFk.column} -> ${expFk.refSchema}.${expFk.refTable}.${expFk.refColumn} [${expFk.deleteRule}]`,
       ).toBeDefined();
     }
   }, DB_TIMEOUT_MS);
+
 
   it("enables row level security on every public table", async () => {
     const rows = await sql<{ relname: string; relrowsecurity: boolean }[]>`
@@ -302,16 +316,24 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     expect(nullable?.is_nullable).toBe("YES");
 
     const rules = await sql<{ delete_rule: string }[]>`
-      select rc.delete_rule
-      from information_schema.referential_constraints rc
-      join information_schema.key_column_usage kcu
-        on kcu.constraint_name = rc.constraint_name
-       and kcu.constraint_schema = rc.constraint_schema
-      where kcu.table_schema = 'public'
-        and kcu.table_name = 'messages'
-        and kcu.column_name = 'user_id'
+      select
+        case con.confdeltype
+          when 'a' then 'NO ACTION'
+          when 'r' then 'RESTRICT'
+          when 'c' then 'CASCADE'
+          when 'n' then 'SET NULL'
+          when 'd' then 'SET DEFAULT'
+        end as delete_rule
+      from pg_constraint con
+      join pg_class rel on rel.oid = con.conrelid
+      join pg_namespace nsp on nsp.oid = rel.relnamespace
+      join pg_attribute att on att.attrelid = con.conrelid and att.attnum = any(con.conkey)
+      where con.contype = 'f' and nsp.nspname = 'public'
+        and rel.relname = 'messages'
+        and att.attname = 'user_id'
     `;
     expect(rules.map((r) => r.delete_rule)).toEqual(["SET NULL"]);
+
   }, DB_TIMEOUT_MS);
 
   it("behaviorally enforces RLS: user A cannot read or mutate user B private emergency contacts", async () => {
