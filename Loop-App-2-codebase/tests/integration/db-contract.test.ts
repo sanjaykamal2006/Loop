@@ -5,9 +5,10 @@ import postgres from "postgres";
  * Live-database schema / RLS contract tests.
  *
  * These are READ-ONLY assertions that encode the security and schema
- * invariants which must hold after every migration or RLS change. They are
- * skipped unless you explicitly provide a database URL, so CI (which has no
- * DATABASE_URL) does not need one.
+ * invariants which must hold after every migration or RLS change.
+ * In local dev without a test database, these are skipped unless you provide
+ * TEST_DATABASE_URL. In CI, a real PostgreSQL service container applies all
+ * migrations and runs this suite against TEST_DATABASE_URL.
  *
  * Run against a test/branch database, or read-only against production:
  *   PowerShell:  $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
@@ -68,6 +69,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public' and c.relkind = 'r'
     `;
+    expect(rows.length).toBe(EXPECTED_PUBLIC_TABLES.length);
     const withoutRls = rows.filter((r) => !r.relrowsecurity).map((r) => r.relname);
     expect(withoutRls).toEqual([]);
   }, DB_TIMEOUT_MS);
@@ -81,6 +83,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       where n.nspname = 'public' and c.relkind = 'r'
       group by c.relname
     `;
+    expect(rows.length).toBe(EXPECTED_PUBLIC_TABLES.length);
     const withoutPolicies = rows.filter((r) => r.policy_count === 0).map((r) => r.tablename);
     expect(withoutPolicies).toEqual([]);
   }, DB_TIMEOUT_MS);
@@ -89,6 +92,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     const rows = await sql<{ tablename: string; policyname: string; qual: string | null }[]>`
       select tablename, policyname, qual from pg_policies where schemaname = 'public'
     `;
+    expect(rows.length).toBeGreaterThan(0);
     const bare = rows
       .filter((r) => r.qual && /auth\.uid\(\)/i.test(r.qual))
       .filter((r) => !/select\s+auth\.uid\(\)/i.test(r.qual as string))

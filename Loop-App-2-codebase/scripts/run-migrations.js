@@ -20,6 +20,7 @@ async function run() {
   const isLocal = /localhost|127\.0\.0\.1/.test(databaseUrl);
   const sql = postgres(databaseUrl, {
     max: 1,
+    prepare: false,
     ssl: isLocal ? false : 'require',
     connect_timeout: 20,
   });
