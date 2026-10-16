@@ -13,13 +13,15 @@ BEGIN
   -- Ensure loops.creator_id is nullable and uses ON DELETE SET NULL
   ALTER TABLE public.loops ALTER COLUMN creator_id DROP NOT NULL;
 
+  ALTER TABLE public.loops DROP CONSTRAINT IF EXISTS loops_creator_id_fkey;
   ALTER TABLE public.loops DROP CONSTRAINT IF EXISTS fk_loops_creator_id;
   ALTER TABLE public.loops
     ADD CONSTRAINT fk_loops_creator_id
     FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
     ON DELETE SET NULL;
 
-  -- Ensure fk_messages_profiles exists on public.messages
+  -- Ensure fk_messages_profiles exists on public.messages and auto-named constraint is cleaned up
+  ALTER TABLE public.messages DROP CONSTRAINT IF EXISTS messages_user_id_fkey;
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'fk_messages_profiles'
   ) THEN
@@ -27,7 +29,7 @@ BEGIN
       ALTER TABLE public.messages
         ADD CONSTRAINT fk_messages_profiles
         FOREIGN KEY (user_id) REFERENCES public.profiles(id)
-        ON DELETE CASCADE;
+        ON DELETE SET NULL;
     EXCEPTION WHEN OTHERS THEN
       NULL;
     END;

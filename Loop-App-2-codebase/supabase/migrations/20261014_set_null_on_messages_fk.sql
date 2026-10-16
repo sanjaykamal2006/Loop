@@ -4,6 +4,7 @@
 -- ==============================================================================
 
 ALTER TABLE public.messages
+  DROP CONSTRAINT IF EXISTS messages_user_id_fkey,
   DROP CONSTRAINT IF EXISTS fk_messages_profiles,
   ADD CONSTRAINT fk_messages_profiles
   FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE SET NULL;

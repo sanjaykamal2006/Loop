@@ -23,11 +23,12 @@ export default defineConfig({
       ],
       exclude: ['src/**/*.d.ts'],
       thresholds: {
-        statements: 48,
-        branches: 52,
-        functions: 40,
-        lines: 48,
+        statements: 50,
+        branches: 55,
+        functions: 44,
+        lines: 50,
       },
+
     },
   },
   resolve: {

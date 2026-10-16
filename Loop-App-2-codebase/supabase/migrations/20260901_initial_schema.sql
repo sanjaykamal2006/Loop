@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 CREATE TABLE IF NOT EXISTS public.loops (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  creator_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  creator_id uuid CONSTRAINT fk_loops_creator_id REFERENCES public.profiles(id) ON DELETE SET NULL,
   destination text NOT NULL,
   start_time_type text,
   participants_limit integer NOT NULL DEFAULT 4,
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS public.loops (
 
 CREATE TABLE IF NOT EXISTS public.loop_members (
   loop_id uuid NOT NULL REFERENCES public.loops(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL CONSTRAINT fk_loop_members_user_id REFERENCES public.profiles(id) ON DELETE CASCADE,
   joined_at timestamptz DEFAULT now(),
   PRIMARY KEY (loop_id, user_id)
 );
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS public.trusted_vehicles (
 CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   loop_id uuid REFERENCES public.loops(id) ON DELETE CASCADE,
-  user_id uuid REFERENCES public.profiles(id),
+  user_id uuid CONSTRAINT fk_messages_profiles REFERENCES public.profiles(id) ON DELETE SET NULL,
   content text NOT NULL,
   created_at timestamptz DEFAULT now(),
   edited_at timestamptz,

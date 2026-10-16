@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { getWhatsAppUrl, isMobileDevice } from "@/lib/whatsapp";
+import { getWhatsAppUrl, isMobileDevice, openWhatsApp } from "@/lib/whatsapp";
 
 describe("whatsapp utility", () => {
 
@@ -62,4 +62,38 @@ describe("whatsapp utility", () => {
       expect(isMobileDevice()).toBe(false);
     });
   });
+
+  describe("openWhatsApp", () => {
+    it("should assign window.location.href on mobile devices", () => {
+      vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"
+      );
+      // jsdom window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      window.location = { href: "" } as any;
+
+      openWhatsApp({ text: "Hello" });
+
+      expect(window.location.href).toBe("whatsapp://send?text=Hello");
+      window.location = originalLocation;
+    });
+
+    it("should call window.open on desktop devices", () => {
+      vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      );
+      const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+      openWhatsApp({ text: "Hello Desktop" });
+
+
+      expect(openSpy).toHaveBeenCalledWith(
+        "https://web.whatsapp.com/send?text=Hello%20Desktop",
+        "_blank",
+        "noopener,noreferrer"
+      );
+    });
+  });
 });
+

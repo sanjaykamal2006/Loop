@@ -212,11 +212,18 @@ describe.skipIf(!hasDb)("database schema contract", () => {
   }, DB_TIMEOUT_MS);
 
   it("enforces referential constraints matching production foreign keys", async () => {
-    const fks = await sql<{ table_name: string; column_name: string; foreign_table_name: string; delete_rule: string }[]>`
+    const fks = await sql<{
+      table_name: string;
+      column_name: string;
+      foreign_table_name: string;
+      foreign_column_name: string;
+      delete_rule: string;
+    }[]>`
       select
         tc.table_name,
         kcu.column_name,
         ccu.table_name as foreign_table_name,
+        ccu.column_name as foreign_column_name,
         rc.delete_rule
       from information_schema.table_constraints as tc
       join information_schema.key_column_usage as kcu
@@ -226,14 +233,26 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       join information_schema.referential_constraints as rc
         on rc.constraint_name = tc.constraint_name
       where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public'
+      order by tc.table_name, kcu.column_name
     `;
 
+    // 1. Assert exact total foreign key count matches production (exactly 9)
+    expect(fks.length, `Expected exactly ${EXPECTED_FOREIGN_KEYS.length} foreign keys, received ${fks.length}`).toBe(EXPECTED_FOREIGN_KEYS.length);
+
+    // 2. Assert every expected foreign key matches full tuple: table, column, refTable, refColumn, deleteRule
     for (const expFk of EXPECTED_FOREIGN_KEYS) {
       const match = fks.find(
         (f) =>
-          f.table_name === expFk.table,
+          f.table_name === expFk.table &&
+          f.column_name === expFk.column &&
+          f.foreign_table_name === expFk.refTable &&
+          f.foreign_column_name === expFk.refColumn &&
+          f.delete_rule === expFk.deleteRule,
       );
-      expect(match, `Missing foreign key from ${expFk.table}.${expFk.column}`).toBeDefined();
+      expect(
+        match,
+        `Missing or mismatched FK: ${expFk.table}.${expFk.column} -> ${expFk.refTable}.${expFk.refColumn} [${expFk.deleteRule}]`,
+      ).toBeDefined();
     }
   }, DB_TIMEOUT_MS);
 
@@ -292,7 +311,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
         and kcu.table_name = 'messages'
         and kcu.column_name = 'user_id'
     `;
-    expect(rules.map((r) => r.delete_rule)).toContain("SET NULL");
+    expect(rules.map((r) => r.delete_rule)).toEqual(["SET NULL"]);
   }, DB_TIMEOUT_MS);
 
   it("behaviorally enforces RLS: user A cannot read or mutate user B private emergency contacts", async () => {
