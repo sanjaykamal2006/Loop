@@ -22,7 +22,15 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN
     CREATE ROLE postgres NOLOGIN;
   END IF;
+
+  -- Grant role memberships to CURRENT_USER so test sessions can assume authenticated role
+  EXECUTE format('GRANT anon, authenticated, service_role TO %I', CURRENT_USER);
 END $$;
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
 
 CREATE SCHEMA IF NOT EXISTS auth;
 
@@ -96,36 +104,35 @@ RETURNS void LANGUAGE sql AS $$ SELECT; $$;
 -- 5. Baseline Core Application Tables
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  display_name text NOT NULL,
-  phone_number text,
+  display_name text,
+  theme text DEFAULT 'dark',
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  gender text DEFAULT 'unspecified',
   reg_no text,
   avatar_url text,
-  gender text DEFAULT 'unspecified',
-  bio text,
-  theme text DEFAULT 'dark',
-  is_student_verified boolean DEFAULT false,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  bio text DEFAULT '',
+  phone_number text,
+  is_student_verified boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS public.loops (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  start_point text NOT NULL,
+  creator_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
   destination text NOT NULL,
-  departure_time timestamptz NOT NULL,
+  start_time_type text,
   participants_limit integer NOT NULL DEFAULT 4,
-  status text NOT NULL DEFAULT 'open',
-  creator_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  created_at timestamptz DEFAULT now(),
-  expires_at timestamptz,
-  is_female_only boolean DEFAULT false,
-  is_driver_offering boolean DEFAULT false,
-  vehicle_type text,
-  total_fare numeric,
-  category text,
+  gender_preference text NOT NULL DEFAULT 'any',
   purpose text,
-  gender_preference text DEFAULT 'any',
-  start_time_type text
+  created_at timestamptz DEFAULT now(),
+  expires_at timestamptz NOT NULL,
+  status text DEFAULT 'active',
+  is_female_only boolean DEFAULT false,
+  departure_time timestamptz,
+  category text DEFAULT 'Other',
+  start_point text,
+  total_fare integer,
+  is_driver_offering boolean DEFAULT false,
+  vehicle_type text
 );
 
 CREATE TABLE IF NOT EXISTS public.loop_members (
@@ -148,30 +155,30 @@ CREATE TABLE IF NOT EXISTS public.expected_fares (
   from_location text NOT NULL,
   to_location text NOT NULL,
   expected_fare numeric NOT NULL,
-  vehicle_type text,
+  vehicle_type text DEFAULT 'auto',
   created_at timestamptz DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS public.trusted_vehicles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  driver_name text NOT NULL DEFAULT '',
-  phone_number text NOT NULL DEFAULT '',
+  driver_name text NOT NULL,
+  phone_number text NOT NULL,
   vehicle_type text NOT NULL,
-  expected_fare numeric,
+  created_at timestamptz DEFAULT now(),
   from_location text,
   to_location text,
-  created_at timestamptz DEFAULT now()
+  expected_fare numeric
 );
 
 CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  loop_id uuid NOT NULL REFERENCES public.loops(id) ON DELETE CASCADE,
+  loop_id uuid REFERENCES public.loops(id) ON DELETE CASCADE,
   user_id uuid REFERENCES public.profiles(id),
   content text NOT NULL,
-  reactions jsonb DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
   edited_at timestamptz,
-  created_at timestamptz DEFAULT now()
+  reactions jsonb DEFAULT '{}'::jsonb
 );
 
 -- Enable Row Level Security (RLS) on all baseline public tables
@@ -182,6 +189,10 @@ ALTER TABLE public.loop_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expected_fares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trusted_vehicles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- Maintenance function declarations
 CREATE OR REPLACE FUNCTION public.purge_old_data() RETURNS void LANGUAGE sql AS $$ SELECT; $$;
