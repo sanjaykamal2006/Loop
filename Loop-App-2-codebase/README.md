@@ -99,15 +99,16 @@ All server-side API endpoints are located under `src/app/api/`:
 
 ### `GET /api/admin/stats`
 - **Purpose:** Administrative health dashboard metrics.
-- **Headers:** `Authorization: Bearer <CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>`
+- **Headers:** `Authorization: Bearer <ADMIN_STATS_SECRET | CLEANUP_CRON_SECRET>` (route answers 503 when neither is configured)
 - **Security:** Verified with byte-length pre-check and `crypto.timingSafeEqual`.
 
 ### `POST /api/admin/sync-whitelist`
 - **Purpose:** Bulk synchronize approved guest email accounts.
-- **Headers:** `Authorization: Bearer <CRON_SECRET>`
+- **Headers:** `Authorization: Bearer <CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>`
 
-### `GET /api/cleanup`
+### `POST /api/cleanup`
 - **Purpose:** Automated cron maintenance to expire completed loops and archive past chats.
+- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET>` (route answers 503 when unset; `GET` is rejected with 405)
 
 ---
 
@@ -116,7 +117,7 @@ All server-side API endpoints are located under `src/app/api/`:
 LOOP deploys strict HTTP response headers configured in [`next.config.ts`](./next.config.ts):
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://api.qrserver.com; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
@@ -157,7 +158,7 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 251 unit, component, API, and database contract tests (DB suites run when TEST_DATABASE_URL is set)
+# Run 234 unit, component, and API tests (+22 database contract tests when TEST_DATABASE_URL is set)
 npm run test:run
 
 # Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)

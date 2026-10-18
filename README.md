@@ -7,7 +7,7 @@
 
 [![Live Web App](https://img.shields.io/badge/Production-loop--app.runs--on.dev-FFC554?style=for-the-badge&logoColor=black)](https://loop-app.runs-on.dev)
 [![Legacy Redirect](https://img.shields.io/badge/Legacy_Mirror-HTTP_308_Permanent-38bdf8?style=for-the-badge)](https://loop-demo-app.vercel.app)
-[![Tests Passing](https://img.shields.io/badge/Tests-124%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Tests Passing](https://img.shields.io/badge/Tests-256%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%200%20Any-blue?style=for-the-badge)](https://www.typescriptlang.org/)
 
 <br/>
@@ -69,11 +69,11 @@ LOOP enforces Row Level Security (RLS) across all 10 public tables using subquer
 | `loops` | Primary ride records (origin, destination, departure, capacity) | Anyone authenticated can read open loops; only creators can update/delete their own rides. |
 | `loop_members` | Ride passenger roster and host associations | Members can view co-passengers; atomic trigger auto-enrolls creator; members can leave. |
 | `messages` | Realtime group chat records | Restricted strictly to enrolled members of that specific ride loop. |
-| `profiles` | Student profile (display name, reg number, gender, avatar) | Public read for authenticated students; update restricted to profile owner. |
+| `profiles` | Student profile (display name, reg number, gender, avatar) | Visible only to self, ride co-members, and ride hosts (`can_view_profile()`); update restricted to profile owner. |
 | `allowed_external_emails` | Whitelist for special non-institutional guest users | Admin-only write; authenticated read during auth validation. |
 | `emergency_contacts` | Personal emergency contacts for SOS dispatch | Strictly private to the contact owner. |
-| `trusted_vehicles` | Saved trusted auto / cab drivers | Community-accessible for verified ride coordination. |
-| `expected_fares` | Landmark fare reference database | Read-only reference table for auto fare calculations. |
+| `trusted_vehicles` | Saved trusted auto / cab drivers | Owner-only: private driver book, never visible to other users. |
+| `expected_fares` | Landmark fare reference database | Rows are owner-only; the community board is served by the `get_expected_fares()` RPC (safe display columns, authenticated only). |
 | `profile_contacts` | Shared contact preferences | Owner-restricted update. |
 | `loop_participants` | Legacy backward-compatibility view | Synced with `loop_members`. |
 
@@ -99,15 +99,16 @@ All server-side API endpoints are located under `src/app/api/`:
 
 ### `GET /api/admin/stats`
 - **Purpose:** Administrative health dashboard metrics.
-- **Headers:** `Authorization: Bearer <CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>`
+- **Headers:** `Authorization: Bearer <ADMIN_STATS_SECRET | CLEANUP_CRON_SECRET>` (route answers 503 when neither is configured)
 - **Security:** Verified with byte-length pre-check and `crypto.timingSafeEqual`.
 
 ### `POST /api/admin/sync-whitelist`
 - **Purpose:** Bulk synchronize approved guest email accounts.
-- **Headers:** `Authorization: Bearer <CRON_SECRET>`
+- **Headers:** `Authorization: Bearer <CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>`
 
-### `GET /api/cleanup`
+### `POST /api/cleanup`
 - **Purpose:** Automated cron maintenance to expire completed loops and archive past chats.
+- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET>` (route answers 503 when unset; `GET` is rejected with 405)
 
 ---
 
@@ -116,7 +117,7 @@ All server-side API endpoints are located under `src/app/api/`:
 LOOP deploys strict HTTP response headers configured in [`next.config.ts`](./next.config.ts):
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://api.qrserver.com; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
@@ -141,7 +142,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 ### Prerequisites
 - Node.js 20+
 - npm 10+
-- Supabase Project or local Docker CLI
+- Supabase Project or PostgreSQL 15 instance (matching CI `postgres:15` container and production Supabase engine)
 
 ### Setup
 ```bash
@@ -157,18 +158,39 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 124 unit, component, and API integration tests
+# Run 234 unit, component, and API tests (+22 database contract tests when TEST_DATABASE_URL is set)
 npm run test:run
 
-# Run read-only database schema & RLS contract tests against live instance
+# Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)
+npm run test:coverage
+
+# Run read-only database schema & behavioral RLS contract tests (22 tests) against a live PostgreSQL 15 instance
 $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
+
+# Run end-to-end browser automation suite via Playwright
+npm run test:e2e
 
 # Run linter
 npm run lint
 
+# Type-check the app AND the tests (both must stay clean in CI)
+npm run typecheck
+
 # Run optimized Next.js 16 Turbopack production build
 npm run build
 ```
+
+### Environment Variables (Production / Vercel)
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key (RLS enforced) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only admin key (account deletion) |
+| `CLEANUP_CRON_SECRET` | Yes | Bearer secret for `/api/cleanup` (route answers 503 when unset) |
+| `ADMIN_STATS_SECRET` | Yes | Bearer secret for `/api/admin/stats` (falls back to `CLEANUP_CRON_SECRET`) |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Recommended | Shared rate-limit store across serverless instances (falls back to per-instance memory) |
+| `ASSETLINKS_SHA256` | For Android TWA | Comma-separated signing-certificate SHA-256 fingerprints served at `/.well-known/assetlinks.json` (empty = `[]`) |
+| `NEXT_PUBLIC_PACKAGE_NAME` | For Android TWA | TWA package name (defaults to `app.loop.twa`) |
 
 ---
 

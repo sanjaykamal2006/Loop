@@ -10,10 +10,36 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap' 
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://loop-app.runs-on.dev";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "LOOP - Purpose-Based Ride Coordination",
   description: "Rides go better in Loop. Mobile-first real-time ride sharing and coordination.",
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: "LOOP",
+    url: "/",
+    title: "LOOP - Purpose-Based Ride Coordination",
+    description:
+      "Rides go better in Loop. Mobile-first real-time ride sharing and coordination for university students.",
+    images: [
+      {
+        url: "/feature-graphic.png",
+        width: 1024,
+        height: 500,
+        alt: "LOOP — Rides go better in Loop. Real-time ride coordination for university students.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LOOP - Purpose-Based Ride Coordination",
+    description:
+      "Rides go better in Loop. Mobile-first real-time ride sharing and coordination for university students.",
+    images: ["/feature-graphic.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

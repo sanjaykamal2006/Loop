@@ -83,6 +83,36 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Brand/PWA images are content-stable per deploy; without this they are
+        // served with max-age=0 and revalidated on every visit (e.g. logo.png).
+        source:
+          "/:file(logo.png|icon.png|icon-192.png|icon-512.png|apple-touch-icon.png|favicon.ico|header-logo.png|header-logo-light.png|creator.jpg|feature-graphic.png)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        source: "/screenshots/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
     ];
   },
 };
