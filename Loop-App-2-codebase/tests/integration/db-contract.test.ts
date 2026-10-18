@@ -548,5 +548,273 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       expect(match, `Missing trigger ${exp.table_name}.${exp.trigger_name}`).toBeDefined();
     }
   }, DB_TIMEOUT_MS);
+
+  it("matches production indexes and composite definitions across public tables", async () => {
+    const indexes = await sql<{ tablename: string; indexname: string; indexdef: string }[]>`
+      select tablename, indexname, indexdef
+      from pg_indexes
+      where schemaname = 'public'
+      order by tablename, indexname
+    `;
+
+    const expectedIndexes = [
+      { tablename: "allowed_external_emails", indexname: "allowed_external_emails_pkey", isUnique: true, columns: ["email"] },
+      { tablename: "emergency_contacts", indexname: "emergency_contacts_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "emergency_contacts", indexname: "idx_emergency_contacts_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "expected_fares", indexname: "expected_fares_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "expected_fares", indexname: "idx_expected_fares_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "loop_members", indexname: "idx_loop_members_loop_id", isUnique: false, columns: ["loop_id"] },
+      { tablename: "loop_members", indexname: "idx_loop_members_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "loop_members", indexname: "loop_members_pkey", isUnique: true, columns: ["loop_id", "user_id"] },
+      { tablename: "loop_participants", indexname: "idx_loop_participants_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "loop_participants", indexname: "loop_participants_loop_id_user_id_key", isUnique: true, columns: ["loop_id", "user_id"] },
+      { tablename: "loop_participants", indexname: "loop_participants_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "loops", indexname: "idx_loops_creator_id", isUnique: false, columns: ["creator_id"] },
+      { tablename: "loops", indexname: "idx_loops_expires_at", isUnique: false, columns: ["expires_at"] },
+      { tablename: "loops", indexname: "idx_loops_status_created", isUnique: false, columns: ["status", "created_at DESC"] },
+      { tablename: "loops", indexname: "loops_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "messages", indexname: "idx_messages_loop_created", isUnique: false, columns: ["loop_id", "created_at"] },
+      { tablename: "messages", indexname: "idx_messages_loop_id", isUnique: false, columns: ["loop_id"] },
+      { tablename: "messages", indexname: "idx_messages_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "messages", indexname: "messages_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "profile_contacts", indexname: "profile_contacts_pkey", isUnique: true, columns: ["user_id"] },
+      { tablename: "profiles", indexname: "profiles_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "trusted_vehicles", indexname: "idx_trusted_vehicles_user_id", isUnique: false, columns: ["user_id"] },
+      { tablename: "trusted_vehicles", indexname: "trusted_vehicles_pkey", isUnique: true, columns: ["id"] },
+    ];
+
+    expect(indexes.length).toBe(expectedIndexes.length);
+    for (const exp of expectedIndexes) {
+      const match = indexes.find((i) => i.tablename === exp.tablename && i.indexname === exp.indexname);
+      expect(match, `Missing index ${exp.tablename}.${exp.indexname}`).toBeDefined();
+      if (exp.isUnique) {
+        expect(match!.indexdef).toMatch(/CREATE UNIQUE INDEX/i);
+      }
+      for (const col of exp.columns) {
+        expect(match!.indexdef).toContain(col);
+      }
+    }
+  }, DB_TIMEOUT_MS);
+
+  it("matches production column defaults across public tables", async () => {
+    const defaults = await sql<{ table_name: string; column_name: string; column_default: string }[]>`
+      select table_name, column_name, column_default
+      from information_schema.columns
+      where table_schema = 'public' and column_default is not null
+      order by table_name, column_name
+    `;
+
+    const expectedDefaults = [
+      { table_name: "allowed_external_emails", column_name: "created_at", column_default: "now()" },
+      { table_name: "emergency_contacts", column_name: "created_at", column_default: "now()" },
+      { table_name: "emergency_contacts", column_name: "id", column_default: "gen_random_uuid()" },
+      { table_name: "emergency_contacts", column_name: "relation", column_default: "'Parent'::text" },
+      { table_name: "emergency_contacts", column_name: "updated_at", column_default: "now()" },
+      { table_name: "expected_fares", column_name: "created_at", column_default: "now()" },
+      { table_name: "expected_fares", column_name: "id", column_default: "gen_random_uuid()" },
+      { table_name: "expected_fares", column_name: "vehicle_type", column_default: "'auto'::text" },
+      { table_name: "loop_members", column_name: "joined_at", column_default: "now()" },
+      { table_name: "loop_participants", column_name: "id", column_default: "gen_random_uuid()" },
+      { table_name: "loop_participants", column_name: "joined_at", column_default: "now()" },
+      { table_name: "loops", column_name: "category", column_default: "'Other'::text" },
+      { table_name: "loops", column_name: "created_at", column_default: "now()" },
+      { table_name: "loops", column_name: "gender_preference", column_default: "'any'::text" },
+      { table_name: "loops", column_name: "id", column_default: "gen_random_uuid()" },
+      { table_name: "loops", column_name: "is_driver_offering", column_default: "false" },
+      { table_name: "loops", column_name: "is_female_only", column_default: "false" },
+      { table_name: "loops", column_name: "participants_limit", column_default: "4" },
+      { table_name: "loops", column_name: "status", column_default: "'active'::text" },
+      { table_name: "messages", column_name: "created_at", column_default: "now()" },
+      { table_name: "messages", column_name: "id", column_default: "gen_random_uuid()" },
+      { table_name: "messages", column_name: "reactions", column_default: "'{}'::jsonb" },
+      { table_name: "profile_contacts", column_name: "updated_at", column_default: "now()" },
+      { table_name: "profiles", column_name: "bio", column_default: "''::text" },
+      { table_name: "profiles", column_name: "is_student_verified", column_default: "false" },
+      { table_name: "profiles", column_name: "theme", column_default: "'dark'::text" },
+      { table_name: "profiles", column_name: "updated_at", column_default: "timezone('utc'::text, now())" },
+      { table_name: "trusted_vehicles", column_name: "created_at", column_default: "now()" },
+      { table_name: "trusted_vehicles", column_name: "id", column_default: "gen_random_uuid()" },
+    ];
+
+    expect(defaults.length).toBe(expectedDefaults.length);
+    for (const exp of expectedDefaults) {
+      const match = defaults.find((d) => d.table_name === exp.table_name && d.column_name === exp.column_name);
+      expect(match, `Missing default on ${exp.table_name}.${exp.column_name}`).toBeDefined();
+      expect(match!.column_default).toBe(exp.column_default);
+    }
+
+    // Explicitly verify profiles.gender has NO default
+    const genderCol = await sql<{ column_default: string | null }[]>`
+      select column_default from information_schema.columns
+      where table_schema = 'public' and table_name = 'profiles' and column_name = 'gender'
+    `;
+    expect(genderCol[0]?.column_default).toBeNull();
+  }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces auto_add_creator_to_loop_members trigger", async () => {
+    const userId = "77777777-7777-7777-7777-777777777777";
+    const loopId = "88888888-8888-8888-8888-888888888888";
+
+    await sql.begin(async (tx) => {
+      await tx`
+        INSERT INTO auth.users (id, email)
+        VALUES (${userId}, 'creator_auto@vitapstudent.ac.in')
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await tx`
+        INSERT INTO public.profiles (id, display_name)
+        VALUES (${userId}, 'Creator Auto')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${loopId}, ${userId}, 'Airport Drop', 4, 'open', now() + interval '2 hours')
+      `;
+
+      const members = await tx<{ user_id: string; loop_id: string }[]>`
+        SELECT user_id, loop_id FROM public.loop_members WHERE loop_id = ${loopId}
+      `;
+      expect(members.length).toBe(1);
+      expect(members[0].user_id).toBe(userId);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces check_loop_capacity trigger", async () => {
+    const creatorId = "12121212-1212-1212-1212-121212121212";
+    const memberId = "23232323-2323-2323-2323-232323232323";
+    const loopId = "34343434-3434-3434-3434-343434343434";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${creatorId}, 'cap_creator@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${creatorId}, 'Cap Creator') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO auth.users (id, email) VALUES (${memberId}, 'cap_member@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${memberId}, 'Cap Member') ON CONFLICT (id) DO NOTHING`;
+
+      // Create loop with capacity = 1. Auto-add enroles creatorId, taking up the 1 available slot.
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${loopId}, ${creatorId}, 'Campus', 1, 'open', now() + interval '2 hours')
+      `;
+
+      let threw = false;
+      try {
+        await tx`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${loopId}, ${memberId})`;
+      } catch (err: unknown) {
+        threw = true;
+        expect((err as Error).message).toMatch(/This loop is already full/i);
+      }
+      expect(threw, "Expected joining a full loop to throw exception").toBe(true);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces check_active_loops_quota trigger", async () => {
+    const creatorId = "45454545-4545-4545-4545-454545454545";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${creatorId}, 'quota_host@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${creatorId}, 'Quota Host') ON CONFLICT (id) DO NOTHING`;
+
+      // 1. Invalid capacity (< 1 or > 10)
+      let capThrew = false;
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (creator_id, destination, participants_limit, status, expires_at)
+            VALUES (${creatorId}, 'Station', 0, 'open', now() + interval '2 hours')
+          `;
+        } catch (err: unknown) {
+          capThrew = true;
+          expect((err as Error).message).toMatch(/Passenger capacity must be between 1 and 10/i);
+          throw err;
+        }
+      }).catch(() => {});
+      expect(capThrew, "Expected invalid passenger capacity to throw").toBe(true);
+
+      // 2. Empty destination
+      let destThrew = false;
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (creator_id, destination, participants_limit, status, expires_at)
+            VALUES (${creatorId}, '   ', 4, 'open', now() + interval '2 hours')
+          `;
+        } catch (err: unknown) {
+          destThrew = true;
+          expect((err as Error).message).toMatch(/Destination cannot be empty/i);
+          throw err;
+        }
+      }).catch(() => {});
+      expect(destThrew, "Expected empty destination to throw").toBe(true);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces check_emergency_contacts_limit trigger", async () => {
+    const userId = "56565656-5656-5656-5656-565656565656";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${userId}, 'emg_user@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${userId}, 'Emergency Test User') ON CONFLICT (id) DO NOTHING`;
+
+      // Insert 3 emergency contacts (the allowed limit)
+      await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 1', '+919999900001', 'Parent')`;
+      await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 2', '+919999900002', 'Parent')`;
+      await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 3', '+919999900003', 'Parent')`;
+
+      // Attempt to insert 4th contact
+      let limitThrew = false;
+      try {
+        await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 4', '+919999900004', 'Parent')`;
+      } catch (err: unknown) {
+        limitThrew = true;
+        expect((err as Error).message).toMatch(/A user cannot have more than 3 emergency contacts/i);
+      }
+      expect(limitThrew, "Expected 4th emergency contact to exceed limit").toBe(true);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces protect_profile_updates trigger", async () => {
+    const userId = "67676767-6767-6767-6767-676767676767";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${userId}, 'student_verified@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`
+        INSERT INTO public.profiles (id, display_name, reg_no, is_student_verified)
+        VALUES (${userId}, 'Verified Student', '21BCE1001', true)
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      // Attempt to alter verified reg_no
+      let regThrew = false;
+      try {
+        await tx`UPDATE public.profiles SET reg_no = '21BCE9999' WHERE id = ${userId}`;
+      } catch (err: unknown) {
+        regThrew = true;
+        expect((err as Error).message).toMatch(/Verified student registration numbers cannot be modified/i);
+      }
+      expect(regThrew, "Expected altering verified reg_no to throw").toBe(true);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
 });
+
 
