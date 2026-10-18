@@ -92,13 +92,19 @@ export async function POST(req: NextRequest) {
     await adminClient.from("expected_fares").delete().eq("user_id", userId);
 
     // 6. Delete user profile and Auth record
-    await adminClient.from("profiles").delete().eq("id", userId);
+    const { error: deleteProfileError } = await adminClient.from("profiles").delete().eq("id", userId);
+    if (deleteProfileError) {
+      logger.error("Failed to delete user profile:", deleteProfileError);
+      return NextResponse.json({ error: deleteProfileError.message }, { status: 500 });
+    }
+
     const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteAuthError) {
       logger.error("Failed to delete auth user:", deleteAuthError);
       return NextResponse.json({ error: deleteAuthError.message }, { status: 500 });
     }
+
 
     return NextResponse.json({ success: true, message: "Account deleted successfully" });
   } catch (err: unknown) {

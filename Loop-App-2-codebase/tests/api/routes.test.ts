@@ -544,7 +544,56 @@ describe("API Routes Test Suite", () => {
       expect(insertSpy).toHaveBeenCalled();
     });
 
+    it("returns 500 when admin profiles delete fails", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";
+
+      const { createClient } = await import("@supabase/supabase-js");
+      vi.mocked(createClient).mockImplementation(((url: string, key: string) => {
+        if (key === "mock_anon_key") {
+          return {
+            auth: {
+              getUser: vi.fn(() => Promise.resolve({ data: { user: { id: "profile_fail_user" } }, error: null })),
+            },
+          };
+        }
+        return {
+          auth: {
+            admin: {
+              deleteUser: vi.fn(() => Promise.resolve({ error: null })),
+            },
+          },
+          from: vi.fn((table: string) => ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() => Promise.resolve({ data: [] })),
+            })),
+            delete: vi.fn(() => ({
+              eq: vi.fn(() => {
+                if (table === "profiles") {
+                  return Promise.resolve({ error: { message: "Profile deletion cascade failed" } });
+                }
+                return Promise.resolve({ error: null });
+              }),
+            })),
+          })),
+        };
+      }) as any);
+
+      const { POST } = await import("@/app/api/account/delete/route");
+      const req = new NextRequest("http://localhost/api/account/delete", {
+        method: "POST",
+        headers: { authorization: "Bearer valid_user_token" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.error).toBe("Profile deletion cascade failed");
+    });
+
     it("returns 500 when admin deleteUser fails", async () => {
+
       process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
       process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";

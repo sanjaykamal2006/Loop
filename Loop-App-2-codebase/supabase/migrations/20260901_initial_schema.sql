@@ -146,7 +146,8 @@ CREATE TABLE IF NOT EXISTS public.loop_participants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   loop_id uuid REFERENCES public.loops(id) ON DELETE CASCADE,
   user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
-  joined_at timestamptz DEFAULT now()
+  joined_at timestamptz DEFAULT now(),
+  CONSTRAINT loop_participants_loop_id_user_id_key UNIQUE (loop_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.expected_fares (
@@ -164,12 +165,13 @@ CREATE TABLE IF NOT EXISTS public.trusted_vehicles (
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   driver_name text NOT NULL,
   phone_number text NOT NULL,
-  vehicle_type text NOT NULL,
+  vehicle_type text NOT NULL CONSTRAINT trusted_vehicles_vehicle_type_check CHECK (vehicle_type IN ('bike', 'auto', 'share_auto')),
   created_at timestamptz DEFAULT now(),
   from_location text,
   to_location text,
   expected_fare numeric
 );
+
 
 CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

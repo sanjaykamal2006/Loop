@@ -387,4 +387,166 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
     });
   }, DB_TIMEOUT_MS);
+
+  it("behaviorally enforces account deletion and message anonymisation (user_id -> NULL)", async () => {
+    const testUserId = "33333333-3333-3333-3333-333333333333";
+    const testLoopId = "44444444-4444-4444-4444-444444444444";
+    const testMsgId = "55555555-5555-5555-5555-555555555555";
+    const attackerId = "66666666-6666-6666-6666-666666666666";
+
+    await sql.begin(async (tx) => {
+      // 1. Seed user in auth.users and public.profiles
+      await tx`
+        INSERT INTO auth.users (id, email)
+        VALUES (${testUserId}, 'del_test@vitapstudent.ac.in')
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await tx`
+        INSERT INTO public.profiles (id, display_name, phone_number, gender)
+        VALUES (${testUserId}, 'Delete Test User', '+919999900000', 'other')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      // 2. Create loop created by this user
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, gender_preference, expires_at)
+        VALUES (${testLoopId}, ${testUserId}, 'Vijayawada Station', 4, 'open', 'any', now() + interval '2 hours')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+
+      // 3. Create message sent by this user in that loop
+      await tx`
+        INSERT INTO public.messages (id, loop_id, user_id, content)
+        VALUES (${testMsgId}, ${testLoopId}, ${testUserId}, 'Hello from delete test!')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      // 4. Delete the profile - simulates account deletion trigger / ON DELETE SET NULL
+      await tx`DELETE FROM public.profiles WHERE id = ${testUserId}`;
+
+      // 5. Assert loop survived with creator_id = NULL
+      const [loop] = await tx<{ creator_id: string | null }[]>`
+        SELECT creator_id FROM public.loops WHERE id = ${testLoopId}
+      `;
+      expect(loop).toBeDefined();
+      expect(loop.creator_id).toBeNull();
+
+      // 6. Assert message survived with user_id = NULL (anonymised, NOT wiped, NOT blocked by trigger)
+      const [msg] = await tx<{ user_id: string | null; content: string }[]>`
+        SELECT user_id, content FROM public.messages WHERE id = ${testMsgId}
+      `;
+      expect(msg).toBeDefined();
+      expect(msg.content).toBe('Hello from delete test!');
+      expect(msg.user_id).toBeNull();
+
+      // 7. Verify the trigger STILL prevents transferring to another active user
+      await tx`
+        INSERT INTO auth.users (id, email)
+        VALUES (${attackerId}, 'attacker@vitapstudent.ac.in')
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await tx`
+        INSERT INTO public.profiles (id, display_name, phone_number, gender)
+        VALUES (${attackerId}, 'Attacker', '+919999911111', 'other')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      let updateThrew = false;
+      try {
+        await tx`UPDATE public.messages SET user_id = ${attackerId} WHERE id = ${testMsgId}`;
+      } catch (err: unknown) {
+        updateThrew = true;
+        expect((err as Error).message).toMatch(/Cannot alter message sender/i);
+      }
+      expect(updateThrew, "Expected spoofing message user_id to raise exception").toBe(true);
+
+      // Always abort transaction so DB state remains untouched
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("matches production CHECK constraints across public tables", async () => {
+    const checks = await sql<{ conname: string; table_name: string }[]>`
+      select con.conname, rel.relname as table_name
+      from pg_constraint con
+      join pg_class rel on rel.oid = con.conrelid
+      join pg_namespace nsp on nsp.oid = rel.relnamespace
+      where con.contype = 'c' and nsp.nspname = 'public'
+      order by rel.relname, con.conname
+    `;
+
+    const expectedChecks = [
+      { conname: "check_email_clean", table_name: "allowed_external_emails" },
+      { conname: "check_emergency_contact_name_len", table_name: "emergency_contacts" },
+      { conname: "check_emergency_contact_phone_len", table_name: "emergency_contacts" },
+      { conname: "messages_content_length", table_name: "messages" },
+      { conname: "check_profiles_bio_len", table_name: "profiles" },
+      { conname: "check_profiles_display_name_len", table_name: "profiles" },
+      { conname: "check_profiles_gender_valid", table_name: "profiles" },
+      { conname: "check_driver_name_len", table_name: "trusted_vehicles" },
+      { conname: "check_phone_number_len", table_name: "trusted_vehicles" },
+      { conname: "trusted_vehicles_vehicle_type_check", table_name: "trusted_vehicles" },
+    ];
+
+    expect(checks.length).toBe(expectedChecks.length);
+    for (const exp of expectedChecks) {
+      const match = checks.find((c) => c.conname === exp.conname && c.table_name === exp.table_name);
+      expect(match, `Missing check constraint ${exp.table_name}.${exp.conname}`).toBeDefined();
+    }
+  }, DB_TIMEOUT_MS);
+
+  it("matches production UNIQUE constraints across public tables", async () => {
+    const uniques = await sql<{ conname: string; table_name: string }[]>`
+      select con.conname, rel.relname as table_name
+      from pg_constraint con
+      join pg_class rel on rel.oid = con.conrelid
+      join pg_namespace nsp on nsp.oid = rel.relnamespace
+      where con.contype = 'u' and nsp.nspname = 'public'
+      order by rel.relname, con.conname
+    `;
+
+    const expectedUniques = [
+      { conname: "loop_participants_loop_id_user_id_key", table_name: "loop_participants" },
+    ];
+
+    expect(uniques.length).toBe(expectedUniques.length);
+    for (const exp of expectedUniques) {
+      const match = uniques.find((u) => u.conname === exp.conname && u.table_name === exp.table_name);
+      expect(match, `Missing unique constraint ${exp.table_name}.${exp.conname}`).toBeDefined();
+    }
+  }, DB_TIMEOUT_MS);
+
+  it("matches production triggers across public tables", async () => {
+    const triggers = await sql<{ trigger_name: string; table_name: string; function_name: string }[]>`
+      select
+        tg.tgname as trigger_name,
+        rel.relname as table_name,
+        proc.proname as function_name
+      from pg_trigger tg
+      join pg_class rel on rel.oid = tg.tgrelid
+      join pg_namespace nsp on nsp.oid = rel.relnamespace
+      join pg_proc proc on proc.oid = tg.tgfoid
+      where not tg.tgisinternal and nsp.nspname = 'public'
+      order by rel.relname, tg.tgname
+    `;
+
+    const expectedTriggers = [
+      { trigger_name: "trg_check_emergency_contacts_limit", table_name: "emergency_contacts", function_name: "check_emergency_contacts_limit" },
+      { trigger_name: "trg_check_loop_capacity", table_name: "loop_members", function_name: "check_loop_capacity" },
+      { trigger_name: "trg_auto_add_creator_to_loop_members", table_name: "loops", function_name: "auto_add_creator_to_loop_members" },
+      { trigger_name: "trg_check_active_loops_quota", table_name: "loops", function_name: "check_active_loops_quota" },
+      { trigger_name: "trg_protect_message_updates", table_name: "messages", function_name: "protect_message_updates" },
+      { trigger_name: "trg_protect_profile_updates", table_name: "profiles", function_name: "protect_profile_updates" },
+    ];
+
+    expect(triggers.length).toBe(expectedTriggers.length);
+    for (const exp of expectedTriggers) {
+      const match = triggers.find((t) => t.trigger_name === exp.trigger_name && t.table_name === exp.table_name);
+      expect(match, `Missing trigger ${exp.table_name}.${exp.trigger_name}`).toBeDefined();
+    }
+  }, DB_TIMEOUT_MS);
 });
+
