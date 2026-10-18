@@ -60,6 +60,7 @@ const mockSession: Session = {
 
 const mockProfile: Profile = {
   display_name: 'Sanjay Kamal',
+  theme: 'dark',
   reg_no: '24MIC7130',
   gender: 'male',
 };
@@ -73,9 +74,11 @@ const mockLoop: Loop = {
   participants_limit: 4,
   member_count: 1,
   status: 'open',
-  vehicle_type: 'auto',
+  vehicle_type: 'car',
   is_female_only: false,
   purpose: 'general',
+  created_at: new Date().toISOString(),
+  expires_at: new Date(Date.now() + 4 * 3600000).toISOString(),
 };
 
 describe('useLoopMemberships Hook', () => {
@@ -137,7 +140,7 @@ describe('useLoopMemberships Hook', () => {
     const { result } = renderHook(() =>
       useLoopMemberships({
         session: mockSession,
-        profile: { display_name: '', reg_no: '', gender: null },
+        profile: { display_name: '', theme: 'dark', reg_no: '', gender: null },
         setView: vi.fn(),
         selectedLoop: null,
         setSelectedLoop: vi.fn(),

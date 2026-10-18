@@ -47,10 +47,11 @@ const mockLoop: Loop = {
   participants_limit: 4,
   member_count: 2,
   status: 'open',
-  vehicle_type: 'auto',
+  vehicle_type: 'car',
   is_female_only: false,
   purpose: 'general',
-  note: 'Leave strictly on time from gate',
+  created_at: new Date().toISOString(),
+  expires_at: new Date(Date.now() + 4 * 3600000).toISOString(),
 };
 
 const defaultContext = {

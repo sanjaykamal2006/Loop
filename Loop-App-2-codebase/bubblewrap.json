@@ -1,6 +1,6 @@
 {
   "packageId": "app.loop.twa",
-  "host": "loop-demo-app.vercel.app",
+  "host": "loop-app.runs-on.dev",
   "name": "LOOP",
   "launcherName": "LOOP",
   "display": "standalone",
@@ -11,10 +11,10 @@
   "navigationDividerColor": "#000000",
   "navigationDividerColorDark": "#000000",
   "orientation": "portrait",
-  "iconUrl": "https://loop-demo-app.vercel.app/logo.png",
-  "maskableIconUrl": "https://loop-demo-app.vercel.app/icon-512.png",
+  "iconUrl": "https://loop-app.runs-on.dev/logo.png",
+  "maskableIconUrl": "https://loop-app.runs-on.dev/icon-512.png",
   "startUrl": "/",
   "enableNotifications": true,
-  "webManifestUrl": "https://loop-demo-app.vercel.app/manifest.webmanifest",
+  "webManifestUrl": "https://loop-app.runs-on.dev/manifest.webmanifest",
   "splashScreenFadeOutDuration": 300
 }

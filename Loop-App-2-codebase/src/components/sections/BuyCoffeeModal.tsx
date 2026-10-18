@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { useLoop } from "@/lib/LoopContext";
 import { X, Coffee, Copy, Check, QrCode, Zap, ArrowRight } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
@@ -14,6 +15,47 @@ const PRESET_AMOUNTS = [
   { amount: 100, label: "Energy" },
   { amount: 200, label: "Meal" },
 ];
+
+/**
+ * Renders the UPI payment QR locally (canvas -> data URL via the `qrcode`
+ * package). The UPI ID and amount never leave the device — the old flow sent
+ * both to a third-party QR image service on every render.
+ */
+function LocalUpiQr({ value, amount }: { value: string; amount: number }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(value, { width: 240, margin: 1, errorCorrectionLevel: "M" })
+      .then((url) => {
+        if (!cancelled) setDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setDataUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [value]);
+
+  if (!dataUrl) {
+    return (
+      <div
+        aria-hidden="true"
+        className="w-36 h-36 sm:w-40 sm:h-40 rounded-lg mx-auto animate-pulse bg-zinc-200"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={dataUrl}
+      alt={`UPI payment QR code for ₹${amount}`}
+      className="w-36 h-36 sm:w-40 sm:h-40 rounded-lg object-contain mx-auto"
+      loading="eager"
+    />
+  );
+}
 
 export default function BuyCoffeeModal({
   isOpen,
@@ -50,9 +92,7 @@ export default function BuyCoffeeModal({
     return `upi://pay?${baseParams}`;
   };
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
-    `upi://pay?pa=${UPI_ID}&pn=Sanjay Kamal&am=${finalAmount}&cu=INR`
-  )}`;
+  const qrValue = `upi://pay?pa=${UPI_ID}&pn=Sanjay Kamal&am=${finalAmount}&cu=INR`;
 
   const handleCopyUpi = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -307,12 +347,7 @@ export default function BuyCoffeeModal({
         ) : (
           <div className="pt-2 flex flex-col items-center animate-fade-in">
             <div className="p-3 bg-white rounded-2xl shadow-xl border border-zinc-200 text-center">
-              <img
-                src={qrCodeUrl}
-                alt="UPI QR Code"
-                className="w-36 h-36 sm:w-40 sm:h-40 rounded-lg object-contain mx-auto"
-                loading="eager"
-              />
+              <LocalUpiQr value={qrValue} amount={finalAmount} />
               <p className="text-[10px] font-black text-black mt-1.5 tracking-tight">
                 Scan with any UPI app to pay ₹{finalAmount}
               </p>

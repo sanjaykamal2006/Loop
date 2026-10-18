@@ -14,6 +14,13 @@ const mockTheme: ThemeClasses = {
   border: 'border-white/10',
   cardBg: 'bg-zinc-900',
   mutedText: 'text-zinc-400',
+  accentText: 'text-[#FFC554]',
+  accentBg: 'bg-[#FFC554]',
+  accentBgSubtle: 'bg-[#FFC554]/10',
+  accentBorder: 'border-[#FFC554]',
+  accentBorderSubtle: 'border-[#FFC554]/20',
+  primaryBtn: 'bg-[#FFC554] text-black',
+  accentColor: '#FFC554',
 };
 
 const mockLoop: Loop = {
@@ -25,14 +32,17 @@ const mockLoop: Loop = {
   participants_limit: 4,
   member_count: 2,
   status: 'open',
-  vehicle_type: 'auto',
+  vehicle_type: 'car',
   is_female_only: false,
   purpose: 'general',
   total_fare: 400,
+  created_at: new Date().toISOString(),
+  expires_at: new Date(Date.now() + 4 * 3600000).toISOString(),
 };
 
 const mockProfile: Profile = {
   display_name: 'Sanjay Kamal',
+  theme: 'dark',
   reg_no: '24MIC7130',
   gender: 'male',
 };
@@ -89,10 +99,7 @@ describe('Ride Subcomponents', () => {
   describe('PassengerList', () => {
     const mockMembers: LoopMember[] = [
       {
-        id: 'mem-1',
-        loop_id: 'loop-1',
         user_id: 'user-creator',
-        joined_at: new Date().toISOString(),
         profiles: {
           display_name: 'Sanjay Kamal',
           reg_no: '24MIC7130',
@@ -100,10 +107,7 @@ describe('Ride Subcomponents', () => {
         },
       },
       {
-        id: 'mem-2',
-        loop_id: 'loop-1',
         user_id: 'user-2',
-        joined_at: new Date().toISOString(),
         profiles: {
           display_name: 'Rahul V',
           reg_no: '24BCE0100',

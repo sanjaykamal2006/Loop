@@ -87,6 +87,11 @@ function checkFallbackRateLimit(
  * Redis-backed fixed-window rate limiter for serverless environments.
  * Persists across cold starts and scales horizontally via Upstash Redis,
  * with automatic local fallback when Redis credentials are not configured.
+ *
+ * Concurrency note: the counter is incremented atomically FIRST and the
+ * returned count is the single source of truth for the allow/deny decision.
+ * A GET-then-INCR sequence would let N parallel requests all read the same
+ * pre-limit count and pass together.
  */
 export async function checkRateLimit(
   key: string,
@@ -102,45 +107,34 @@ export async function checkRateLimit(
   }
 
   try {
-    // Get current count
-    const current = await redis.get<number>(windowKey);
+    // Atomic increment first: parallel requests can never race past the limit.
+    const count = await redis.incr(windowKey);
 
-    if (current === null) {
-      // First request in window
-      await redis.set(windowKey, 1, { px: windowMs });
-      return {
-        allowed: true,
-        count: 1,
-        remaining: maxRequests - 1,
-        resetInSeconds: Math.ceil(windowMs / 1000),
-        resetAt: now + windowMs,
-      };
+    // Attach the window TTL on the first hit; repair a missing TTL
+    // defensively (e.g. a crash between INCR and PEXPIRE) without ever
+    // extending a live window.
+    let ttl = await redis.pttl(windowKey);
+    if (ttl < 0) {
+      await redis.pexpire(windowKey, windowMs);
+      ttl = windowMs;
     }
 
-    if (current >= maxRequests) {
-      // Rate limit exceeded
-      const ttl = await redis.ttl(windowKey);
-      const resetInSeconds = Math.max(1, ttl);
+    if (count > maxRequests) {
       return {
         allowed: false,
-        count: current,
+        count,
         remaining: 0,
-        resetInSeconds,
-        resetAt: now + resetInSeconds * 1000,
+        resetInSeconds: Math.max(1, Math.ceil(ttl / 1000)),
+        resetAt: now + ttl,
       };
     }
-
-    // Increment counter
-    const newCount = await redis.incr(windowKey);
-    const ttl = await redis.ttl(windowKey);
-    const resetInSeconds = Math.max(1, ttl);
 
     return {
       allowed: true,
-      count: newCount,
-      remaining: Math.max(0, maxRequests - newCount),
-      resetInSeconds,
-      resetAt: now + resetInSeconds * 1000,
+      count,
+      remaining: Math.max(0, maxRequests - count),
+      resetInSeconds: Math.max(1, Math.ceil(ttl / 1000)),
+      resetAt: now + ttl,
     };
   } catch (error) {
     // Fallback: log via conditional logger and fall back to local rate limiter
@@ -150,22 +144,37 @@ export async function checkRateLimit(
 }
 
 /**
- * Extracts the real client IP address from standard proxy headers.
- * Prioritizes authoritative edge-set headers (Cloudflare, Vercel/Nginx)
- * before falling back to X-Forwarded-For.
+ * Extracts the real client IP address from proxy headers.
+ *
+ * Trust model: only headers that the hosting platform itself sets and
+ * overwrites are trusted. Client-controllable headers (such as
+ * cf-connecting-ip when the app is NOT behind Cloudflare, or a leading
+ * X-Forwarded-For value when no proxy sanitises it) must never win, because
+ * a caller can rotate the header value per request to evade rate limits.
+ *
+ * Deployment target is Vercel: the edge sets x-vercel-forwarded-for and
+ * x-real-ip and strips client-supplied values.
  */
 export function getClientIp(request: NextRequest): string {
-  const cfConnectingIp = request.headers.get("cf-connecting-ip");
-  if (cfConnectingIp?.trim()) return cfConnectingIp.trim();
+  // Edge-set on Vercel (cannot be spoofed by the client there).
+  const vercelForwarded = request.headers.get("x-vercel-forwarded-for");
+  if (vercelForwarded) {
+    const first = vercelForwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
 
+  // Set by the Vercel edge and by most reverse proxies.
   const realIp = request.headers.get("x-real-ip");
   if (realIp?.trim()) return realIp.trim();
 
+  // Last entry = the value appended by the closest (trusted) proxy.
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    const firstIp = forwardedFor.split(",")[0]?.trim();
-    if (firstIp) return firstIp;
+    const parts = forwardedFor.split(",").map((part) => part.trim()).filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last) return last;
   }
 
-  return "127.0.0.1";
+  // Shared bucket for unattributable callers — never a spoofable default.
+  return "unknown";
 }

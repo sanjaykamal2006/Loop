@@ -82,28 +82,22 @@ Certificate fingerprints:
 ```
 
 ### Update Digital Asset Links in LOOP:
-1. Update `public/.well-known/assetlinks.json`:
-```json
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "app.loop.twa",
-      "sha256_cert_fingerprints": [
-        "YOUR_SHA256_FINGERPRINT_HERE"
-      ]
-    }
-  }
-]
-```
-2. Or set the environment variable in Vercel:
+The app serves `/.well-known/assetlinks.json` from the route handler
+`src/app/.well-known/assetlinks.json/route.ts`. Until a real fingerprint is
+configured it serves an **empty association list** — the previous static file
+shipped an all-zero placeholder digest that never verified any app.
+
+1. Set the environment variable(s) in Vercel (comma-separate multiple
+   fingerprints, e.g. Play App Signing certificate + your upload key):
 ```
 ASSETLINKS_SHA256=YOUR_SHA256_FINGERPRINT_HERE
 NEXT_PUBLIC_PACKAGE_NAME=app.loop.twa
 ```
-3. Deploy to production and verify in your browser:
-Visit `https://YOUR_PRODUCTION_DOMAIN/.well-known/assetlinks.json` to verify the JSON is publicly accessible.
+2. Deploy to production and verify in your browser:
+Visit `https://YOUR_PRODUCTION_DOMAIN/.well-known/assetlinks.json` — it must
+show your real fingerprint(s), never an empty array or a placeholder.
+3. Validate with Google's statement list generator:
+`https://developers.google.com/digital-asset-links/tools/generator`
 
 ---
 

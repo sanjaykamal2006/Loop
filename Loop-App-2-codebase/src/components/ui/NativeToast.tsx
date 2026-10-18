@@ -54,8 +54,12 @@ export function Toaster() {
   if (!activeToast) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] pointer-events-none flex items-center justify-center p-4">
-      <div 
+    <div
+      role="status"
+      aria-live={activeToast.type === "error" ? "assertive" : "polite"}
+      className="fixed inset-0 z-[99999] pointer-events-none flex items-center justify-center p-4"
+    >
+      <div
         key={activeToast.id}
         className="pointer-events-auto max-w-[85vw] bg-[#18181b]/95 backdrop-blur-xl border border-white/15 text-white rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 animate-fade-in transition-all"
         style={{

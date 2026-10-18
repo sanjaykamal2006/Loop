@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import AuthLogin from "../components/sections/AuthLogin";
 import MainApp from "../components/sections/MainApp";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { clearUserStorage } from "@/lib/storage";
 import { Session } from "@supabase/supabase-js";
 
 function checkIsRecovery(): boolean {
@@ -87,9 +88,7 @@ export default function Home() {
         setSession(nextSession);
       } else if (event === "SIGNED_OUT" && (typeof navigator === "undefined" || navigator.onLine)) {
         setSession(null);
-        try {
-          localStorage.removeItem("loop_offline_session");
-        } catch {}
+        clearUserStorage();
       }
     });
 
@@ -118,7 +117,7 @@ export default function Home() {
   return (
     <ErrorBoundary>
       {isPasswordReset ? (
-        <main>
+        <main id="main-content">
           <AuthLogin
             initialPasswordReset={true}
             onPasswordResetComplete={() => {
@@ -130,7 +129,7 @@ export default function Home() {
           />
         </main>
       ) : (
-        <main>
+        <main id="main-content">
           {session ? (
             <MainApp session={session} />
           ) : (

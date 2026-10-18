@@ -13,8 +13,8 @@ if (!fs.existsSync(targetDir)) {
 console.log(`Syncing from ${sourceDir} to ${targetDir}...`);
 
 // Use robocopy on Windows with exclude rules
-const excludeDirs = ['.git', 'node_modules', '.next', 'coverage', 'test-results', 'graphify-out', '.agents', '.orchids', 'scratch', '.claude'];
-const excludeFiles = ['.env', '.env*.local', '*.tsbuildinfo'];
+const excludeDirs = ['.git', 'node_modules', '.next', 'coverage', 'test-results', 'playwright-report', 'graphify-out', '.agents', '.orchids', 'scratch', '.claude'];
+const excludeFiles = ['.env', '.env*.local', '.env.production', '.env.development', '.env.test', '*.tsbuildinfo'];
 
 const cmd = `robocopy "${sourceDir}" "${targetDir}" /MIR /XD ${excludeDirs.join(' ')} /XF ${excludeFiles.join(' ')} /NDL /NJH /NJS /NC /NS /NP`;
 

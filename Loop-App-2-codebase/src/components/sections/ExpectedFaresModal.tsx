@@ -30,13 +30,26 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
   const fetchFares = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("expected_fares")
-        .select("id, user_id, from_location, to_location, expected_fare, vehicle_type, created_at, profiles:user_id(display_name, avatar_url)")
-        .order("created_at", { ascending: false });
+      // The community fare board is served by a SECURITY DEFINER RPC: fare
+      // rows are owner-only at the table level, and the RPC exposes only the
+      // safe display fields (no direct profile enumeration).
+      const { data, error } = await supabase.rpc("get_expected_fares");
 
       if (error) throw error;
-      setFares((data || []) as unknown as ExpectedFare[]);
+      const mapped: ExpectedFare[] = (data || []).map((row) => ({
+        id: row.id,
+        user_id: row.user_id,
+        from_location: row.from_location,
+        to_location: row.to_location,
+        expected_fare: row.expected_fare,
+        vehicle_type: row.vehicle_type ?? undefined,
+        created_at: row.created_at,
+        profiles: {
+          display_name: row.display_name ?? "Student",
+          avatar_url: row.avatar_url ?? undefined,
+        },
+      }));
+      setFares(mapped);
     } catch (err) {
       logger.error("fetchFares error:", err);
       toast.error("Failed to load expected fares");

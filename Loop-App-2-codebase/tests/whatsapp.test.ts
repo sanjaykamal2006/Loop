@@ -76,7 +76,7 @@ describe("whatsapp utility", () => {
       openWhatsApp({ text: "Hello" });
 
       expect(window.location.href).toBe("whatsapp://send?text=Hello");
-      window.location = originalLocation;
+      (window as any).location = originalLocation;
     });
 
     it("should call window.open on desktop devices", () => {

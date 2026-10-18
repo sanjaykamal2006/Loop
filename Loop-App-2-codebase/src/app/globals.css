@@ -249,4 +249,34 @@ input:-webkit-autofill:active {
   animation: shimmer 1.6s infinite ease-in-out;
 }
 
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+/* Visible keyboard focus for every interactive control, without changing the
+   look for pointer/touch users. */
+:focus-visible {
+  outline: 2px solid #ffc554;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keep text size stable when iOS rotates the device. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 

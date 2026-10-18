@@ -170,7 +170,7 @@ describe("API Routes Test Suite", () => {
       expect(body.free_tier_status).toBeDefined();
     });
 
-    it("returns 500 when admin secret is missing on server", async () => {
+    it("returns 503 when admin secret is missing on server", async () => {
       const origAdmin = process.env.ADMIN_STATS_SECRET;
       const origCron = process.env.CLEANUP_CRON_SECRET;
       delete process.env.ADMIN_STATS_SECRET;
@@ -182,7 +182,9 @@ describe("API Routes Test Suite", () => {
       });
 
       const res = await GET(req);
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.error).toBe("Service unavailable");
 
       process.env.ADMIN_STATS_SECRET = origAdmin;
       process.env.CLEANUP_CRON_SECRET = origCron;
@@ -232,7 +234,7 @@ describe("API Routes Test Suite", () => {
       expect(res.status).toBe(405);
     });
 
-    it("returns 500 when CLEANUP_CRON_SECRET is not configured", async () => {
+    it("returns 503 when CLEANUP_CRON_SECRET is not configured", async () => {
       const origCron = process.env.CLEANUP_CRON_SECRET;
       delete process.env.CLEANUP_CRON_SECRET;
 
@@ -243,7 +245,9 @@ describe("API Routes Test Suite", () => {
       });
 
       const res = await POST(req);
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.error).toBe("Service unavailable");
 
       process.env.CLEANUP_CRON_SECRET = origCron;
     });
@@ -287,7 +291,7 @@ describe("API Routes Test Suite", () => {
       expect(res.status).toBe(500);
       const body = await res.json();
       expect(body.success).toBe(false);
-      expect(body.error).toContain("RPC timeout");
+      expect(body.error).toBe("Cleanup failed");
     });
 
     it("triggers database cleanup functions and returns 200", async () => {
@@ -368,6 +372,8 @@ describe("API Routes Test Suite", () => {
       const { checkRateLimit } = await import("@/lib/rateLimit");
       vi.mocked(checkRateLimit).mockResolvedValueOnce({
         allowed: false,
+        count: 10,
+        remaining: 0,
         resetInSeconds: 300,
         resetAt: Date.now() + 300000,
       });
@@ -544,6 +550,168 @@ describe("API Routes Test Suite", () => {
       expect(insertSpy).toHaveBeenCalled();
     });
 
+    it("never hard-deletes hosted rides: solo rides are cancelled and detached", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";
+
+      const loopUpdateSpy = vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) }));
+      const loopDeleteSpy = vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) }));
+
+      const { createClient } = await import("@supabase/supabase-js");
+      vi.mocked(createClient).mockImplementation(((url: string, key: string) => {
+        if (key === "mock_anon_key") {
+          return {
+            auth: {
+              getUser: vi.fn(() => Promise.resolve({ data: { user: { id: "solo_host" } }, error: null })),
+            },
+          };
+        }
+        return {
+          auth: {
+            admin: {
+              deleteUser: vi.fn(() => Promise.resolve({ error: null })),
+            },
+          },
+          from: vi.fn((table: string) => {
+            if (table === "loops") {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => Promise.resolve({
+                    data: [{ id: "solo_loop_1", status: "open" }],
+                  })),
+                })),
+                update: loopUpdateSpy,
+                delete: loopDeleteSpy,
+              };
+            }
+            if (table === "loop_members") {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    neq: vi.fn(() => Promise.resolve({ data: [] })),
+                  })),
+                })),
+                delete: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) })),
+              };
+            }
+            return {
+              delete: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) })),
+            };
+          }),
+        };
+      }) as any);
+
+      const { POST } = await import("@/app/api/account/delete/route");
+      const req = new NextRequest("http://localhost/api/account/delete", {
+        method: "POST",
+        headers: { authorization: "Bearer valid_user_token" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      expect(loopUpdateSpy).toHaveBeenCalledWith({ status: "cancelled", creator_id: null });
+      expect(loopDeleteSpy).not.toHaveBeenCalled();
+    });
+
+    it("fails closed: a hosted-loops read error aborts before deleting anything", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";
+
+      const profileDeleteSpy = vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) }));
+      const authDeleteSpy = vi.fn(() => Promise.resolve({ error: null }));
+
+      const { createClient } = await import("@supabase/supabase-js");
+      vi.mocked(createClient).mockImplementation(((url: string, key: string) => {
+        if (key === "mock_anon_key") {
+          return {
+            auth: {
+              getUser: vi.fn(() => Promise.resolve({ data: { user: { id: "abort_user" } }, error: null })),
+            },
+          };
+        }
+        return {
+          auth: {
+            admin: { deleteUser: authDeleteSpy },
+          },
+          from: vi.fn((table: string) => {
+            if (table === "loops") {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => Promise.resolve({ data: null, error: { message: "connection reset" } })),
+                })),
+              };
+            }
+            if (table === "profiles") {
+              return { delete: profileDeleteSpy };
+            }
+            return {
+              delete: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) })),
+            };
+          }),
+        };
+      }) as any);
+
+      const { POST } = await import("@/app/api/account/delete/route");
+      const req = new NextRequest("http://localhost/api/account/delete", {
+        method: "POST",
+        headers: { authorization: "Bearer valid_user_token" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.error).toBe("Unable to delete the account right now. Please try again later.");
+      expect(profileDeleteSpy).not.toHaveBeenCalled();
+      expect(authDeleteSpy).not.toHaveBeenCalled();
+    });
+
+    it("treats an already-deleted auth user (404) as success so retries are safe", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";
+
+      const { createClient } = await import("@supabase/supabase-js");
+      vi.mocked(createClient).mockImplementation(((url: string, key: string) => {
+        if (key === "mock_anon_key") {
+          return {
+            auth: {
+              getUser: vi.fn(() => Promise.resolve({ data: { user: { id: "retry_user" } }, error: null })),
+            },
+          };
+        }
+        return {
+          auth: {
+            admin: {
+              deleteUser: vi.fn(() => Promise.resolve({
+                error: { message: "User not found", status: 404 },
+              })),
+            },
+          },
+          from: vi.fn(() => ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() => Promise.resolve({ data: [] })),
+            })),
+            delete: vi.fn(() => ({
+              eq: vi.fn(() => Promise.resolve({ error: null })),
+            })),
+          })),
+        };
+      }) as any);
+
+      const { POST } = await import("@/app/api/account/delete/route");
+      const req = new NextRequest("http://localhost/api/account/delete", {
+        method: "POST",
+        headers: { authorization: "Bearer valid_user_token" },
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+
     it("returns 500 when admin profiles delete fails", async () => {
       process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "mock_anon_key";
@@ -589,7 +757,7 @@ describe("API Routes Test Suite", () => {
       const res = await POST(req);
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.error).toBe("Profile deletion cascade failed");
+      expect(body.error).toBe("Unable to delete the account right now. Please try again later.");
     });
 
     it("returns 500 when admin deleteUser fails", async () => {
@@ -633,7 +801,7 @@ describe("API Routes Test Suite", () => {
       const res = await POST(req);
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.error).toBe("Auth service error");
+      expect(body.error).toBe("Unable to delete the account right now. Please try again later.");
     });
 
     it("deletes user and cascades cleanups when authorized", async () => {

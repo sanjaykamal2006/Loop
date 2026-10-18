@@ -570,6 +570,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { tablename: "loop_participants", indexname: "loop_participants_loop_id_user_id_key", isUnique: true, columns: ["loop_id", "user_id"] },
       { tablename: "loop_participants", indexname: "loop_participants_pkey", isUnique: true, columns: ["id"] },
       { tablename: "loops", indexname: "idx_loops_creator_id", isUnique: false, columns: ["creator_id"] },
+      { tablename: "loops", indexname: "idx_loops_departure_time_active", isUnique: false, columns: ["departure_time"] },
       { tablename: "loops", indexname: "idx_loops_expires_at", isUnique: false, columns: ["expires_at"] },
       { tablename: "loops", indexname: "idx_loops_status_created", isUnique: false, columns: ["status", "created_at DESC"] },
       { tablename: "loops", indexname: "loops_pkey", isUnique: true, columns: ["id"] },

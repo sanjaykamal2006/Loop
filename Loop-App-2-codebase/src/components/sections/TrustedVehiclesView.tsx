@@ -28,7 +28,8 @@ export default function TrustedVehiclesView() {
   const [phone, setPhone] = useState("");
   const [type, setType] = useState<"bike" | "auto" | "share_auto" | "">("");
 
-  const myVehiclesCount = vehicles.filter(v => v.user_id === session.user.id).length;
+  const userId = session.user.id;
+  const myVehiclesCount = vehicles.filter(v => v.user_id === userId).length;
   const canAdd = myVehiclesCount < 5;
 
   const fetchVehicles = useCallback(async () => {
@@ -36,12 +37,13 @@ export default function TrustedVehiclesView() {
     const { data, error } = await supabase
       .from("trusted_vehicles")
       .select("id, user_id, driver_name, phone_number, vehicle_type, created_at, profiles:user_id(display_name, avatar_url)")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) toast.error("Failed to fetch drivers");
     else setVehicles((data || []) as unknown as TrustedVehicle[]);
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchVehicles();

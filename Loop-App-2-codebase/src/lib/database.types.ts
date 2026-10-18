@@ -220,6 +220,10 @@ isOneToOne: false
 "expire_old_loops":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"get_expected_fares":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "avatar_url": string | null,"created_at": string,"display_name": string | null,"expected_fare": number,"from_location": string,"id": string,"to_location": string,"user_id": string,"vehicle_type": string | null
+}[] },
 "get_loop_contacts":
 { Args: { "target_loop_id": string }; Returns: {
               "phone_number": string,"user_id": string

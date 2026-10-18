@@ -10,18 +10,29 @@ describe("rateLimit", () => {
   });
 
   describe("getClientIp", () => {
-    it("should prioritize cf-connecting-ip if present", () => {
+    it("prefers x-vercel-forwarded-for, the platform-set header", () => {
       const req = new NextRequest("http://localhost/api/test", {
         headers: {
-          "cf-connecting-ip": "192.0.2.1",
+          "x-vercel-forwarded-for": "192.0.2.9",
           "x-real-ip": "198.51.100.42",
           "x-forwarded-for": "203.0.113.195",
+          "cf-connecting-ip": "10.0.0.1",
         },
       });
-      expect(getClientIp(req)).toBe("192.0.2.1");
+      expect(getClientIp(req)).toBe("192.0.2.9");
     });
 
-    it("should fallback to x-real-ip if cf-connecting-ip is missing", () => {
+    it("ignores spoofable cf-connecting-ip (rate-limit bypass regression)", () => {
+      // Previously cf-connecting-ip won whenever present, so a caller could
+      // rotate it per request and never hit the limit. It must now be ignored
+      // entirely when no trusted proxy header is present.
+      const req = new NextRequest("http://localhost/api/test", {
+        headers: { "cf-connecting-ip": "192.0.2.1" },
+      });
+      expect(getClientIp(req)).toBe("unknown");
+    });
+
+    it("falls back to x-real-ip when vercel header is missing", () => {
       const req = new NextRequest("http://localhost/api/test", {
         headers: {
           "x-real-ip": "198.51.100.42",
@@ -31,16 +42,16 @@ describe("rateLimit", () => {
       expect(getClientIp(req)).toBe("198.51.100.42");
     });
 
-    it("should fallback to x-forwarded-for if direct proxy headers are missing", () => {
+    it("uses the LAST x-forwarded-for hop appended by the trusted proxy", () => {
       const req = new NextRequest("http://localhost/api/test", {
         headers: { "x-forwarded-for": "203.0.113.195, 70.41.3.18" },
       });
-      expect(getClientIp(req)).toBe("203.0.113.195");
+      expect(getClientIp(req)).toBe("70.41.3.18");
     });
 
-    it("should return localhost IP if no proxy headers are provided", () => {
+    it("returns a shared 'unknown' bucket when no proxy headers are provided", () => {
       const req = new NextRequest("http://localhost/api/test");
-      expect(getClientIp(req)).toBe("127.0.0.1");
+      expect(getClientIp(req)).toBe("unknown");
     });
   });
 

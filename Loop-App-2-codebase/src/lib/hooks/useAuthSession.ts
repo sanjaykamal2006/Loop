@@ -8,6 +8,7 @@ import type { Profile, ThemeClasses } from "@/lib/types";
 import { preloadAvatars } from "@/lib/imageOptimization";
 import { parseStudentEmail } from "@/lib/studentParser";
 import { toast } from "@/components/ui/NativeToast";
+import { clearUserStorage } from "@/lib/storage";
 
 interface UseAuthSessionOptions {
   session: Session;
@@ -248,9 +249,10 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
   }, [updateProfile]);
 
   const handleSignOut = useCallback(async () => {
-    try {
-      localStorage.removeItem("loop_offline_session");
-    } catch {}
+    // Remove every app-owned cache (profile, messages, members, emergency
+    // contacts, legacy offline session, …) so a shared device cannot leak the
+    // signed-out user's data to the next account that logs in.
+    clearUserStorage();
     await supabase.auth.signOut({ scope: "global" });
     // Force reload as fallback — some desktop browsers don't fire the auth state change
     window.location.reload();

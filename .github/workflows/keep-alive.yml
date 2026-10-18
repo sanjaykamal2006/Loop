@@ -6,6 +6,9 @@ on:
     - cron: '0 6 */2 * *'
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
+# This workflow only performs an outbound HTTP call: no repository access at all.
+permissions: {}
+
 jobs:
   ping-supabase:
     name: Prevent Inactivity Pause

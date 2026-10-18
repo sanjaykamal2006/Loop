@@ -13,6 +13,7 @@
     "test:db": "vitest run tests/integration",
     "test:e2e": "playwright test",
     "verify:deps": "npm ls --all --omit=optional",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "sync-repo": "node scripts/sync-repo.js"
   },
   "dependencies": {
@@ -20,7 +21,8 @@
     "@upstash/redis": "^1.39.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.552.0",
-    "next": "^16.2.12",
+    "next": "^16.4.2",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -31,6 +33,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^2.1.9",

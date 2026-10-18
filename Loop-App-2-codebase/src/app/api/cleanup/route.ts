@@ -13,25 +13,32 @@ function safeCompare(a: string, b: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-// Free tier optimization: Delete rides older than 7 days to reduce database storage
+// Free tier optimization: Delete rides older than 7 days to reduce database storage.
+//
+// NOTE: production maintenance already runs through pg_cron
+// (expire_old_loops / cleanup_unconfirmed_users / purge_old_data). This
+// endpoint is the manual trigger and fails closed when its secret is missing;
+// internal errors are logged, never returned.
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization') || '';
     const expectedToken = process.env.CLEANUP_CRON_SECRET;
 
     if (!expectedToken) {
-      return NextResponse.json({ error: 'Server misconfigured - CLEANUP_CRON_SECRET not set' }, { status: 500 });
+      logger.error('cleanup: CLEANUP_CRON_SECRET is not configured');
+      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
     if (!safeCompare(authHeader, `Bearer ${expectedToken}`)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseServiceKey) {
-      return NextResponse.json({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY' }, { status: 500 });
+    if (!supabaseUrl || !supabaseServiceKey) {
+      logger.error('cleanup: Supabase service credentials are not configured');
+      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
     const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest) {
       logger.error('Cleanup error:', errMsg);
       return NextResponse.json({
         success: false,
-        error: errMsg,
+        error: 'Cleanup failed',
       }, { status: 500 });
     }
 
@@ -57,10 +64,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     logger.error('Cleanup route error:', error);
-    const message = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({
       success: false,
-      error: message,
+      error: 'Internal Server Error',
     }, { status: 500 });
   }
 }

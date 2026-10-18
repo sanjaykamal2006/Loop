@@ -37,13 +37,20 @@ export function useChatRoom({
   activeLoops,
   setView,
 }: UseChatRoomOptions) {
+  // Per-user cache key: messages must never be readable by a different
+  // account that shares the same device/browser profile.
+  const messagesCacheKey = useCallback(
+    (loopId: string) => `loop_messages_${session.user.id}_${loopId}`,
+    [session.user.id]
+  );
+
   const [messages, setMessages] = useState<Message[]>(() => {
     if (selectedLoop?.id) {
       const fromMem = messageCache.get(selectedLoop.id);
       if (fromMem) return fromMem;
       if (typeof window !== "undefined") {
         try {
-          const cached = localStorage.getItem(`loop_messages_${selectedLoop.id}`);
+          const cached = localStorage.getItem(messagesCacheKey(selectedLoop.id));
           if (cached) return JSON.parse(cached);
         } catch {}
       }
@@ -61,6 +68,9 @@ export function useChatRoom({
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const currentLoopIdRef = useRef<string | null>(null);
   const loopMembersRef = useRef<LoopMember[]>([]);
+  // Owner of the module-level in-memory message cache; the mount effect wipes
+  // the cache when a different account starts using the same tab.
+  const cacheOwnerRef = useRef<string | null>(null);
 
   // Sub-hook 1: Search & Filtering
   const { searchQuery, setSearchQuery, matchingMsgIds } = useChatSearch(
@@ -145,7 +155,7 @@ export function useChatRoom({
           messageCache.set(loopId, enriched);
           setMessages(enriched);
           try {
-            localStorage.setItem(`loop_messages_${loopId}`, JSON.stringify(enriched));
+            localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(enriched));
           } catch {}
           setHasMoreMessages(fallbackData.length === PAGE_SIZE);
           requestAnimationFrame(() => scrollToBottom(false));
@@ -155,17 +165,21 @@ export function useChatRoom({
         messageCache.set(loopId, msgs);
         setMessages(msgs);
         try {
-          localStorage.setItem(`loop_messages_${loopId}`, JSON.stringify(msgs));
+          localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(msgs));
         } catch {}
         setHasMoreMessages(data.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
       }
     },
-    [scrollToBottom]
+    [scrollToBottom, messagesCacheKey]
   );
 
   // Fetch messages on mount or loop change (instant 0ms cache check)
   useEffect(() => {
+    if (cacheOwnerRef.current !== session.user.id) {
+      messageCache.clear();
+      cacheOwnerRef.current = session.user.id;
+    }
     if (!selectedLoop?.id) return;
     if (currentLoopIdRef.current !== selectedLoop.id) {
       currentLoopIdRef.current = selectedLoop.id;
@@ -174,7 +188,7 @@ export function useChatRoom({
         setMessages(cached);
       } else if (typeof window !== "undefined") {
         try {
-          const localCached = localStorage.getItem(`loop_messages_${selectedLoop.id}`);
+          const localCached = localStorage.getItem(messagesCacheKey(selectedLoop.id));
           setMessages(localCached ? JSON.parse(localCached) : []);
         } catch {
           setMessages([]);
@@ -185,7 +199,7 @@ export function useChatRoom({
     }
     fetchMessages(selectedLoop.id);
     fetchMembers(selectedLoop.id);
-  }, [selectedLoop?.id, fetchMessages, fetchMembers]);
+  }, [selectedLoop?.id, fetchMessages, fetchMembers, messagesCacheKey, session.user.id]);
 
   // Realtime WebSocket subscription for instant message & member updates with relaxed 25s fallback
   useEffect(() => {
@@ -467,7 +481,7 @@ export function useChatRoom({
             const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
             messageCache.set(selectedLoop.id, next);
             try {
-              localStorage.setItem(`loop_messages_${selectedLoop.id}`, JSON.stringify(next));
+              localStorage.setItem(messagesCacheKey(selectedLoop.id), JSON.stringify(next));
             } catch {}
             return next;
           });

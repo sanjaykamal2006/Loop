@@ -27,7 +27,7 @@ const cspHeader = [
   "default-src 'self';",
   scriptSrc,
   "style-src 'self' 'unsafe-inline';",
-  "img-src 'self' data: blob: https://*.supabase.co https://api.qrserver.com;",
+  "img-src 'self' data: blob: https://*.supabase.co;",
   "media-src 'self';",
   "font-src 'self' data:;",
   connectSrc,
@@ -46,10 +46,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.qrserver.com',
       },
     ],
   },

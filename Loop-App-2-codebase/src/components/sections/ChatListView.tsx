@@ -124,10 +124,16 @@ export default function ChatListView() {
   const { isDark, border, cardBg, mutedText } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
+  // Per-user cache key: recent messages must never be readable by a different
+  // account that shares the same device/browser profile.
+  const recentMessagesCacheKey = session?.user?.id
+    ? `loop_recent_messages_cache_${session.user.id}`
+    : null;
+
   const [recentMessages, setRecentMessages] = useState<Record<string, RecentMsgData>>(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && recentMessagesCacheKey) {
       try {
-        const cached = localStorage.getItem("loop_recent_messages_cache");
+        const cached = localStorage.getItem(recentMessagesCacheKey);
         if (cached) return JSON.parse(cached);
       } catch {}
     }
@@ -219,16 +225,16 @@ export default function ChatListView() {
           }
         }
         setRecentMessages(msgMap);
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && recentMessagesCacheKey) {
           try {
-            localStorage.setItem("loop_recent_messages_cache", JSON.stringify(msgMap));
+            localStorage.setItem(recentMessagesCacheKey, JSON.stringify(msgMap));
           } catch {}
         }
       }
     } catch {} finally {
       isFetchingRecentRef.current = false;
     }
-  }, [recentMessages, userJoinedLoops]);
+  }, [recentMessages, userJoinedLoops, recentMessagesCacheKey]);
 
   useEffect(() => {
     fetchRecentMessages();
@@ -260,9 +266,9 @@ export default function ChatListView() {
                   sender_name: senderName,
                 },
               };
-              if (typeof window !== "undefined") {
+              if (typeof window !== "undefined" && recentMessagesCacheKey) {
                 try {
-                  localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+                  localStorage.setItem(recentMessagesCacheKey, JSON.stringify(next));
                 } catch {}
               }
               return next;
@@ -279,9 +285,9 @@ export default function ChatListView() {
                   const cur = prev[loopId];
                   if (cur && cur.created_at === msg.created_at) {
                     const next = { ...prev, [loopId]: { ...cur, sender_name: data.display_name || "" } };
-                    if (typeof window !== "undefined") {
+                    if (typeof window !== "undefined" && recentMessagesCacheKey) {
                       try {
-                        localStorage.setItem("loop_recent_messages_cache", JSON.stringify(next));
+                        localStorage.setItem(recentMessagesCacheKey, JSON.stringify(next));
                       } catch {}
                     }
                     return next;
@@ -320,7 +326,7 @@ export default function ChatListView() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsubscribeChannel();
     };
-  }, [fetchRecentMessages, session?.user?.id, profile?.display_name]);
+  }, [fetchRecentMessages, session?.user?.id, profile?.display_name, recentMessagesCacheKey]);
 
   const filteredLoops = joinedLoops.filter((loop) => {
     if (!searchQuery.trim()) return true;

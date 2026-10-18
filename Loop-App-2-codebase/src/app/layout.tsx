@@ -52,6 +52,12 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/header-logo.png" />
       </head>
       <body className="antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100000] focus:top-2 focus:left-2 focus:rounded-lg focus:bg-black focus:px-3 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+        >
+          Skip to content
+        </a>
         {children}
         <Toaster />
       </body>
