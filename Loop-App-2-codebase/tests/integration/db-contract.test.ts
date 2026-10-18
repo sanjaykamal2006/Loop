@@ -631,7 +631,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { table_name: "profiles", column_name: "bio", column_default: "''::text" },
       { table_name: "profiles", column_name: "is_student_verified", column_default: "false" },
       { table_name: "profiles", column_name: "theme", column_default: "'dark'::text" },
-      { table_name: "profiles", column_name: "updated_at", column_default: "timezone('utc'::text, now())" },
+      { table_name: "profiles", column_name: "updated_at", column_default: "now()" },
       { table_name: "trusted_vehicles", column_name: "created_at", column_default: "now()" },
       { table_name: "trusted_vehicles", column_name: "id", column_default: "gen_random_uuid()" },
     ];
@@ -684,10 +684,12 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     });
   }, DB_TIMEOUT_MS);
 
-  it("behaviorally enforces check_loop_capacity trigger", async () => {
+  it("behaviorally enforces check_loop_capacity trigger (full loop, non-existent loop, ended ride)", async () => {
     const creatorId = "12121212-1212-1212-1212-121212121212";
     const memberId = "23232323-2323-2323-2323-232323232323";
     const loopId = "34343434-3434-3434-3434-343434343434";
+    const closedLoopId = "35353535-3535-3535-3535-353535353535";
+    const nonExistentLoopId = "99999999-9999-9999-9999-999999999999";
 
     await sql.begin(async (tx) => {
       await tx`INSERT INTO auth.users (id, email) VALUES (${creatorId}, 'cap_creator@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
@@ -695,20 +697,50 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       await tx`INSERT INTO auth.users (id, email) VALUES (${memberId}, 'cap_member@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
       await tx`INSERT INTO public.profiles (id, display_name) VALUES (${memberId}, 'Cap Member') ON CONFLICT (id) DO NOTHING`;
 
-      // Create loop with capacity = 1. Auto-add enroles creatorId, taking up the 1 available slot.
+      // 1. Non-existent loop
+      let notFoundErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${nonExistentLoopId}, ${memberId})`;
+        } catch (err: unknown) {
+          notFoundErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(notFoundErrMsg).toMatch(/Ride loop not found/i);
+
+      // 2. Ended / closed loop
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${closedLoopId}, ${creatorId}, 'Closed Campus', 4, 'open', now() + interval '2 hours')
+      `;
+      await tx`UPDATE public.loops SET status = 'completed' WHERE id = ${closedLoopId}`;
+      let closedErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${closedLoopId}, ${memberId})`;
+        } catch (err: unknown) {
+          closedErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(closedErrMsg).toMatch(/Cannot join a ride that has ended or is closed/i);
+
+      // 3. Loop at full capacity
       await tx`
         INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
         VALUES (${loopId}, ${creatorId}, 'Campus', 1, 'open', now() + interval '2 hours')
       `;
-
-      let threw = false;
-      try {
-        await tx`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${loopId}, ${memberId})`;
-      } catch (err: unknown) {
-        threw = true;
-        expect((err as Error).message).toMatch(/This loop is already full/i);
-      }
-      expect(threw, "Expected joining a full loop to throw exception").toBe(true);
+      let fullErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${loopId}, ${memberId})`;
+        } catch (err: unknown) {
+          fullErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(fullErrMsg).toMatch(/This loop is already full/i);
 
       throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
     }).catch((err) => {
@@ -716,7 +748,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     });
   }, DB_TIMEOUT_MS);
 
-  it("behaviorally enforces check_active_loops_quota trigger", async () => {
+  it("behaviorally enforces check_active_loops_quota trigger (capacity bounds, fare bounds, empty destination, max 5 active loops)", async () => {
     const creatorId = "45454545-4545-4545-4545-454545454545";
 
     await sql.begin(async (tx) => {
@@ -724,7 +756,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       await tx`INSERT INTO public.profiles (id, display_name) VALUES (${creatorId}, 'Quota Host') ON CONFLICT (id) DO NOTHING`;
 
       // 1. Invalid capacity (< 1 or > 10)
-      let capThrew = false;
+      let capErrMsg = "";
       await tx.savepoint(async (sp) => {
         try {
           await sp`
@@ -732,15 +764,14 @@ describe.skipIf(!hasDb)("database schema contract", () => {
             VALUES (${creatorId}, 'Station', 0, 'open', now() + interval '2 hours')
           `;
         } catch (err: unknown) {
-          capThrew = true;
-          expect((err as Error).message).toMatch(/Passenger capacity must be between 1 and 10/i);
+          capErrMsg = (err as Error).message;
           throw err;
         }
       }).catch(() => {});
-      expect(capThrew, "Expected invalid passenger capacity to throw").toBe(true);
+      expect(capErrMsg).toMatch(/Passenger capacity must be between 1 and 10/i);
 
       // 2. Empty destination
-      let destThrew = false;
+      let destErrMsg = "";
       await tx.savepoint(async (sp) => {
         try {
           await sp`
@@ -748,12 +779,50 @@ describe.skipIf(!hasDb)("database schema contract", () => {
             VALUES (${creatorId}, '   ', 4, 'open', now() + interval '2 hours')
           `;
         } catch (err: unknown) {
-          destThrew = true;
-          expect((err as Error).message).toMatch(/Destination cannot be empty/i);
+          destErrMsg = (err as Error).message;
           throw err;
         }
       }).catch(() => {});
-      expect(destThrew, "Expected empty destination to throw").toBe(true);
+      expect(destErrMsg).toMatch(/Destination cannot be empty/i);
+
+      // 3. Total fare bounds (< 0 or > 20000)
+      let fareErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (creator_id, destination, participants_limit, total_fare, status, expires_at)
+            VALUES (${creatorId}, 'Station', 4, 25000, 'open', now() + interval '2 hours')
+          `;
+        } catch (err: unknown) {
+          fareErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(fareErrMsg).toMatch(/Total fare must be between 0 and 20000/i);
+
+      // 4. Max 5 active rides per host quota
+      // Insert 5 active loops (1 to 5)
+      for (let i = 1; i <= 5; i++) {
+        await tx`
+          INSERT INTO public.loops (creator_id, destination, participants_limit, status, expires_at)
+          VALUES (${creatorId}, ${'Destination ' + i}, 4, 'open', now() + interval '2 hours')
+        `;
+      }
+
+      // Attempt to insert 6th active loop
+      let quotaErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (creator_id, destination, participants_limit, status, expires_at)
+            VALUES (${creatorId}, 'Destination 6', 4, 'open', now() + interval '2 hours')
+          `;
+        } catch (err: unknown) {
+          quotaErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(quotaErrMsg).toMatch(/You cannot have more than 5 active rides at the same time/i);
 
       throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
     }).catch((err) => {
@@ -774,14 +843,16 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 3', '+919999900003', 'Parent')`;
 
       // Attempt to insert 4th contact
-      let limitThrew = false;
-      try {
-        await tx`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 4', '+919999900004', 'Parent')`;
-      } catch (err: unknown) {
-        limitThrew = true;
-        expect((err as Error).message).toMatch(/A user cannot have more than 3 emergency contacts/i);
-      }
-      expect(limitThrew, "Expected 4th emergency contact to exceed limit").toBe(true);
+      let limitErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.emergency_contacts (user_id, name, phone, relation) VALUES (${userId}, 'Contact 4', '+919999900004', 'Parent')`;
+        } catch (err: unknown) {
+          limitErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(limitErrMsg).toMatch(/A user cannot have more than 3 emergency contacts/i);
 
       throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
     }).catch((err) => {
@@ -789,10 +860,13 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     });
   }, DB_TIMEOUT_MS);
 
-  it("behaviorally enforces protect_profile_updates trigger", async () => {
+  it("behaviorally enforces protect_profile_updates trigger (locked student reg_no, locked female gender in female ride)", async () => {
     const userId = "67676767-6767-6767-6767-676767676767";
+    const femaleUserId = "78787878-7878-7878-7878-787878787878";
+    const femaleLoopId = "89898989-8989-8989-8989-898989898989";
 
     await sql.begin(async (tx) => {
+      // 1. Locked verified student reg_no
       await tx`INSERT INTO auth.users (id, email) VALUES (${userId}, 'student_verified@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
       await tx`
         INSERT INTO public.profiles (id, display_name, reg_no, is_student_verified)
@@ -800,15 +874,40 @@ describe.skipIf(!hasDb)("database schema contract", () => {
         ON CONFLICT (id) DO NOTHING
       `;
 
-      // Attempt to alter verified reg_no
-      let regThrew = false;
-      try {
-        await tx`UPDATE public.profiles SET reg_no = '21BCE9999' WHERE id = ${userId}`;
-      } catch (err: unknown) {
-        regThrew = true;
-        expect((err as Error).message).toMatch(/Verified student registration numbers cannot be modified/i);
-      }
-      expect(regThrew, "Expected altering verified reg_no to throw").toBe(true);
+      let regErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`UPDATE public.profiles SET reg_no = '21BCE9999' WHERE id = ${userId}`;
+        } catch (err: unknown) {
+          regErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(regErrMsg).toMatch(/Verified student registration numbers cannot be modified/i);
+
+      // 2. Cannot change gender away from female while participating/hosting female-only ride
+      await tx`INSERT INTO auth.users (id, email) VALUES (${femaleUserId}, 'female_host@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`
+        INSERT INTO public.profiles (id, display_name, gender)
+        VALUES (${femaleUserId}, 'Female Host', 'female')
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, is_female_only, status, expires_at)
+        VALUES (${femaleLoopId}, ${femaleUserId}, 'Mall', 3, true, 'open', now() + interval '2 hours')
+      `;
+
+      let genderErrMsg = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`UPDATE public.profiles SET gender = 'male' WHERE id = ${femaleUserId}`;
+        } catch (err: unknown) {
+          genderErrMsg = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(genderErrMsg).toMatch(/Cannot change gender while actively hosting or participating in a female-only ride/i);
 
       throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
     }).catch((err) => {

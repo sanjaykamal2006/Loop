@@ -145,4 +145,92 @@ test.describe('LOOP Mobile E2E Smoke Tests', () => {
     await homeTab.click();
     await expect(page.getByRole('button', { name: /\+ Create Loop/i })).toBeVisible();
   });
+
+  test('executes account-deletion decommissioning journey from profile view', async ({ page }) => {
+    let deleteApiCalled = false;
+
+    // Intercept Supabase Auth & REST calls
+    await page.route('**/auth/v1/token*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', json: mockSession });
+    });
+
+    await page.route('**/auth/v1/user*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', json: mockUser });
+    });
+
+    await page.route('**/auth/v1/logout*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', json: {} });
+    });
+
+    await page.route('**/rest/v1/profiles*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        json: {
+          id: mockUser.id,
+          display_name: 'E2E Student',
+          reg_no: '24MIC9999',
+          gender: 'male',
+          theme: 'dark',
+        },
+      });
+    });
+
+    await page.route('**/rest/v1/loops*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', json: [] });
+    });
+
+    await page.route('**/rest/v1/loop_members*', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', json: [] });
+    });
+
+    // Intercept /api/account/delete
+    await page.route('**/api/account/delete', async (route) => {
+      deleteApiCalled = true;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        json: { success: true, message: 'Account deleted successfully' },
+      });
+    });
+
+    await page.goto('/');
+
+    // 1. Sign in
+    await page.getByPlaceholder('name.rollno@vitapstudent.ac.in').fill('sanjay.24mic7130@vitapstudent.ac.in');
+    await page.getByPlaceholder('••••••••').fill('TestPassword123!');
+    await page.getByRole('button', { name: /^login$/i }).click();
+
+    // 2. Navigate to Profile tab
+    const profileTab = page.getByRole('button', { name: /profile tab/i });
+    await expect(profileTab).toBeVisible({ timeout: 10000 });
+    await profileTab.click();
+
+    // 3. Find and click Delete Account button
+    const deleteAccountBtn = page.getByRole('button', { name: /delete account/i });
+    await expect(deleteAccountBtn).toBeVisible();
+    await deleteAccountBtn.click();
+
+    // 4. Modal appears: Delete Account?
+    const modalHeading = page.getByRole('heading', { name: /delete account\?/i });
+    await expect(modalHeading).toBeVisible();
+
+    // 5. Test Cancel dismissal
+    const cancelBtn = page.getByRole('button', { name: /^cancel$/i });
+    await cancelBtn.click();
+    await expect(modalHeading).not.toBeVisible();
+
+    // 6. Reopen and confirm Deletion
+    await deleteAccountBtn.click();
+    await expect(modalHeading).toBeVisible();
+
+    const confirmDeleteBtn = page.getByRole('button', { name: /^delete$/i });
+    await confirmDeleteBtn.click();
+
+    // 7. Verify API call was executed
+    await expect.poll(() => deleteApiCalled).toBe(true);
+
+    // 8. Verify toast confirmation
+    await expect(page.getByText(/Account permanently deleted/i)).toBeVisible();
+  });
 });
