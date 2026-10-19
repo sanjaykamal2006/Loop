@@ -32,6 +32,7 @@ const EXPECTED_PUBLIC_TABLES = [
   "messages",
   "profile_contacts",
   "profiles",
+  "rate_limits",
   "trusted_vehicles",
 ];
 
@@ -114,6 +115,11 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
     { name: "reg_no", type: "text", nullable: "YES" },
     { name: "theme", type: "text", nullable: "YES" },
     { name: "updated_at", type: "timestamp with time zone", nullable: "NO" },
+  ],
+  rate_limits: [
+    { name: "count", type: "integer", nullable: "NO" },
+    { name: "key", type: "text", nullable: "NO" },
+    { name: "reset_at", type: "timestamp with time zone", nullable: "NO" },
   ],
   trusted_vehicles: [
     { name: "created_at", type: "timestamp with time zone", nullable: "YES" },
@@ -282,7 +288,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     expect(withoutRls).toEqual([]);
   }, DB_TIMEOUT_MS);
 
-  it("defines at least one RLS policy for every public table", async () => {
+  it("defines at least one RLS policy for every client-visible public table", async () => {
     const rows = await sql<{ tablename: string; policy_count: number }[]>`
       select c.relname as tablename, count(p.polname)::int as policy_count
       from pg_class c
@@ -292,8 +298,39 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       group by c.relname
     `;
     expect(rows.length).toBe(EXPECTED_PUBLIC_TABLES.length);
-    const withoutPolicies = rows.filter((r) => r.policy_count === 0).map((r) => r.tablename);
+    // rate_limits is service-role-only: RLS is enabled, but the intentional
+    // absence of policies denies every client role.
+    const withoutPolicies = rows
+      .filter((r) => r.tablename !== "rate_limits" && r.policy_count === 0)
+      .map((r) => r.tablename);
     expect(withoutPolicies).toEqual([]);
+    expect(rows.find((r) => r.tablename === "rate_limits")?.policy_count).toBe(0);
+  }, DB_TIMEOUT_MS);
+
+  it("enforces the shared rate limiter atomically and hides it from clients", async () => {
+    const key = `contract:${Date.now()}`;
+    const first = await sql<{ allowed: boolean; count: number; remaining: number; reset_in_seconds: number }[]>`
+      select * from public.check_rate_limit(${key}, 2, 60000)
+    `;
+    const second = await sql<{ allowed: boolean; count: number; remaining: number }[]>`
+      select * from public.check_rate_limit(${key}, 2, 60000)
+    `;
+    const third = await sql<{ allowed: boolean; count: number; remaining: number }[]>`
+      select * from public.check_rate_limit(${key}, 2, 60000)
+    `;
+
+    expect(first[0]).toMatchObject({ allowed: true, count: 1, remaining: 1 });
+    expect(second[0]).toMatchObject({ allowed: true, count: 2, remaining: 0 });
+    expect(third[0]).toMatchObject({ allowed: false, count: 3, remaining: 0 });
+    expect(first[0].reset_in_seconds).toBeGreaterThan(0);
+
+    const privileges = await sql<{ anon_table: boolean; anon_fn: boolean; service_fn: boolean }[]>`
+      select
+        has_table_privilege('anon', 'public.rate_limits', 'SELECT') as anon_table,
+        has_function_privilege('anon', 'public.check_rate_limit(text, integer, integer)', 'EXECUTE') as anon_fn,
+        has_function_privilege('service_role', 'public.check_rate_limit(text, integer, integer)', 'EXECUTE') as service_fn
+    `;
+    expect(privileges[0]).toEqual({ anon_table: false, anon_fn: false, service_fn: true });
   }, DB_TIMEOUT_MS);
 
   it("uses only the initplan-optimised (select auth.uid()) form in policies", async () => {
@@ -486,6 +523,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { conname: "check_profiles_bio_len", table_name: "profiles" },
       { conname: "check_profiles_display_name_len", table_name: "profiles" },
       { conname: "check_profiles_gender_valid", table_name: "profiles" },
+      { conname: "rate_limits_count_check", table_name: "rate_limits" },
       { conname: "check_driver_name_len", table_name: "trusted_vehicles" },
       { conname: "check_phone_number_len", table_name: "trusted_vehicles" },
       { conname: "trusted_vehicles_vehicle_type_check", table_name: "trusted_vehicles" },
@@ -580,6 +618,8 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { tablename: "messages", indexname: "messages_pkey", isUnique: true, columns: ["id"] },
       { tablename: "profile_contacts", indexname: "profile_contacts_pkey", isUnique: true, columns: ["user_id"] },
       { tablename: "profiles", indexname: "profiles_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "rate_limits", indexname: "rate_limits_pkey", isUnique: true, columns: ["key"] },
+      { tablename: "rate_limits", indexname: "rate_limits_reset_at_idx", isUnique: false, columns: ["reset_at"] },
       { tablename: "trusted_vehicles", indexname: "idx_trusted_vehicles_user_id", isUnique: false, columns: ["user_id"] },
       { tablename: "trusted_vehicles", indexname: "trusted_vehicles_pkey", isUnique: true, columns: ["id"] },
     ];
@@ -633,6 +673,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { table_name: "profiles", column_name: "is_student_verified", column_default: "false" },
       { table_name: "profiles", column_name: "theme", column_default: "'dark'::text" },
       { table_name: "profiles", column_name: "updated_at", column_default: "now()" },
+      { table_name: "rate_limits", column_name: "count", column_default: "0" },
       { table_name: "trusted_vehicles", column_name: "created_at", column_default: "now()" },
       { table_name: "trusted_vehicles", column_name: "id", column_default: "gen_random_uuid()" },
     ];

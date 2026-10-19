@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { getMapsUrlFromMessage } from "@/lib/utils";
 import type { Message } from "@/lib/types";
 import { parseReturnTripMessage } from "./chatUtils";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 interface MessageActionModalProps {
   actionMenuMsg: Message | null;
@@ -36,6 +37,7 @@ export function MessageActionModal({
   onStartEdit,
   onDeleteMessage,
 }: MessageActionModalProps) {
+  const modalRef = useModalA11y(Boolean(actionMenuMsg), onClose);
   if (!actionMenuMsg) return null;
 
   return (
@@ -44,6 +46,10 @@ export function MessageActionModal({
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Message actions"
         onClick={(e) => e.stopPropagation()}
         className={`w-full sm:max-w-sm ${cardBg} border ${border} sm:rounded-[28px] rounded-t-[28px] p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom-6 duration-200`}
       >

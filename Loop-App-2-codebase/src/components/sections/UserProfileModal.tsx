@@ -18,6 +18,7 @@ import FastAvatar from "@/components/ui/FastAvatar";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { toast } from "@/components/ui/NativeToast";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export interface UserProfileData {
   user_id?: string | null;
@@ -43,6 +44,7 @@ export default function UserProfileModal({
   const { isDark, mutedText, accentText } = theme;
   const currentUserId = session?.user?.id;
   const [copiedRegNo, setCopiedRegNo] = useState(false);
+  const modalRef = useModalA11y(isOpen && Boolean(user), onClose);
 
   if (!isOpen || !user) return null;
 
@@ -75,6 +77,10 @@ export default function UserProfileModal({
     >
       {/* Modal Dialog Card */}
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Student profile"
         onClick={(e) => e.stopPropagation()}
         className={`w-full max-w-sm max-h-[90vh] ${
           isDark ? "bg-[#000000] border-[#27272A] text-white" : "bg-[#FFFFFF] border-[#DFD9CE] text-[#1C1917]"

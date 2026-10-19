@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import { openWhatsApp } from "@/lib/whatsapp";
 
@@ -39,6 +40,7 @@ export default function SosModal() {
   const [isLocating, setIsLocating] = useState(false);
   const [locError, setLocError] = useState<string | null>(null);
   const [selectedContactIdx, setSelectedContactIdx] = useState(0);
+  const modalRef = useModalA11y(showSosModal, () => setShowSosModal(false));
 
   // Active targeted emergency contact
   const currentContact = emergencyContacts[selectedContactIdx] || emergencyContacts[0] || null;
@@ -97,7 +99,7 @@ export default function SosModal() {
             return parsed;
           }
         }
-      } catch {}
+      } catch (err) { logger.error("src/components/sections/SosModal.tsx: swallowed non-fatal error", err); }
     }
     return selectedLoop;
   };
@@ -184,9 +186,11 @@ export default function SosModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div
+        ref={modalRef}
         className={`w-full max-w-sm rounded-[32px] ${cardBg} border-2 border-red-500/40 p-5 sm:p-6 shadow-[0_0_50px_rgba(239,68,68,0.25)] relative overflow-hidden animate-scale-up space-y-4`}
         role="dialog"
         aria-modal="true"
+        aria-label="Emergency SOS"
       >
         {/* Top Emergency Beacon Header */}
         <div className="flex items-start justify-between gap-3">

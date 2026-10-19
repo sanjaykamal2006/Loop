@@ -356,10 +356,11 @@ export default function AuthLogin({
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2.5">
-              <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
+              <label htmlFor="auth-email" className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">
                 {isLogin ? "VIT-AP Institutional or Registered Email" : "VIT-AP Institutional Email"}
               </label>
               <input
+                id="auth-email"
                 type="email"
                 required
                 value={email}
@@ -376,9 +377,10 @@ export default function AuthLogin({
             </div>
 
             <div className="space-y-2.5">
-              <label className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">Password</label>
+              <label htmlFor="auth-password" className="text-[11px] uppercase font-extrabold text-white tracking-[0.18em] ml-4 block">Password</label>
               <div className="relative">
                 <input
+                  id="auth-password"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}

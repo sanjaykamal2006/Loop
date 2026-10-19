@@ -1,6 +1,5 @@
-import { Redis } from "@upstash/redis";
 import { NextRequest } from "next/server";
-import { logger } from "@/lib/logger";
+import { checkSharedRateLimit } from "@/lib/sharedRateLimit";
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -17,20 +16,6 @@ interface RateLimitRecord {
 
 const fallbackStore = new Map<string, RateLimitRecord>();
 const MAX_STORE_SIZE = 5000;
-
-function getRedisClient(): Redis | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token || url.includes("your-redis.upstash.io")) {
-    return null;
-  }
-
-  return new Redis({
-    url,
-    token,
-  });
-}
 
 function checkFallbackRateLimit(
   key: string,
@@ -84,63 +69,29 @@ function checkFallbackRateLimit(
 }
 
 /**
- * Redis-backed fixed-window rate limiter for serverless environments.
- * Persists across cold starts and scales horizontally via Upstash Redis,
- * with automatic local fallback when Redis credentials are not configured.
+ * Fixed-window rate limiter for serverless routes.
  *
- * Concurrency note: the counter is incremented atomically FIRST and the
- * returned count is the single source of truth for the allow/deny decision.
- * A GET-then-INCR sequence would let N parallel requests all read the same
- * pre-limit count and pass together.
+ * Preferred path: the shared Postgres table + `check_rate_limit()` function,
+ * so limits hold across every serverless instance and cold start. If the
+ * database call fails (or local env has no service key), we degrade to a
+ * per-instance memory limiter rather than failing requests open.
  */
 export async function checkRateLimit(
   key: string,
   maxRequests: number = 10,
   windowMs: number = 10 * 60 * 1000 // 10 minutes
 ): Promise<RateLimitResult> {
-  const now = Date.now();
   const windowKey = `ratelimit:${key}`;
-  const redis = getRedisClient();
+  const shared = await checkSharedRateLimit(windowKey, maxRequests, windowMs);
 
-  if (!redis) {
-    return checkFallbackRateLimit(key, maxRequests, windowMs);
-  }
-
-  try {
-    // Atomic increment first: parallel requests can never race past the limit.
-    const count = await redis.incr(windowKey);
-
-    // Attach the window TTL on the first hit; repair a missing TTL
-    // defensively (e.g. a crash between INCR and PEXPIRE) without ever
-    // extending a live window.
-    let ttl = await redis.pttl(windowKey);
-    if (ttl < 0) {
-      await redis.pexpire(windowKey, windowMs);
-      ttl = windowMs;
-    }
-
-    if (count > maxRequests) {
-      return {
-        allowed: false,
-        count,
-        remaining: 0,
-        resetInSeconds: Math.max(1, Math.ceil(ttl / 1000)),
-        resetAt: now + ttl,
-      };
-    }
-
+  if (shared) {
     return {
-      allowed: true,
-      count,
-      remaining: Math.max(0, maxRequests - count),
-      resetInSeconds: Math.max(1, Math.ceil(ttl / 1000)),
-      resetAt: now + ttl,
+      ...shared,
+      resetAt: Date.now() + shared.resetInSeconds * 1000,
     };
-  } catch (error) {
-    // Fallback: log via conditional logger and fall back to local rate limiter
-    logger.error("Rate limit check failed:", error);
-    return checkFallbackRateLimit(key, maxRequests, windowMs);
   }
+
+  return checkFallbackRateLimit(key, maxRequests, windowMs);
 }
 
 /**

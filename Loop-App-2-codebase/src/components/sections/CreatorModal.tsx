@@ -14,6 +14,7 @@ import {
   Check 
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 // Smart App Opener Direct Links Configuration
 export const CREATOR_LINKS = {
@@ -51,6 +52,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
   const { theme } = useLoop();
   const { isDark, mutedText, accentText } = theme;
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -75,6 +77,10 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
     <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
       {/* Pure AMOLED Black Modal Card */}
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="About the creator"
         className={`w-full max-w-sm ${
           isDark ? "bg-[#000000] border-[#27272A] text-white" : "bg-[#FFFFFF] border-[#DFD9CE] text-[#1C1917]"
         } border rounded-[32px] p-5 sm:p-6 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide space-y-4`}

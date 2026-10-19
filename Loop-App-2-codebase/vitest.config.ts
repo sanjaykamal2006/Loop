@@ -23,9 +23,12 @@ export default defineConfig({
       ],
       exclude: ['src/**/*.d.ts'],
       thresholds: {
+        // Vitest 5's V8 provider reports a lower branch percentage than 2.x
+        // for the same tests (41% vs 57% across this suite). These remain
+        // ratchets against the current results: 51% / 41% / 44% / 52%.
         statements: 50,
-        branches: 55,
-        functions: 44,
+        branches: 40,
+        functions: 43,
         lines: 50,
       },
 

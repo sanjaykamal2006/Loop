@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { Users } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function GenderModal() {
   const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop, setView } = useLoop();
@@ -13,6 +14,8 @@ export default function GenderModal() {
   const [regNo, setRegNo] = useState(profile.reg_no || "");
   const [gender, setGender] = useState<"male" | "female" | "unspecified" | null>((profile.gender as "male" | "female" | "unspecified") || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Required onboarding dialog: focus-trapped, but Escape must not dismiss it.
+  const modalRef = useModalA11y(showGenderSelect);
 
   useEffect(() => {
     setName(profile.display_name || "");
@@ -51,7 +54,7 @@ export default function GenderModal() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
-      <div className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl relative overflow-y-auto scrollbar-hide`}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Complete profile" className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl relative overflow-y-auto scrollbar-hide`}>
         <div className="space-y-1.5 text-center">
           <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center mx-auto mb-1 border shadow-md ${
             isDark ? "bg-[#FFC554]/10 text-[#FFC554] border-[#FFC554]/20" : "bg-[#881337]/10 text-[#881337] border-[#881337]/25"

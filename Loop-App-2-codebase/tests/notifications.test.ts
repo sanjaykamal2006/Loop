@@ -112,12 +112,14 @@ describe('notifications utility', () => {
         },
         connect: vi.fn(),
       };
-      const mockAudioContext = vi.fn().mockImplementation(() => ({
-        currentTime: 0,
-        createOscillator: vi.fn().mockReturnValue(mockOscillator),
-        createGain: vi.fn().mockReturnValue(mockGain),
-        destination: {},
-      }));
+      const mockAudioContext = vi.fn(function AudioContextMock() {
+        return {
+          currentTime: 0,
+          createOscillator: vi.fn().mockReturnValue(mockOscillator),
+          createGain: vi.fn().mockReturnValue(mockGain),
+          destination: {},
+        };
+      });
 
       (window as any).AudioContext = mockAudioContext;
       expect(() => playNotificationSound()).not.toThrow();

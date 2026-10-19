@@ -7,7 +7,7 @@
 
 [![Live Web App](https://img.shields.io/badge/Production-loop--app.runs--on.dev-FFC554?style=for-the-badge&logoColor=black)](https://loop-app.runs-on.dev)
 [![Legacy Redirect](https://img.shields.io/badge/Legacy_Mirror-HTTP_308_Permanent-38bdf8?style=for-the-badge)](https://loop-demo-app.vercel.app)
-[![Tests Passing](https://img.shields.io/badge/Tests-256%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Tests Passing](https://img.shields.io/badge/Tests-282%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%200%20Any-blue?style=for-the-badge)](https://www.typescriptlang.org/)
 
 <br/>
@@ -33,7 +33,7 @@ flowchart TD
     Client["Mobile Client (PWA / Web)\nNext.js 16 + React 19 + Tailwind 4"]
     Edge["Edge & CDN (Vercel)\nHTTP 308 Permanent Redirect\nStrict CSP & HSTS"]
     API["Serverless API Routes\n/api/account/delete · /api/admin/*\nTiming-Safe Cryptographic Auth"]
-    DB[("Supabase PostgreSQL Engine\n10 Public Tables · 34 RLS Policies\nInitplan (SELECT auth.uid()) Optimized")]
+    DB[("Supabase PostgreSQL Engine\n11 Public Tables · 34 RLS Policies\nService-Role-Only Rate Limiter")]
     RT["Supabase Realtime Broker\nPostgres CDC WebSockets\nLive Chat & Membership Broadcast"]
     Trig["Database Engine Triggers\n• check_auth_user_email_domain (Domain Firewall)\n• trg_auto_add_creator_to_loop_members (Atomicity)"]
 
@@ -62,7 +62,7 @@ flowchart TD
 
 ## 3. Database Schema & RLS Contract
 
-LOOP enforces Row Level Security (RLS) across all 10 public tables using subquery-wrapped identity checks (`(SELECT auth.uid())`) to enable PostgreSQL query planner **InitPlan caching** and prevent per-row execution overhead:
+LOOP enforces Row Level Security (RLS) across all 11 public tables using subquery-wrapped identity checks (`(SELECT auth.uid())`) to enable PostgreSQL query planner **InitPlan caching** and prevent per-row execution overhead. `rate_limits` is intentionally service-role-only: RLS is enabled with no policies, so every client role is denied while the server-side limiter uses the service role:
 
 | Table | Purpose | RLS Invariants |
 | :--- | :--- | :--- |
@@ -76,6 +76,7 @@ LOOP enforces Row Level Security (RLS) across all 10 public tables using subquer
 | `expected_fares` | Landmark fare reference database | Rows are owner-only; the community board is served by the `get_expected_fares()` RPC (safe display columns, authenticated only). |
 | `profile_contacts` | Shared contact preferences | Owner-restricted update. |
 | `loop_participants` | Legacy backward-compatibility view | Synced with `loop_members`. |
+| `rate_limits` | Shared fixed-window rate-limit counters | RLS enabled with no policies; table and `check_rate_limit()` RPC are service-role-only. |
 
 ---
 
@@ -86,6 +87,11 @@ All server-side API endpoints are located under `src/app/api/`:
 ### `GET /api/keep-alive`
 - **Purpose:** Verifies operational readiness and measures PostgreSQL round-trip latency.
 - **Response:** `200 OK` $\rightarrow$ `{"status":"healthy","message":"Database connection ping successful","durationMs":...}`
+
+### `POST /api/telemetry`
+- **Purpose:** First-party ingest for capped, deduplicated client-side runtime errors.
+- **Payload:** `{"message": "...", "source": "...", "stack": "..."}`
+- **Security:** Rate-limited per client, size-capped, and written only to server logs.
 
 ### `POST /api/auth/validate-email`
 - **Purpose:** Pre-validates student email addresses prior to OTP dispatch.
@@ -114,15 +120,17 @@ All server-side API endpoints are located under `src/app/api/`:
 
 ## 5. Security & Content Security Policy (CSP)
 
-LOOP deploys strict HTTP response headers configured in [`next.config.ts`](./next.config.ts):
+LOOP generates a fresh CSP nonce for every HTML request in [`src/proxy.ts`](./src/proxy.ts) and passes it to Next.js through the `x-nonce` request header, so framework inline hydration scripts carry the matching nonce. The static CSP was intentionally removed from [`next.config.ts`](./next.config.ts); a second static policy would be intersected by the browser and block the nonce-based one. JSON-LD structured data is allowed by its SHA-256 hash.
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-<per-request>' 'sha256-<json-ld>' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me; upgrade-insecure-requests
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
 ```
 
 - **Audio Asset Hardening:** Internalized notification chime synthesized directly via the Web Audio API (`AudioContext`), eliminating external media CDN dependencies.
@@ -131,18 +139,20 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 
 ### Observability & Diagnostics
 - **Server Runtime:** Structured JSON log output for Vercel and Node serverless functions.
-- **Client Runtime:** Local 20-entry circular diagnostic buffer (`getDiagnosticLogs()`) and crash persistence in `sessionStorage["loop_last_crash"]`.
+- **First-Party Error Sink:** `POST /api/telemetry` receives capped, deduplicated client errors (no third-party service or paid tier required).
+- **Client Runtime:** Local 20-entry circular diagnostic buffer (`getDiagnosticLogs()`), global `error`/`unhandledrejection` handlers, and crash persistence in `sessionStorage["loop_last_crash"]`.
 - **Forensic Triage:** Diagnostic history inspectable via `window.__LOOP_DIAGNOSTICS__()` and rendered in the `ErrorReporter` debug panel.
-- **Pluggable Telemetry:** Extensible handler registration via `logger.registerTelemetryHandler()` for external monitoring services.
+- **Uptime Monitoring:** Scheduled GitHub Actions workflow (`.github/workflows/uptime.yml`) polls production and fails on non-2xx responses.
+- **Security Scanning:** CodeQL and Dependabot run on the canonical repository.
 
 ---
 
 ## 6. Development & Verification Guide
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22.12+ (Node 24 recommended; Vitest 5 requires 22.12 or newer)
 - npm 10+
-- Supabase Project or PostgreSQL 15 instance (matching CI `postgres:15` container and production Supabase engine)
+- Supabase project or PostgreSQL 15+ instance (production runs PostgreSQL 17.6; the SQL is compatible with the CI `postgres:15` container)
 
 ### Setup
 ```bash
@@ -158,13 +168,13 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 234 unit, component, and API tests (+22 database contract tests when TEST_DATABASE_URL is set)
+# Run 282 unit, component, and API tests (23 database integration tests skip unless TEST_DATABASE_URL is set)
 npm run test:run
 
 # Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)
 npm run test:coverage
 
-# Run read-only database schema & behavioral RLS contract tests (22 tests) against a live PostgreSQL 15 instance
+# Run read-only database schema & behavioral RLS contract tests (23 tests) against a live PostgreSQL instance
 $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
 
 # Run end-to-end browser automation suite via Playwright
@@ -188,7 +198,7 @@ npm run build
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only admin key (account deletion) |
 | `CLEANUP_CRON_SECRET` | Yes | Bearer secret for `/api/cleanup` (route answers 503 when unset) |
 | `ADMIN_STATS_SECRET` | Yes | Bearer secret for `/api/admin/stats` (falls back to `CLEANUP_CRON_SECRET`) |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Recommended | Shared rate-limit store across serverless instances (falls back to per-instance memory) |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | No longer used | Rate limits are stored in Supabase via the service-role-only `check_rate_limit()` RPC, with an in-memory fallback when the database is unreachable. |
 | `ASSETLINKS_SHA256` | For Android TWA | Comma-separated signing-certificate SHA-256 fingerprints served at `/.well-known/assetlinks.json` (empty = `[]`) |
 | `NEXT_PUBLIC_PACKAGE_NAME` | For Android TWA | TWA package name (defaults to `app.loop.twa`) |
 
@@ -198,7 +208,7 @@ npm run build
 
 - **Framework:** Next.js 16 (App Router, Turbopack)
 - **Runtime:** React 19, TypeScript (Strict 0 `any` types)
-- **Database & Realtime:** Supabase (PostgreSQL 15, RLS, WebSockets)
+- **Database & Realtime:** Supabase (PostgreSQL 17, RLS, WebSockets)
 - **Styling:** Tailwind CSS 4, Lucide React
 - **Testing:** Vitest, Testing Library, Jest DOM
 - **Deployment:** Vercel Edge Network (`loop-app.runs-on.dev`)

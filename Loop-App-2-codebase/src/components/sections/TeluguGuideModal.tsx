@@ -5,6 +5,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { X, Search, Copy, Check, Languages, ArrowLeft, Volume2, Maximize2, Lightbulb, IndianRupee, Handshake, MapPin, QrCode, Zap } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 interface Phrase {
   id: string;
@@ -145,6 +146,7 @@ export default function TeluguGuideModal({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [fullscreenPhrase, setFullscreenPhrase] = useState<Phrase | null>(null);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -194,7 +196,7 @@ export default function TeluguGuideModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-3 sm:p-4 animate-fade-in">
-      <div className={`w-full max-w-md h-[90vh] max-h-[820px] flex flex-col ${isDark ? "bg-[#111113]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] shadow-2xl overflow-hidden`}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Telugu guide" className={`w-full max-w-md h-[90vh] max-h-[820px] flex flex-col ${isDark ? "bg-[#111113]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] shadow-2xl overflow-hidden`}>
         
         {/* Full-Screen Driver Display Mode */}
         {fullscreenPhrase ? (

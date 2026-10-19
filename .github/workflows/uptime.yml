@@ -1,0 +1,33 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+# Outbound HTTP only; no repository access.
+permissions: {}
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  health:
+    name: Production health check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET /api/keep-alive
+        run: |
+          set -euo pipefail
+          STATUS=$(curl -sS -o /tmp/health.json -w "%{http_code}" \
+            --max-time 20 --retry 2 --retry-delay 5 \
+            "https://loop-app.runs-on.dev/api/keep-alive")
+          echo "HTTP $STATUS"
+          cat /tmp/health.json || true
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            echo "Health check failed with HTTP $STATUS" >&2
+            exit 1
+          fi
+          grep -q '"status":"healthy"' /tmp/health.json

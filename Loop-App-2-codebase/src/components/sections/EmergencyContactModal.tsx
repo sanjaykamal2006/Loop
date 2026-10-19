@@ -20,6 +20,7 @@ import { triggerHaptic } from "@/lib/haptics";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
 import { openWhatsApp } from "@/lib/whatsapp";
 import type { EmergencyContact } from "@/lib/types";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function EmergencyContactModal() {
   const {
@@ -38,6 +39,8 @@ export default function EmergencyContactModal() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [testTargetContact, setTestTargetContact] = useState<EmergencyContact | null>(null);
+  const modalRef = useModalA11y(showEmergencyContactModal, () => setShowEmergencyContactModal(false));
+  const testModalRef = useModalA11y(Boolean(testTargetContact), () => setTestTargetContact(null));
 
   if (!showEmergencyContactModal) return null;
 
@@ -162,9 +165,11 @@ export default function EmergencyContactModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-sans">
       <div
+        ref={modalRef}
         className={`w-full max-w-sm max-h-[90dvh] flex flex-col rounded-[28px] ${cardBg} border ${border} p-5 sm:p-6 shadow-2xl relative overflow-hidden animate-scale-up`}
         role="dialog"
         aria-modal="true"
+        aria-label="Emergency contacts"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-white/10 shrink-0">
@@ -416,7 +421,7 @@ export default function EmergencyContactModal() {
         {/* Test Alert Modal Popup */}
         {testTargetContact && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className={`w-full max-w-xs rounded-[24px] ${cardBg} border ${border} p-5 space-y-3.5 shadow-2xl animate-scale-up`}>
+            <div ref={testModalRef} role="dialog" aria-modal="true" aria-label="Test emergency alert" className={`w-full max-w-xs rounded-[24px] ${cardBg} border ${border} p-5 space-y-3.5 shadow-2xl animate-scale-up`}>
               <div className="flex items-center justify-between pb-2 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 flex items-center justify-center shrink-0">

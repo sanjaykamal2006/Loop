@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import { Space_Grotesk } from 'next/font/google';
 import "./globals.css";
 import { Toaster } from "@/components/ui/NativeToast";
+import { STRUCTURED_DATA_JSON } from "@/lib/structuredData";
 
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ['latin'], 
@@ -17,6 +19,9 @@ export const metadata: Metadata = {
   title: "LOOP - Purpose-Based Ride Coordination",
   description: "Rides go better in Loop. Mobile-first real-time ride sharing and coordination.",
   manifest: "/manifest.webmanifest",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     siteName: "LOOP",
@@ -67,15 +72,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // CSP nonces are applied during server rendering, so opt into dynamic
+  // rendering. Static HTML would ship framework scripts without a nonce.
+  await connection();
+
   return (
     <html lang="en" className={spaceGrotesk.variable}>
       <head>
         <link rel="preload" as="image" href="/header-logo.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: STRUCTURED_DATA_JSON }}
+        />
       </head>
       <body className="antialiased">
         <a

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import React, { useRef } from "react";
 import { Calendar, Clock } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
@@ -126,7 +128,7 @@ export default function ScheduleSelectorCard({
               if ("showPicker" in HTMLInputElement.prototype) {
                 e.currentTarget.showPicker();
               }
-            } catch {}
+            } catch (err) { logger.error("src/components/create/ScheduleSelectorCard.tsx: swallowed non-fatal error", err); }
           }}
           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
         />
@@ -192,7 +194,7 @@ export default function ScheduleSelectorCard({
               if ("showPicker" in HTMLInputElement.prototype) {
                 timeInputRef.current?.showPicker();
               }
-            } catch {}
+            } catch (err) { logger.error("src/components/create/ScheduleSelectorCard.tsx: swallowed non-fatal error", err); }
           }}
           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
         />

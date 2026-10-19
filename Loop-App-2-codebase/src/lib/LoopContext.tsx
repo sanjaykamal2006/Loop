@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -107,7 +109,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       try {
         const cached = localStorage.getItem("loop_selected_loop");
         if (cached) return JSON.parse(cached);
-      } catch {}
+      } catch (err) { logger.error("src/lib/LoopContext.tsx: swallowed non-fatal error", err); }
     }
     return null;
   });
@@ -144,7 +146,7 @@ export function LoopProvider({ session, children }: { session: Session; children
         } else {
           localStorage.removeItem("loop_selected_loop");
         }
-      } catch {}
+      } catch (err) { logger.error("src/lib/LoopContext.tsx: swallowed non-fatal error", err); }
     }
   }, []);
 

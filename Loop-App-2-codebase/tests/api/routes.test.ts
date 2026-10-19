@@ -75,7 +75,7 @@ describe("API Routes Test Suite", () => {
       } as any);
 
       const { GET } = await import("@/app/api/keep-alive/route");
-      const res = await GET();
+      const res = await GET(new NextRequest("http://localhost/api/keep-alive"));
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -91,7 +91,7 @@ describe("API Routes Test Suite", () => {
       } as any);
 
       const { GET } = await import("@/app/api/keep-alive/route");
-      const res = await GET();
+      const res = await GET(new NextRequest("http://localhost/api/keep-alive"));
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -112,7 +112,7 @@ describe("API Routes Test Suite", () => {
       } as any);
 
       const { GET } = await import("@/app/api/keep-alive/route");
-      const res = await GET();
+      const res = await GET(new NextRequest("http://localhost/api/keep-alive"));
       const body = await res.json();
 
       expect(res.status).toBe(503);
@@ -127,7 +127,7 @@ describe("API Routes Test Suite", () => {
       });
 
       const { GET } = await import("@/app/api/keep-alive/route");
-      const res = await GET();
+      const res = await GET(new NextRequest("http://localhost/api/keep-alive"));
       const body = await res.json();
 
       expect(res.status).toBe(500);

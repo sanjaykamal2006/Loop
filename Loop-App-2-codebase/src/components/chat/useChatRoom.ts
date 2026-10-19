@@ -52,7 +52,7 @@ export function useChatRoom({
         try {
           const cached = localStorage.getItem(messagesCacheKey(selectedLoop.id));
           if (cached) return JSON.parse(cached);
-        } catch {}
+        } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
       }
     }
     return [];
@@ -156,7 +156,7 @@ export function useChatRoom({
           setMessages(enriched);
           try {
             localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(enriched));
-          } catch {}
+          } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
           setHasMoreMessages(fallbackData.length === PAGE_SIZE);
           requestAnimationFrame(() => scrollToBottom(false));
         }
@@ -166,7 +166,7 @@ export function useChatRoom({
         setMessages(msgs);
         try {
           localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(msgs));
-        } catch {}
+        } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
         setHasMoreMessages(data.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
       }
@@ -346,7 +346,7 @@ export function useChatRoom({
           messageCache.set(selectedLoop.id, updated);
           try {
             localStorage.setItem(`loop_messages_${selectedLoop.id}`, JSON.stringify(updated));
-          } catch {}
+          } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
           return updated;
         });
       }
@@ -482,7 +482,7 @@ export function useChatRoom({
             messageCache.set(selectedLoop.id, next);
             try {
               localStorage.setItem(messagesCacheKey(selectedLoop.id), JSON.stringify(next));
-            } catch {}
+            } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
             return next;
           });
         }

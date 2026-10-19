@@ -3,16 +3,22 @@
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ShieldCheck, X, Mail } from "lucide-react";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme } = useLoop();
   const { isDark, border, mutedText } = theme;
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Terms and privacy"
         className={`w-full max-w-md max-h-[75vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-5 flex flex-col relative shadow-2xl overflow-hidden`}
       >
         {/* Header */}

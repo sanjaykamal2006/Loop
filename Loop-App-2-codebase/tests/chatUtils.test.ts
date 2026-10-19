@@ -97,7 +97,9 @@ describe("playNotificationChime", () => {
       createOscillator: () => oscillator,
       createGain: () => gain,
     };
-    const AudioContextCtor = vi.fn(() => context);
+    const AudioContextCtor = vi.fn(function AudioContextMock() {
+      return context;
+    });
     (window as any).AudioContext = AudioContextCtor;
 
     playNotificationChime();

@@ -49,7 +49,7 @@ export function useLoopDirectory({
       try {
         const cached = localStorage.getItem("loop_active_loops_cache");
         if (cached) return JSON.parse(cached);
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
     }
     return [];
   });
@@ -74,7 +74,7 @@ export function useLoopDirectory({
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("loop_active_loops_cache", JSON.stringify(activeLoops));
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
     }
   }, [activeLoops]);
 
@@ -129,7 +129,7 @@ export function useLoopDirectory({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
           }
           const creatorAvatars = formatted
             .map((l) => l.creator?.avatar_url)
@@ -187,7 +187,7 @@ export function useLoopDirectory({
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem("loop_active_loops_cache", JSON.stringify(sorted));
-          } catch {}
+          } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
         }
         return sorted;
       });
@@ -197,7 +197,7 @@ export function useLoopDirectory({
         if (typeof window !== "undefined" && session?.user?.id) {
           try {
             localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(next));
-          } catch {}
+          } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
         }
         return next;
       });
@@ -207,7 +207,7 @@ export function useLoopDirectory({
         if (typeof window !== "undefined" && session?.user?.id) {
           try {
             localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
-          } catch {}
+          } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
         }
         return next;
       });
@@ -414,7 +414,7 @@ export function useLoopDirectory({
                     .eq("id", newMsg.user_id)
                     .single();
                   if (prof?.display_name) senderName = prof.display_name;
-                } catch {}
+                } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
               }
 
               const matchedLoop = activeLoopsRef.current.find((l) => l.id === loopId);

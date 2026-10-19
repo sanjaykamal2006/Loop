@@ -7,6 +7,8 @@ describe("rateLimit", () => {
     vi.useRealTimers();
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   });
 
   describe("getClientIp", () => {
@@ -102,6 +104,40 @@ describe("rateLimit", () => {
       expect(afterReset.allowed).toBe(true);
       expect(afterReset.count).toBe(1);
       expect(afterReset.remaining).toBe(1);
+    });
+
+    it("uses the shared Postgres limiter when a service key is configured", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(
+          JSON.stringify([{ allowed: true, count: 2, remaining: 8, reset_in_seconds: 60 }]),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+      );
+
+      const result = await checkRateLimit(`shared-${Date.now()}`, 10, 60_000);
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "https://example.supabase.co/rest/v1/rpc/check_rate_limit",
+        expect.objectContaining({ method: "POST" })
+      );
+      expect(result).toMatchObject({ allowed: true, count: 2, remaining: 8, resetInSeconds: 60 });
+      fetchSpy.mockRestore();
+    });
+
+    it("falls back to memory when the shared database call fails", async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockRejectedValue(new Error("network down"));
+
+      const result = await checkRateLimit(`fallback-${Date.now()}`, 3, 60_000);
+
+      expect(result.allowed).toBe(true);
+      expect(result.count).toBe(1);
+      fetchSpy.mockRestore();
     });
   });
 });

@@ -5,6 +5,6 @@ export const triggerHaptic = (pattern: number | number[] = 12) => {
   if (typeof window !== "undefined" && typeof navigator !== "undefined" && "vibrate" in navigator) {
     try {
       navigator.vibrate(pattern);
-    } catch {}
+    } catch { /* Vibration is best-effort; unsupported devices are expected. */ }
   }
 };

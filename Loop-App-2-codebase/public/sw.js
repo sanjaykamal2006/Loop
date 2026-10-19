@@ -1,6 +1,16 @@
 // LOOP Service Worker for Web Push, Local Background Notifications, App Shell & Image Caching
-const IMAGE_CACHE_NAME = "loop-images-v1";
+const IMAGE_CACHE_NAME = "loop-images-v2";
 const APP_SHELL_CACHE_NAME = "loop-app-shell-v2";
+const MAX_IMAGE_CACHE_ENTRIES = 80;
+
+async function trimImageCache() {
+  const cache = await caches.open(IMAGE_CACHE_NAME);
+  const keys = await cache.keys();
+  if (keys.length <= MAX_IMAGE_CACHE_ENTRIES) return;
+  await Promise.all(
+    keys.slice(0, keys.length - MAX_IMAGE_CACHE_ENTRIES).map((key) => cache.delete(key))
+  );
+}
 
 const PRECACHE_URLS = [
   "/",
@@ -37,7 +47,11 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.startsWith("loop-app-shell-") && k !== APP_SHELL_CACHE_NAME)
+            .filter(
+              (k) =>
+                (k.startsWith("loop-app-shell-") && k !== APP_SHELL_CACHE_NAME) ||
+                k === "loop-images-v1"
+            )
             .map((k) => caches.delete(k))
         )
       ),
@@ -111,6 +125,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname === "/creator.jpg";
 
   if (isAvatar || isStaticImage) {
+    event.waitUntil(trimImageCache());
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
         const cachedResponse = await cache.match(request);
@@ -119,7 +134,7 @@ self.addEventListener("fetch", (event) => {
         const fetchPromise = fetch(request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
-              cache.put(request, networkResponse.clone());
+              return cache.put(request, networkResponse.clone()).then(() => networkResponse);
             }
             return networkResponse;
           })

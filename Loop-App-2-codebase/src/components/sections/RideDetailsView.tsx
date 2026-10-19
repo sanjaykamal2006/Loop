@@ -54,7 +54,7 @@ export default function RideDetailsView() {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch {}
+      } catch (err) { logger.error("src/components/sections/RideDetailsView.tsx: swallowed non-fatal error", err); }
     }
     if (selectedLoop && (selectedLoop.creator_id === session?.user?.id || userLoops.includes(loopId))) {
       return [
@@ -163,7 +163,7 @@ export default function RideDetailsView() {
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem(`loop_members_${loopId}`, JSON.stringify(mems));
-          } catch {}
+          } catch (err) { logger.error("src/components/sections/RideDetailsView.tsx: swallowed non-fatal error", err); }
         }
       }
     } catch (err) {

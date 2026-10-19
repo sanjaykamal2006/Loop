@@ -11,6 +11,7 @@ import ExpectedFaresModal from "./ExpectedFaresModal";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function TrustedVehiclesView() {
   const { session, theme, setView } = useLoop();
@@ -19,6 +20,7 @@ export default function TrustedVehiclesView() {
   const [vehicles, setVehicles] = useState<TrustedVehicle[]>([]);
   const [filterType, setFilterType] = useState<"all" | "auto" | "bike" | "share_auto">("all");
   const [isAdding, setIsAdding] = useState(false);
+  const addDriverModalRef = useModalA11y(isAdding, () => setIsAdding(false));
   const [showFaresModal, setShowFaresModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -291,7 +293,7 @@ export default function TrustedVehiclesView() {
       {/* Add Driver Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-fade-in">
-          <div className={`w-full max-w-md max-h-[85vh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl`}>
+          <div ref={addDriverModalRef} role="dialog" aria-modal="true" aria-label="Add trusted driver" className={`w-full max-w-md max-h-[85vh] flex flex-col overflow-y-auto scrollbar-hide ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl`}>
             <div className="flex items-center justify-between shrink-0 pb-1 border-b border-white/10">
               <h2 className="text-lg font-black uppercase tracking-tight">Add Driver</h2>
               <button 

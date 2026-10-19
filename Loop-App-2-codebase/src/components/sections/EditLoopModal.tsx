@@ -11,6 +11,7 @@ import { X, MapPin, Edit3 } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate, formatDepartureFull } from "@/lib/dateFormatter";
 import { LoopDateTimePicker } from "@/components/loop/LoopDateTimePicker";
 import { LoopCapacityPicker } from "@/components/loop/LoopCapacityPicker";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 interface EditLoopModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export default function EditLoopModal({
   const [isFemaleOnly, setIsFemaleOnly] = useState(Boolean(loop.is_female_only));
   const [vehicleType, setVehicleType] = useState<"scooter" | "bike" | "car">(loop.vehicle_type || "bike");
   const [isSaving, setIsSaving] = useState(false);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   // Initialize fields when loop or open state changes
   useEffect(() => {
@@ -184,6 +186,10 @@ export default function EditLoopModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit loop"
         className={`w-full max-w-sm max-h-[90vh] ${
           isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"
         } border ${border} rounded-[32px] p-5 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide space-y-4`}

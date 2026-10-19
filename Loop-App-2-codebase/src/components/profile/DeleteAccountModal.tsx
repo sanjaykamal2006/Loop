@@ -5,6 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { toast } from "@/components/ui/NativeToast";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export default function DeleteAccountModal({
   isDark,
 }: DeleteAccountModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -61,6 +63,10 @@ export default function DeleteAccountModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-5 animate-fade-in">
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete account"
         className={`w-full max-w-sm ${
           isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"
         } border ${border} rounded-2xl p-5 space-y-3.5 shadow-2xl`}

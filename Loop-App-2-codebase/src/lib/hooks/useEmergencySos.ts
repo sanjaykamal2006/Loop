@@ -39,7 +39,7 @@ export function useEmergencySos({
             return [{ ...parsedSingle, id: parsedSingle.id || "c-1" }];
           }
         }
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
     }
     return [];
   });
@@ -60,7 +60,7 @@ export function useEmergencySos({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(data));
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
           }
         } else if (typeof window !== "undefined") {
           // If cloud table was just created, sync any existing local contacts up to the database
@@ -85,7 +85,7 @@ export function useEmergencySos({
                   localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
                 }
               }
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
           }
         }
       }
@@ -110,7 +110,7 @@ export function useEmergencySos({
           } else {
             localStorage.removeItem(`loop_emergency_contact_${session.user.id}`);
           }
-        } catch {}
+        } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
       }
 
       // Safe Cloud Synchronization (Atomic RPC with safe non-destructive fallback)
@@ -131,7 +131,7 @@ export function useEmergencySos({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(rpcData));
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
           }
           return;
         }
@@ -164,7 +164,7 @@ export function useEmergencySos({
             if (typeof window !== "undefined") {
               try {
                 localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
-              } catch {}
+              } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
             }
           }
         } else if (existingIds.length > 0) {
@@ -223,7 +223,7 @@ export function useEmergencySos({
         }
       }
       localStorage.removeItem(leaseKey);
-    } catch {}
+    } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
   }, [activeLoops, userJoinedLoops, userLoops, selectedLoop, session?.user?.id]);
 
   return {

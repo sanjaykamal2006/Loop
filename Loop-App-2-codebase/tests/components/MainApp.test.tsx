@@ -116,7 +116,7 @@ describe('MainApp Component (Root Application Container)', () => {
       render(<MainApp session={mockSession} />);
     });
 
-    expect(screen.getByText('Starting Point')).toBeInTheDocument();
+    expect(await screen.findByText('Starting Point')).toBeInTheDocument();
     expect(screen.getByText('Destination')).toBeInTheDocument();
   });
 
@@ -130,7 +130,7 @@ describe('MainApp Component (Root Application Container)', () => {
       render(<MainApp session={mockSession} />);
     });
 
-    expect(screen.getByText(/No Active Chats/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No Active Chats/i)).toBeInTheDocument();
     expect(screen.getByText(/Explore Campus Rides/i)).toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe('MainApp Component (Root Application Container)', () => {
       render(<MainApp session={mockSession} />);
     });
 
-    expect(screen.getByText('Sanjay Kamal')).toBeInTheDocument();
+    expect(await screen.findByText('Sanjay Kamal')).toBeInTheDocument();
     expect(screen.getByText('24MIC7130')).toBeInTheDocument();
   });
 

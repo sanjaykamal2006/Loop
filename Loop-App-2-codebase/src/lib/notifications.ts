@@ -64,7 +64,7 @@ export function playNotificationSound() {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.25);
-  } catch {}
+  } catch (err) { logger.error("src/lib/notifications.ts: swallowed non-fatal error", err); }
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -112,7 +112,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
         if (activeWorker) {
           activeWorker.postMessage({ type: "WARM_APP_SHELL", urls });
         }
-      } catch {}
+      } catch (err) { logger.error("src/lib/notifications.ts: swallowed non-fatal error", err); }
     };
 
     warmAppShell();

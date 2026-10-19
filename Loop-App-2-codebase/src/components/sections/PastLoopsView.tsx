@@ -34,7 +34,7 @@ export default function PastLoopsView() {
       try {
         const cached = localStorage.getItem(`loop_past_loops_cache_${session.user.id}`);
         if (cached && JSON.parse(cached).length > 0) return false;
-      } catch {}
+      } catch (err) { logger.error("src/components/sections/PastLoopsView.tsx: swallowed non-fatal error", err); }
     }
     return true;
   });
@@ -86,7 +86,7 @@ export default function PastLoopsView() {
         if (typeof window !== "undefined" && session?.user?.id) {
           try {
             localStorage.setItem(`loop_past_loops_cache_${session.user.id}`, JSON.stringify(sorted));
-          } catch {}
+          } catch (err) { logger.error("src/components/sections/PastLoopsView.tsx: swallowed non-fatal error", err); }
         }
       } catch (err) {
         logger.error("Error fetching past loops:", err);

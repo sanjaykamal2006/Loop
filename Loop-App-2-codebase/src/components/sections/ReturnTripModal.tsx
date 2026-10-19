@@ -12,6 +12,7 @@ import {
   buildDepartureDate,
 } from "@/lib/dateFormatter";
 import { triggerHaptic } from "@/lib/haptics";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export interface PrimaryLoopDetails {
   id?: string;
@@ -46,6 +47,7 @@ export default function ReturnTripModal({
   const [returnMinute, setReturnMinute] = useState("00");
   const [returnAmpm, setReturnAmpm] = useState<"AM" | "PM">("PM");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
@@ -223,6 +225,10 @@ export default function ReturnTripModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Plan return trip"
         className={`w-full max-w-sm ${
           isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"
         } border ${border} rounded-[28px] p-5 space-y-4 shadow-2xl relative`}

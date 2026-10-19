@@ -40,7 +40,7 @@ export function useLoopMemberships({
       try {
         const cached = localStorage.getItem(`loop_joined_loops_${session.user.id}`);
         if (cached) return JSON.parse(cached);
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
     }
     return [];
   });
@@ -50,7 +50,7 @@ export function useLoopMemberships({
       try {
         const cached = localStorage.getItem(`loop_created_loops_${session.user.id}`);
         if (cached) return JSON.parse(cached);
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
     }
     return [];
   });
@@ -61,7 +61,7 @@ export function useLoopMemberships({
     if (typeof window !== "undefined" && session?.user?.id) {
       try {
         localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(userJoinedLoops));
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
     }
   }, [userJoinedLoops, session?.user?.id]);
 
@@ -71,7 +71,7 @@ export function useLoopMemberships({
     if (typeof window !== "undefined" && session?.user?.id) {
       try {
         localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(userLoops));
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
     }
   }, [userLoops, session?.user?.id]);
 
@@ -105,7 +105,7 @@ export function useLoopMemberships({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(joinedIds));
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
           }
         }
         if (creatorData) {
@@ -114,7 +114,7 @@ export function useLoopMemberships({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`loop_created_loops_${session.user.id}`, JSON.stringify(creatorIds));
-            } catch {}
+            } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
           }
         }
       } catch (err) {
@@ -172,7 +172,7 @@ export function useLoopMemberships({
         setUserJoinedLoops(nextJoined);
         try {
           localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(nextJoined));
-        } catch {}
+        } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
 
         setSelectedLoop(updatedLoop);
         setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? updatedLoop : l)));
@@ -260,7 +260,7 @@ export function useLoopMemberships({
         const next = prev.filter((id) => id !== loopId);
         try {
           localStorage.setItem(`loop_joined_loops_${session.user.id}`, JSON.stringify(next));
-        } catch {}
+        } catch (err) { logger.error("src/lib/hooks/useLoopMemberships.ts: swallowed non-fatal error", err); }
         return next;
       });
 

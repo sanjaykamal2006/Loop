@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, Sparkles, ArrowLeft, Search } from "lucide-react";
 import type { ExpectedFare } from "@/lib/types";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon, CarIcon } from "@/components/ui/VehicleIcons";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 
 
@@ -26,6 +27,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
   const [fareAmount, setFareAmount] = useState("");
   const [vType, setVType] = useState<"auto" | "bike" | "share_auto" | "cab">("auto");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   const fetchFares = useCallback(async () => {
     setLoading(true);
@@ -134,6 +136,10 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Expected fares"
         className={`w-full max-w-md max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 flex flex-col relative shadow-2xl overflow-hidden`}
       >
         {/* ================= VIEW 1: BROWSE FARES LIST ================= */}

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -25,7 +27,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
           if (parsed.avatar_url) preloadAvatars([parsed.avatar_url]);
           return parsed;
         }
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useAuthSession.ts: swallowed non-fatal error", err); }
     }
     return { display_name: "", theme: "dark" };
   });
@@ -114,7 +116,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
       setProfile(newProf);
       try {
         localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useAuthSession.ts: swallowed non-fatal error", err); }
       setIsProfileLoaded(true);
       return;
     }
@@ -159,7 +161,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
       }
       try {
         localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(newProf));
-      } catch {}
+      } catch (err) { logger.error("src/lib/hooks/useAuthSession.ts: swallowed non-fatal error", err); }
     }
     setIsProfileLoaded(true);
   }, [session.user.id, session.user.email]);
@@ -174,7 +176,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(nextProfile));
-        } catch {}
+        } catch (err) { logger.error("src/lib/hooks/useAuthSession.ts: swallowed non-fatal error", err); }
       }
 
       const phone_number = updates.phone_number;
@@ -198,7 +200,13 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
       }
 
       if (phone_number !== undefined) {
-        const cleanPhone = (phone_number || "").replace(/\D/g, "").slice(0, 10);
+        const digits = (phone_number || "").replace(/\D/g, "");
+        const cleanPhone =
+          digits.length === 12 && digits.startsWith("91")
+            ? digits.slice(2)
+            : digits.length === 11 && digits.startsWith("0")
+              ? digits.slice(1)
+              : digits.slice(0, 10);
         if (cleanPhone) {
           promises.push(
             supabase
@@ -224,7 +232,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem(`loop_profile_${session.user.id}`, JSON.stringify(prevProfile));
-          } catch {}
+          } catch (err) { logger.error("src/lib/hooks/useAuthSession.ts: swallowed non-fatal error", err); }
         }
         toast.error("Failed to update profile. Please try again.");
         return false;

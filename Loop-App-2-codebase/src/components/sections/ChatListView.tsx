@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
@@ -135,7 +137,7 @@ export default function ChatListView() {
       try {
         const cached = localStorage.getItem(recentMessagesCacheKey);
         if (cached) return JSON.parse(cached);
-      } catch {}
+      } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); }
     }
     return {};
   });
@@ -228,10 +230,10 @@ export default function ChatListView() {
         if (typeof window !== "undefined" && recentMessagesCacheKey) {
           try {
             localStorage.setItem(recentMessagesCacheKey, JSON.stringify(msgMap));
-          } catch {}
+          } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); }
         }
       }
-    } catch {} finally {
+    } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); } finally {
       isFetchingRecentRef.current = false;
     }
   }, [recentMessages, userJoinedLoops, recentMessagesCacheKey]);
@@ -269,7 +271,7 @@ export default function ChatListView() {
               if (typeof window !== "undefined" && recentMessagesCacheKey) {
                 try {
                   localStorage.setItem(recentMessagesCacheKey, JSON.stringify(next));
-                } catch {}
+                } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); }
               }
               return next;
             });
@@ -288,7 +290,7 @@ export default function ChatListView() {
                     if (typeof window !== "undefined" && recentMessagesCacheKey) {
                       try {
                         localStorage.setItem(recentMessagesCacheKey, JSON.stringify(next));
-                      } catch {}
+                      } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); }
                     }
                     return next;
                   }

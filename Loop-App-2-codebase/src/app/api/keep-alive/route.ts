@@ -1,11 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const start = Date.now();
+
+  // Health endpoint is public: cap abusive polling while leaving ample room for
+  // the 15-minute uptime monitor (30 requests / 5 minutes per IP).
+  const limit = await checkRateLimit(`keep-alive:${getClientIp(request)}`, 30, 5 * 60 * 1000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { status: 'rate_limited' },
+      { status: 429, headers: { 'Retry-After': String(limit.resetInSeconds) } }
+    );
+  }
 
   try {
     // 1. Least-privilege check: public.health_check() RPC

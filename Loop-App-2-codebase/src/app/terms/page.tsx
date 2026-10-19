@@ -5,6 +5,7 @@ import { ShieldCheck, ArrowLeft, Scale, Users, AlertTriangle, FileText, Mail } f
 export const metadata: Metadata = {
   title: "Terms of Service | LOOP",
   description: "Terms of Service and Community Guidelines for the LOOP platform.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsOfServicePage() {

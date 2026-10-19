@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import React, { useRef } from "react";
 import { Clock, Calendar } from "lucide-react";
 import { formatDDMMYYYY } from "@/lib/dateFormatter";
@@ -148,7 +150,7 @@ export function LoopDateTimePicker({
                 if ("showPicker" in HTMLInputElement.prototype) {
                   e.currentTarget.showPicker();
                 }
-              } catch {}
+              } catch (err) { logger.error("src/components/loop/LoopDateTimePicker.tsx: swallowed non-fatal error", err); }
             }}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />
@@ -226,7 +228,7 @@ export function LoopDateTimePicker({
                 if ("showPicker" in HTMLInputElement.prototype) {
                   e.currentTarget.showPicker();
                 }
-              } catch {}
+              } catch (err) { logger.error("src/components/loop/LoopDateTimePicker.tsx: swallowed non-fatal error", err); }
             }}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />

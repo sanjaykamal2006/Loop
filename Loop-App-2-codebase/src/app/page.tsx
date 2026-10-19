@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AuthLogin from "../components/sections/AuthLogin";
@@ -38,7 +40,7 @@ function getCachedOfflineSession(): Session | null {
       const parsed = JSON.parse(legacy);
       if (parsed?.user?.id) return parsed as Session;
     }
-  } catch {}
+  } catch (err) { logger.error("src/app/page.tsx: swallowed non-fatal error", err); }
   return null;
 }
 

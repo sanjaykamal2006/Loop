@@ -6,6 +6,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { X, Coffee, Copy, Check, QrCode, Zap, ArrowRight } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
+import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 const UPI_ID = "8825680623@slc";
 
@@ -72,6 +73,7 @@ export default function BuyCoffeeModal({
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isCustom, setIsCustom] = useState(false);
   const [copied, setCopied] = useState(false);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -117,11 +119,13 @@ export default function BuyCoffeeModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
       <div
+        ref={modalRef}
         className={`w-full max-w-sm ${
           isDark ? "bg-[#111113]" : "bg-[#FFFFFF]"
         } border ${border} rounded-[32px] p-5 sm:p-6 flex flex-col relative shadow-2xl animate-modal-scale-up`}
         role="dialog"
         aria-modal="true"
+        aria-label="Support the creator"
       >
         {/* Header Bar */}
         <div className="flex items-center justify-between pb-3 shrink-0">

@@ -5,6 +5,7 @@ import { ShieldCheck, ArrowLeft, Lock, Trash2, Eye, Server, Mail } from "lucide-
 export const metadata: Metadata = {
   title: "Privacy Policy | LOOP",
   description: "Official Privacy Policy for the LOOP ride coordination platform.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPolicyPage() {

@@ -1,40 +1,55 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { Session } from "@supabase/supabase-js";
 import { LoopProvider, useLoop } from "@/lib/LoopContext";
 import type { View } from "@/lib/types";
+import { logger, getDiagnosticLogs } from "@/lib/logger";
+import { installGlobalErrorHandlers, reportClientError } from "@/lib/clientTelemetry";
 
 import AppHeader from "./AppHeader";
 import HomeView from "./HomeView";
-import CreateView from "./CreateView";
-import ChatListView from "./ChatListView";
-import ChatView from "./ChatView";
-import ProfileView from "./ProfileView";
-import RideDetailsView from "./RideDetailsView";
-import TrustedVehiclesView from "./TrustedVehiclesView";
-import PastLoopsView from "./PastLoopsView";
 import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
-import TermsModal from "./TermsModal";
-import CreatorModal from "./CreatorModal";
-import TeluguGuideModal from "./TeluguGuideModal";
-import BuyCoffeeModal from "./BuyCoffeeModal";
 import EmergencyContactModal from "./EmergencyContactModal";
 import SosModal from "./SosModal";
-import { logger, getDiagnosticLogs } from "@/lib/logger";
+
+// Heavy, conditional screens and modals are split out so the first paint only
+// pays for Home + navigation. BuyCoffeeModal also pulls in the QR encoder.
+const viewLoading = () => (
+  <div className="flex-1 flex items-center justify-center py-20" aria-busy="true" aria-label="Loading view">
+    <div className="w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin opacity-40" />
+  </div>
+);
+
+const CreateView = dynamic(() => import("./CreateView"), { loading: viewLoading });
+const ChatListView = dynamic(() => import("./ChatListView"), { loading: viewLoading });
+const ChatView = dynamic(() => import("./ChatView"), { loading: viewLoading });
+const ProfileView = dynamic(() => import("./ProfileView"), { loading: viewLoading });
+const RideDetailsView = dynamic(() => import("./RideDetailsView"), { loading: viewLoading });
+const TrustedVehiclesView = dynamic(() => import("./TrustedVehiclesView"), { loading: viewLoading });
+const PastLoopsView = dynamic(() => import("./PastLoopsView"), { loading: viewLoading });
+
+const TermsModal = dynamic(() => import("./TermsModal"));
+const CreatorModal = dynamic(() => import("./CreatorModal"));
+const TeluguGuideModal = dynamic(() => import("./TeluguGuideModal"));
+const BuyCoffeeModal = dynamic(() => import("./BuyCoffeeModal"));
 
 if (typeof window !== "undefined") {
-  // Wire client-side crash telemetry sink to session buffer
+  installGlobalErrorHandlers();
+
+  // Wire client-side crash telemetry to a durable server-side log sink.
   logger.registerTelemetryHandler((entry) => {
     if (entry.level === "error") {
+      reportClientError(entry);
       try {
         sessionStorage.setItem("loop_last_crash", JSON.stringify({
           time: entry.timestamp,
           message: entry.message,
           error: entry.error,
         }));
-      } catch {}
+      } catch (err) { logger.error("src/components/sections/MainApp.tsx: swallowed non-fatal error", err); }
     }
   });
 
