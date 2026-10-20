@@ -57,6 +57,9 @@ jobs:
       - name: Verify Dependency Integrity
         run: npm ls --all --omit=optional
 
+      - name: Scan for Committed Secrets
+        run: npm run check:secrets
+
       - name: Lint
         run: npm run lint
 

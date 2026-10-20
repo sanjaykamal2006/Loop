@@ -87,11 +87,22 @@ export default function RideDetailsView() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const isTimePast = useMemo(() => {
-    return selectedLoop?.departure_time
-      ? new Date(selectedLoop.departure_time).getTime() < Date.now()
-      : false;
-  }, [selectedLoop?.departure_time]);
+  // A one-minute heartbeat keeps the "past departure" derivation reactive and
+  // pure: Date.now() is read inside a timer callback / initializer, never
+  // directly during render (react-hooks/purity).
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const heartbeat = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(heartbeat);
+  }, []);
+
+  const isTimePast = useMemo(
+    () =>
+      selectedLoop?.departure_time
+        ? new Date(selectedLoop.departure_time).getTime() < nowMs
+        : false,
+    [selectedLoop?.departure_time, nowMs]
+  );
 
   const isPast =
     selectedLoop?.status === "ended" ||
@@ -121,8 +132,7 @@ export default function RideDetailsView() {
       const isAuthorized = Boolean(
         selectedLoop &&
         (selectedLoop.creator_id === session?.user?.id ||
-          userLoops.includes(selectedLoop.id) ||
-          userJoinedLoops.includes(selectedLoop.id))
+          userLoops.includes(selectedLoop.id) ||          userJoinedLoops.includes(selectedLoop.id))
       );
 
       const [membersRes, contactsRes] = await Promise.all([
@@ -171,7 +181,7 @@ export default function RideDetailsView() {
     } finally {
       setIsLoadingMembers(false);
     }
-  }, [selectedLoop, session?.user?.id, userLoops, userJoinedLoops]);
+  }, [selectedLoop, session, userLoops, userJoinedLoops]);
 
   useEffect(() => {
     if (!selectedLoop?.id) return;

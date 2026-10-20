@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { syncWhitelistToDatabase } from "@/lib/syncWhitelist";
 import { createClient } from "@supabase/supabase-js";
 
+// The external whitelist is env-sourced (no personal emails in the bundle).
+// vi.hoisted: must run before the module import — the list is captured at init.
+vi.hoisted(() => {
+  process.env.EXTERNAL_EMAIL_WHITELIST = "ops-admin@example.com";
+});
+
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(),
 }));

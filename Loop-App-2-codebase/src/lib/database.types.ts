@@ -215,14 +215,16 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "delete_loop":
-{ Args: { "target_loop_id": string }; Returns: Json
+{ Args: { "loop_id": string }; Returns: {
+              "cancelled_id": string,"new_status": string
+            }[]
                            },
 "expire_old_loops":
-{ Args: Record<PropertyKey, never>; Returns: undefined
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "get_expected_fares":
 { Args: Record<PropertyKey, never>; Returns: {
-              "avatar_url": string | null,"created_at": string,"display_name": string | null,"expected_fare": number,"from_location": string,"id": string,"to_location": string,"user_id": string,"vehicle_type": string | null
+              "avatar_url": string | null,"created_at": string,"display_name": string | null,"expected_fare": number,"from_location": string,"id": string,"to_location": string,"user_id": string | null,"vehicle_type": string | null
 }[] },
 "get_loop_contacts":
 { Args: { "target_loop_id": string }; Returns: {

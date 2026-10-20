@@ -194,7 +194,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  // Absolute URL so openWindow works even when the SW scope is a subpath.
+  const targetUrl = new URL(event.notification.data?.url || "/", self.registration.scope).href;
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
@@ -206,7 +207,7 @@ self.addEventListener("notificationclick", (event) => {
           }
         }
       }
-      // Otherwise open a new window
+      // Otherwise open a new window onto the notification's target
       if (self.clients.openWindow) {
         return self.clients.openWindow(targetUrl);
       }

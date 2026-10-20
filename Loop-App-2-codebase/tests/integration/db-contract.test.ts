@@ -581,6 +581,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { trigger_name: "trg_check_active_loops_quota", table_name: "loops", function_name: "check_active_loops_quota" },
       { trigger_name: "trg_loop_rate_cap", table_name: "loops", function_name: "enforce_loop_rate_cap" },
       { trigger_name: "trg_protect_message_updates", table_name: "messages", function_name: "protect_message_updates" },
+      { trigger_name: "trg_message_rate_cap", table_name: "messages", function_name: "enforce_message_rate_cap" },
       { trigger_name: "trg_delete_user_avatars", table_name: "profiles", function_name: "delete_user_avatars" },
       { trigger_name: "trg_protect_profile_updates", table_name: "profiles", function_name: "protect_profile_updates" },
       { trigger_name: "trg_scrub_user_message_content", table_name: "profiles", function_name: "scrub_user_message_content" },

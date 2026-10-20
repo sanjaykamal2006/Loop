@@ -2,7 +2,7 @@
 
 import { logger } from "@/lib/logger";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X, MapPin } from "lucide-react";
@@ -142,6 +142,11 @@ export default function ChatListView() {
     return {};
   });
 
+  const recentMessagesRef = useRef(recentMessages);
+  useEffect(() => {
+    recentMessagesRef.current = recentMessages;
+  }, [recentMessages]);
+
   const joinedLoops = activeLoops.filter((l) => userJoinedLoops.includes(l.id));
 
   const lastFetchRecentTimeRef = React.useRef<number>(0);
@@ -151,7 +156,7 @@ export default function ChatListView() {
   const fetchRecentMessages = useCallback(async (force = false) => {
     if (userJoinedLoops.length === 0) return;
     const now = Date.now();
-    if (!force && now - lastFetchRecentTimeRef.current < 15000 && Object.keys(recentMessages).length > 0) {
+    if (!force && now - lastFetchRecentTimeRef.current < 15000 && Object.keys(recentMessagesRef.current).length > 0) {
       return;
     }
     if (isFetchingRecentRef.current) return;
@@ -236,10 +241,33 @@ export default function ChatListView() {
     } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); } finally {
       isFetchingRecentRef.current = false;
     }
-  }, [recentMessages, userJoinedLoops, recentMessagesCacheKey]);
+  }, [userJoinedLoops, recentMessagesCacheKey]);
+
+  // Latest-fetch refs: keep the realtime subscription alive across re-renders.
+  // fetchRecentMessages previously regenerated on every recentMessages update,
+  // which tore down and reconnected this channel per message (missed events).
+  // Only the account/cache key may re-subscribe.
+  const fetchRecentMessagesRef = useRef(fetchRecentMessages);
+  useEffect(() => {
+    fetchRecentMessagesRef.current = fetchRecentMessages;
+  }, [fetchRecentMessages]);
+
+  const sessionRef = useRef(session);
+  const profileRef = useRef(profile);
+  useEffect(() => {
+    sessionRef.current = session;
+    profileRef.current = profile;
+  }, [session, profile]);
+
+  // Previews need one refetch whenever the joined-loop membership actually
+  // changes (rare) — not on every render (which used to churn the channel).
+  const joinedLoopsKey = userJoinedLoops.join(",");
+  useEffect(() => {
+    fetchRecentMessagesRef.current();
+  }, [joinedLoopsKey, recentMessagesCacheKey, session?.user?.id]);
 
   useEffect(() => {
-    fetchRecentMessages();
+    fetchRecentMessagesRef.current();
 
     let channel: RealtimeChannel | null = null;
 
@@ -255,10 +283,27 @@ export default function ChatListView() {
             const loopId = msg.loop_id;
             if (!loopId || !msg.content) return;
 
-            const isMe = msg.user_id === session?.user?.id;
-            const senderName = isMe ? (profile?.display_name || "You") : "";
+            const currentUserId = sessionRef.current?.user?.id;
+            const isMe = Boolean(currentUserId) && msg.user_id === currentUserId;
+
+            // Decorate the sender name ONCE before painting — a single state
+            // update + a single localStorage write per event (was: two paints
+            // and two or three identical writes per message).
+            let senderName = isMe ? (profileRef.current?.display_name || "You") : "";
+            if (!isMe && msg.user_id) {
+              const { data } = await supabase
+                .from("profiles")
+                .select("display_name")
+                .eq("id", msg.user_id)
+                .single();
+              senderName = data?.display_name || "";
+            }
 
             setRecentMessages((prev) => {
+              // Drop late/out-of-order events older than the preview we hold.
+              const cur = prev[loopId];
+              const incomingAt = new Date(msg.created_at || 0).getTime();
+              if (cur && cur.created_at && new Date(cur.created_at).getTime() > incomingAt) return prev;
               const next = {
                 ...prev,
                 [loopId]: {
@@ -275,29 +320,6 @@ export default function ChatListView() {
               }
               return next;
             });
-
-            if (!isMe && msg.user_id) {
-              const { data } = await supabase
-                .from("profiles")
-                .select("display_name")
-                .eq("id", msg.user_id)
-                .single();
-              if (data?.display_name) {
-                setRecentMessages((prev) => {
-                  const cur = prev[loopId];
-                  if (cur && cur.created_at === msg.created_at) {
-                    const next = { ...prev, [loopId]: { ...cur, sender_name: data.display_name || "" } };
-                    if (typeof window !== "undefined" && recentMessagesCacheKey) {
-                      try {
-                        localStorage.setItem(recentMessagesCacheKey, JSON.stringify(next));
-                      } catch (err) { logger.error("src/components/sections/ChatListView.tsx: swallowed non-fatal error", err); }
-                    }
-                    return next;
-                  }
-                  return prev;
-                });
-              }
-            }
           }
         )
         .subscribe();
@@ -319,7 +341,7 @@ export default function ChatListView() {
         unsubscribeChannel();
       } else if (document.visibilityState === "visible") {
         subscribeChannel();
-        fetchRecentMessages();
+        fetchRecentMessagesRef.current();
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -328,7 +350,7 @@ export default function ChatListView() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsubscribeChannel();
     };
-  }, [fetchRecentMessages, session?.user?.id, profile?.display_name, recentMessagesCacheKey]);
+  }, [session?.user?.id, recentMessagesCacheKey]);
 
   const filteredLoops = joinedLoops.filter((loop) => {
     if (!searchQuery.trim()) return true;

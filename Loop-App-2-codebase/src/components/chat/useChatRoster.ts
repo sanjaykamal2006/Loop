@@ -135,7 +135,7 @@ export function useChatRoster({
         logger.error("fetchMembers error:", e);
       }
     },
-    [selectedLoop, session?.user?.id, userLoops, userJoinedLoops, setView, setSelectedLoop, profile]
+    [selectedLoop, session, userLoops, userJoinedLoops, setView, setSelectedLoop, profile]
   );
 
   return {

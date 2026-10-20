@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncWhitelistToDatabase } from "@/lib/syncWhitelist";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,15 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Brute-force throttle ahead of the bearer check, keyed by caller IP.
+  const limit = await checkRateLimit(`sync-whitelist:${getClientIp(request)}`, 10, 10 * 60 * 1000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(limit.resetInSeconds) } }
+    );
+  }
+
   const cronSecret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
   const authHeader = request.headers.get("authorization") || "";
 

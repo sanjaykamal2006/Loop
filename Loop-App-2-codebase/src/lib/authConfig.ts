@@ -8,22 +8,20 @@ export const ALLOWED_INSTITUTIONAL_DOMAINS = [
 ] as const;
 
 /**
- * Hardcoded whitelist of up to 10 outside email addresses (e.g. admins, testers, advisors).
- * These exact email addresses bypass the institutional domain check for signups.
- * Edit this array to replace placeholder emails with your real addresses.
+ * Outside email addresses (e.g. admins, testers, advisors) allowed past the
+ * institutional domain check. Sourced from the EXTERNAL_EMAIL_WHITELIST
+ * environment variable (comma-separated) and intentionally NOT hardcoded in
+ * the client bundle — personal emails must not ship in the public repo.
+ *
+ * The authoritative signup gate is the DB-owned validation
+ * (`/api/auth/validate-email` + `public.allowed_external_emails`, seeded via
+ * ops), so leaving this empty does NOT lock out ops-approved addresses.
+ * Edit via `.env.local` using `.env.example`.
  */
-export const EXTERNAL_EMAIL_WHITELIST: string[] = [
-  "sanjaykamal2006@gmail.com", // 1. Founder
-  "",                          // 2. Reserved
-  "",                          // 3. Reserved
-  "",                          // 4. Reserved
-  "",                          // 5. Reserved
-  "",                          // 6. Reserved
-  "",                          // 7. Reserved
-  "",                          // 8. Reserved
-  "",                          // 9. Reserved
-  "",                          // 10. Reserved
-];
+export const EXTERNAL_EMAIL_WHITELIST: string[] = (process.env.EXTERNAL_EMAIL_WHITELIST ?? "")
+  .split(",")
+  .map((e) => e.toLowerCase().trim())
+  .filter((e) => e.includes("@"));
 
 export const INSTITUTIONAL_ERROR_MESSAGE =
   "LOOP is only available to VIT-AP students and faculty. Please use your institutional email.";

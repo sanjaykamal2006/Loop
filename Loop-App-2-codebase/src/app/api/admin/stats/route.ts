@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import type { Database } from '@/lib/database.types';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,15 @@ const NO_STORE = { 'Cache-Control': 'no-store' } as const;
  */
 export async function GET(request: NextRequest) {
   const expectedToken = process.env.ADMIN_STATS_SECRET || process.env.CLEANUP_CRON_SECRET;
+
+  // Brute-force throttle ahead of the bearer check, keyed by caller IP.
+  const limit = await checkRateLimit(`admin-stats:${getClientIp(request)}`, 10, 10 * 60 * 1000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(limit.resetInSeconds), ...NO_STORE } }
+    );
+  }
 
   if (!expectedToken) {
     logger.error('admin/stats: no admin secret configured (ADMIN_STATS_SECRET / CLEANUP_CRON_SECRET)');

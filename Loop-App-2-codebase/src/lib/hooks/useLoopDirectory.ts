@@ -7,6 +7,7 @@ import type { Session } from "@supabase/supabase-js";
 import type { View, Loop, Profile } from "@/lib/types";
 import { preloadAvatars } from "@/lib/imageOptimization";
 import { registerServiceWorker, sendLocalNotification } from "@/lib/notifications";
+import { readOwnedCache, writeOwnedCache } from "@/lib/storage";
 import type { Database } from "@/lib/database.types";
 import { useLoopMemberships } from "./useLoopMemberships";
 
@@ -44,15 +45,10 @@ export function useLoopDirectory({
   setChatSource,
   setUnreadLoopIds,
 }: UseLoopDirectoryOptions) {
-  const [activeLoops, setActiveLoops] = useState<Loop[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("loop_active_loops_cache");
-        if (cached) return JSON.parse(cached);
-      } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
-    }
-    return [];
-  });
+  const [activeLoops, setActiveLoops] = useState<Loop[]>(() =>
+    // Owner-checked cache: the feed snapshot is private per account.
+    readOwnedCache<Loop[]>("loop_active_loops_cache", session.user.id) ?? []
+  );
 
   // Gender guard & pending actions
   const [showGenderSelect, setShowGenderSelect] = useState(false);
@@ -71,12 +67,8 @@ export function useLoopDirectory({
   const activeLoopsRef = useRef(activeLoops);
   useEffect(() => {
     activeLoopsRef.current = activeLoops;
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("loop_active_loops_cache", JSON.stringify(activeLoops));
-      } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
-    }
-  }, [activeLoops]);
+    writeOwnedCache("loop_active_loops_cache", activeLoops, session.user.id);
+  }, [activeLoops, session.user.id]);
 
   // --- Fetch loops (supports advance rides; keeps rides active until 2 hrs after departure) ---
   const lastFetchLoopsTimeRef = useRef<number>(0);
@@ -126,11 +118,7 @@ export function useLoopDirectory({
               } as Loop)
           );
           setActiveLoops(formatted);
-          if (typeof window !== "undefined") {
-            try {
-              localStorage.setItem("loop_active_loops_cache", JSON.stringify(formatted));
-            } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
-          }
+          writeOwnedCache("loop_active_loops_cache", formatted, session.user.id);
           const creatorAvatars = formatted
             .map((l) => l.creator?.avatar_url)
             .filter((url): url is string => Boolean(url));
@@ -184,11 +172,7 @@ export function useLoopDirectory({
           (a, b) => new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime()
         );
         activeLoopsRef.current = sorted;
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem("loop_active_loops_cache", JSON.stringify(sorted));
-          } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
-        }
+        writeOwnedCache("loop_active_loops_cache", sorted, session.user.id);
         return sorted;
       });
       setUserLoops((prev) => {
@@ -213,7 +197,7 @@ export function useLoopDirectory({
       });
       setSelectedLoop(newLoop);
     },
-    [session?.user?.id, setSelectedLoop, setUserLoops, setUserJoinedLoops, userLoopsRef, userJoinedLoopsRef]
+    [session.user.id, setSelectedLoop, setUserLoops, setUserJoinedLoops]
   );
 
   // Resume joining after profile completion modal

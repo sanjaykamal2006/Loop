@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "verify:deps": "npm ls --all --omit=optional",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "check:secrets": "node scripts/check-secrets.cjs",
     "sync-repo": "node scripts/sync-repo.js"
   },
   "dependencies": {

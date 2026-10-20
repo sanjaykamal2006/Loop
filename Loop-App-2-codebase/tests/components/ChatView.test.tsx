@@ -68,7 +68,9 @@ const baseContext = {
     creator_id: 'user-1',
     start_point: 'VIT-AP Main Gate',
     destination: 'Vijayawada Station',
-    departure_time: '2026-10-15T18:00:00.000Z',
+    // Always in the future: hardcoded calendar dates rot the moment the
+    // current date passes them (this fixture originally said 2026-10-15).
+    departure_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     participants_limit: 4,
     member_count: 1,
     status: 'open',

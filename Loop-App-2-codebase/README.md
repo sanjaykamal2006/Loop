@@ -113,8 +113,12 @@ All server-side API endpoints are located under `src/app/api/`:
 - **Headers:** `Authorization: Bearer <CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>`
 
 ### `POST /api/cleanup`
-- **Purpose:** Automated cron maintenance to expire completed loops and archive past chats.
-- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET>` (route answers 503 when unset; `GET` is rejected with 405)
+- **Purpose:** Automated maintenance: moves rides whose departure window has passed to `ended` (so ride history works), then purges rides older than 7 days.
+- **How it runs:** three interchangeable paths —
+  1. **pg_cron** (preferred, in-DB): migration `20261024_ride_lifecycle_and_privacy.sql` schedules `expire_old_loops()` every 15 min and `purge_old_data()` daily when the `pg_cron` extension is available.
+  2. **GitHub Action** (fallback when pg_cron is unavailable): `Daily Ride Cleanup` workflow POSTs to this endpoint daily at 03:33 UTC. Requires the `CLEANUP_CRON_SECRET` and `LOOP_APP_URL` (or `NEXT_PUBLIC_SITE_URL`) repo secrets/variables.
+  3. **Manual** trigger same as above.
+- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET>` (route answers 503 when unset; `GET` is rejected with 405; IP rate-limited to 10/10min)
 
 ---
 
@@ -168,13 +172,13 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 285 unit, component, and API tests (28 database contract tests skip unless TEST_DATABASE_URL is set)
+# Run 285 unit, component, and API tests (31 database contract tests skip unless TEST_DATABASE_URL is set)
 npm run test:run
 
 # Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)
 npm run test:coverage
 
-# Run read-only database schema & behavioral RLS contract tests (28 tests) against a live PostgreSQL 17 instance
+# Run read-only database schema & behavioral RLS contract tests (31 tests) against a live PostgreSQL 17 instance
 $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
 
 # Run end-to-end browser automation suite via Playwright

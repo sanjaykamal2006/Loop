@@ -20,6 +20,7 @@ This document covers production operations for `https://loop-app.runs-on.dev` an
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for account deletion, admin routes, and the shared rate limiter |
 | `CLEANUP_CRON_SECRET` | Bearer secret for `/api/cleanup` |
 | `ADMIN_STATS_SECRET` | Bearer secret for `/api/admin/stats` (falls back to `CLEANUP_CRON_SECRET`) |
+| `EXTERNAL_EMAIL_WHITELIST` | Optional comma-separated outside emails allowed past the institutional-domain gate. Personal emails are NOT hardcoded in the bundle; the DB `allowed_external_emails` table remains authoritative for signups. |
 | `ASSETLINKS_SHA256` | Optional Android TWA signing fingerprints |
 | `NEXT_PUBLIC_PACKAGE_NAME` | Optional TWA package name |
 
@@ -104,6 +105,30 @@ Expected: `false, false, true`.
 
 `.github/workflows/uptime.yml` runs every 15 minutes and requires HTTP 2xx plus `"status":"healthy"` from `/api/keep-alive`. Investigate a red run before the next deployment.
 
+### Ride lifecycle & data purge
+
+Migration `20261024_ride_lifecycle_and_privacy.sql` introduced real ride lifecycle maintenance. Rides whose `expires_at` has passed move to `ended` (visible in ride history), and rides older than 7 days are purged along with their messages. Three interchangeable paths — configure at least one:
+
+1. **pg_cron (preferred):** the migration schedules `expire_old_loops()` every 15 minutes and `purge_old_data()` daily when the `pg_cron` extension is available. Verify after deployment:
+   ```sql
+   select jobname, schedule, active from cron.job;
+   select status, count(*) from cron.job_run_details where jobname='loop-expire-rides' group by status;
+   ```
+2. **GitHub Action fallback:** `.github/workflows/cleanup.yml` POSTs to `/api/cleanup` daily at 03:33 UTC. Requires repository secret `CLEANUP_CRON_SECRET` and secret/variable `LOOP_APP_URL` (falls back to `NEXT_PUBLIC_SITE_URL`). A red run is actionable — check the workflow log for the HTTP status.
+3. **Manual:** trigger the workflow from the Actions tab, or call the endpoint yourself:
+   ```bash
+   curl -X POST "https://loop-app.runs-on.dev/api/cleanup" \
+     -H "Authorization: Bearer $CLEANUP_CRON_SECRET"
+   ```
+   The endpoint is IP rate-limited (10 requests / 10 min) ahead of the bearer check.
+
+Verify lifecycles are being applied (a healthy project shows few stuck `open` rows with past `expires_at`):
+
+```sql
+select status, count(*) from public.loops group by status order by status;
+select count(*) from public.loops where expires_at < now() and status in ('open','started','active','in_progress');
+```
+
 ### Database bloat
 
 Run `VACUUM (ANALYZE)` during a low-traffic window, for example from the SQL editor:
@@ -131,7 +156,7 @@ Dependabot opens pull requests for npm and GitHub Actions updates. Security upda
 
 ## 6a. Migration Ledger
 
-Every schema change is tracked in the production ledger table `supabase_migrations.schema_migrations` (28 rows as of 2026-10-20). To inspect or extend it:
+Every schema change is tracked in the production ledger table `supabase_migrations.schema_migrations` (29 rows as of 2026-10-24). To inspect or extend it:
 
 ```bash
 # What is recorded?

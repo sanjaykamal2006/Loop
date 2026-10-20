@@ -122,7 +122,7 @@ export interface TrustedVehicle {
 
 export interface ExpectedFare {
   id: string;
-  user_id: string;
+  user_id: string | null; // null for other users' rows (identity-minimizing RPC)
   from_location: string;
   to_location: string;
   expected_fare: number;

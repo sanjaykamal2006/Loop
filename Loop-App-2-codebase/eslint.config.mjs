@@ -24,9 +24,9 @@ const eslintConfig = [
     rules: {
       "react/no-unescaped-entities": "off",
       "@next/next/no-img-element": "off",
-      "react-hooks/set-state-in-effect": "off",
-      "react-hooks/preserve-manual-memoization": "off",
-      "react-hooks/purity": "off",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/purity": "warn",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
     },

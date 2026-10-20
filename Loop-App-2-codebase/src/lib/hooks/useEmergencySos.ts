@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { triggerHaptic } from "@/lib/haptics";
+import { toast } from "@/components/ui/NativeToast";
 import type { Session } from "@supabase/supabase-js";
 import type { Loop, EmergencyContact } from "@/lib/types";
 
@@ -135,30 +136,46 @@ export function useEmergencySos({
           }
           return;
         }
+        if (rpcError) {
+          // Warn, then fall through to the differential fallback — but never
+          // claim success if the fallback also fails (evaluated below).
+          logger.warn("sync_emergency_contacts RPC unavailable, using differential fallback:", rpcError);
+        }
 
-        // 2. Fallback: Safe differential sync (inserts before deleting old IDs)
-        const { data: existing } = await supabase
-          .from("emergency_contacts")
-          .select("id")
-          .eq("user_id", session.user.id);
-
-        const existingIds = (existing || []).map((e: { id: string }) => e.id);
-
-        if (trimmed.length > 0) {
-          const insertPayload = trimmed.map((c) => ({
-            user_id: session.user.id,
-            name: c.name.trim(),
-            phone: c.phone.trim(),
-            relation: c.relation || "Parent",
-          }));
-          const { data: inserted, error: insertError } = await supabase
+        // 2. Fallback: Safe differential sync (inserts before deleting old IDs).
+        //    Every failure path is surfaced to the user: SOS contacts must never
+        //    silently exist only on one device.
+        let cloudSyncOk = false;
+        try {
+          const { data: existing, error: readError } = await supabase
             .from("emergency_contacts")
-            .insert(insertPayload)
-            .select("id, name, phone, relation");
+            .select("id")
+            .eq("user_id", session.user.id);
+          if (readError) throw readError;
 
-          if (!insertError && inserted && inserted.length > 0) {
+          const existingIds = (existing || []).map((e: { id: string }) => e.id);
+
+          if (trimmed.length > 0) {
+            const insertPayload = trimmed.map((c) => ({
+              user_id: session.user.id,
+              name: c.name.trim(),
+              phone: c.phone.trim(),
+              relation: c.relation || "Parent",
+            }));
+            const { data: inserted, error: insertError } = await supabase
+              .from("emergency_contacts")
+              .insert(insertPayload)
+              .select("id, name, phone, relation");
+
+            if (insertError) throw insertError;
+            if (!inserted || inserted.length === 0) throw new Error("insert returned no rows");
+
             if (existingIds.length > 0) {
-              await supabase.from("emergency_contacts").delete().in("id", existingIds);
+              const { error: delError } = await supabase
+                .from("emergency_contacts")
+                .delete()
+                .in("id", existingIds);
+              if (delError) throw delError;
             }
             setEmergencyContacts(inserted as EmergencyContact[]);
             if (typeof window !== "undefined") {
@@ -166,12 +183,25 @@ export function useEmergencySos({
                 localStorage.setItem(`loop_emergency_contacts_${session.user.id}`, JSON.stringify(inserted));
               } catch (err) { logger.error("src/lib/hooks/useEmergencySos.ts: swallowed non-fatal error", err); }
             }
+            cloudSyncOk = true;
+          } else if (existingIds.length > 0) {
+            const { error: delError } = await supabase.from("emergency_contacts").delete().in("id", existingIds);
+            if (delError) throw delError;
+            cloudSyncOk = true;
+          } else {
+            // Nothing to insert, nothing to remove: cloud already matches.
+            cloudSyncOk = true;
           }
-        } else if (existingIds.length > 0) {
-          await supabase.from("emergency_contacts").delete().in("id", existingIds);
+        } catch (fbErr) {
+          logger.warn("Emergency contacts cloud sync fallback failed; contacts stay on this device:", fbErr);
+        }
+
+        if (!cloudSyncOk) {
+          toast.error("Contacts saved on this device, but syncing to the cloud failed. They may not appear on other devices.");
         }
       } catch (dbErr) {
         logger.warn("Emergency contacts database sync notice:", dbErr);
+        toast.error("Contacts saved on this device, but syncing to the cloud failed. They may not appear on other devices.");
       }
     },
     [session.user.id]

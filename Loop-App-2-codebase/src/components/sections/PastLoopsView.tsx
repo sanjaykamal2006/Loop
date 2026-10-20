@@ -95,7 +95,7 @@ export default function PastLoopsView() {
         setIsSyncing(false);
       }
     },
-    [session.user.id, pastLoops.length]
+    [session, pastLoops.length]
   );
 
   useEffect(() => {

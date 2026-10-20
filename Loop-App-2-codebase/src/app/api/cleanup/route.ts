@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import crypto from 'crypto';
 import type { Database } from '@/lib/database.types';
 
@@ -21,6 +22,16 @@ function safeCompare(a: string, b: string): boolean {
 // internal errors are logged, never returned.
 export async function POST(request: NextRequest) {
   try {
+    // Brute-force throttle ahead of the bearer check, keyed by caller IP
+    // (scheduled GitHub Action calls arrive daily — a 10/10min IP budget is ample).
+    const limit = await checkRateLimit(`cleanup:${getClientIp(request)}`, 10, 10 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(limit.resetInSeconds) } }
+      );
+    }
+
     const authHeader = request.headers.get('authorization') || '';
     const expectedToken = process.env.CLEANUP_CRON_SECRET;
 

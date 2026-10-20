@@ -1,4 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// The external whitelist is env-sourced (no personal emails in the bundle).
+// vi.hoisted: must run before the module import — the list is captured at init.
+vi.hoisted(() => {
+  process.env.EXTERNAL_EMAIL_WHITELIST = "test-admin@example.com";
+});
+
 import {
   ALLOWED_INSTITUTIONAL_DOMAINS,
   INSTITUTIONAL_ERROR_MESSAGE,
@@ -60,8 +67,10 @@ describe("authConfig", () => {
       expect(isAllowedInstitutionalEmail("@")).toBe(false);
     });
 
-    it("should validate founder/admin whitelisted email", () => {
-      expect(isAllowedInstitutionalEmail("sanjaykamal2006@gmail.com")).toBe(true);
+    it("should allow env-sourced external whitelist emails", () => {
+      expect(isAllowedInstitutionalEmail("test-admin@example.com")).toBe(true);
+      // Emails not in the env whitelist (and not institutional) stay rejected.
+      expect(isAllowedInstitutionalEmail("someone-else@gmail.com")).toBe(false);
     });
   });
 });

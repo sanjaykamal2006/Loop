@@ -30,3 +30,37 @@ export function clearUserStorage(): void {
     // Storage can be unavailable (private mode); sign-out must still proceed.
   }
 }
+
+/**
+ * Per-user owned cache entries. Stored shape: { __owner: <user id>, v: value }.
+ * Restoring is only allowed for the same owner, so two accounts sharing a
+ * device can never read each other's cached state (ride cards, selected loop,
+ * unread badges).
+ */
+export const CACHE_OWNER_FIELD = "__owner";
+
+export function writeOwnedCache(key: string, value: unknown, ownerId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify({ [CACHE_OWNER_FIELD]: ownerId, v: value }));
+  } catch {
+    // Private mode / quota — cache is best-effort.
+  }
+}
+
+export function readOwnedCache<T>(key: string, ownerId: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { __owner?: string; v?: T };
+    if (!parsed || parsed.__owner !== ownerId) {
+      // Owner mismatch (shared device) — clear the stale entry.
+      window.localStorage.removeItem(key);
+      return null;
+    }
+    return parsed.v ?? null;
+  } catch {
+    return null;
+  }
+}

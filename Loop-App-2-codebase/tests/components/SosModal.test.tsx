@@ -46,7 +46,8 @@ const baseContext = {
     id: 'loop-1',
     start_point: 'VIT-AP Main Gate',
     destination: 'Vijayawada Railway Station',
-    departure_time: '2026-10-12T16:30:00.000Z',
+    // Always in the future: hardcoded calendar dates rot (was 2026-10-12).
+    departure_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
     creator: { display_name: 'Sanjay Kamal S', reg_no: '24MIC7130' },
   },
   activeLoops: [],
@@ -132,7 +133,8 @@ describe('SosModal Component', () => {
         id: 'loop-cached-99',
         start_point: 'VIT-AP Gate 1',
         destination: 'Guntur Junction',
-        departure_time: '2026-10-12T18:00:00.000Z',
+        // Always in the future: hardcoded calendar dates rot (was 2026-10-12).
+        departure_time: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
         creator: { display_name: 'Ravi Kumar', reg_no: '24BCE1001' },
         lease_ttl: Date.now() + 3600000,
       })

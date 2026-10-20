@@ -1,4 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// The external whitelist is env-sourced (no personal emails in the bundle).
+// vi.hoisted: must run before the module import — the list is captured at init.
+vi.hoisted(() => {
+  process.env.EXTERNAL_EMAIL_WHITELIST = "test-admin@example.com";
+});
+
 import { parseStudentEmail, isAllowedStudentEmail } from "@/lib/studentParser";
 
 describe("studentParser", () => {
@@ -36,8 +43,8 @@ describe("studentParser", () => {
     });
 
     it("should handle external whitelisted emails", () => {
-      const parsed = parseStudentEmail("sanjaykamal2006@gmail.com");
-      expect(parsed.displayName).toBe("Sanjaykamal");
+      const parsed = parseStudentEmail("test-admin@example.com");
+      expect(parsed.displayName).toBe("Test Admin");
       expect(parsed.regNo).toBe("");
       expect(parsed.isVitAp).toBe(false);
       expect(parsed.isStudentDomain).toBe(true);
@@ -71,8 +78,8 @@ describe("studentParser", () => {
       expect(res.reason).toBeUndefined();
     });
 
-    it("should allow hardcoded whitelist emails", () => {
-      const res = isAllowedStudentEmail("sanjaykamal2006@gmail.com");
+    it("should allow env-whitelisted external emails", () => {
+      const res = isAllowedStudentEmail("test-admin@example.com");
       expect(res.allowed).toBe(true);
     });
 

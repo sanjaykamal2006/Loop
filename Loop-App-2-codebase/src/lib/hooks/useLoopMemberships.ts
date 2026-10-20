@@ -202,48 +202,48 @@ export function useLoopMemberships({
 
       setIsDeleting(true);
       try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc("delete_loop", {
-          target_loop_id: loopId,
+        // delete_loop is a soft-cancel (status -> 'cancelled') gated by RLS.
+        // It RETURNS the cancelled row(s); an empty result means the ride was
+        // not found or is not owned by the caller — never treat that as success.
+        const { data: rpcRows, error: rpcError } = await supabase.rpc("delete_loop", {
+          loop_id: loopId,
         });
+        const cancelledRows = Array.isArray(rpcRows) ? rpcRows : [];
 
-        let isSuccess = false;
-
-        if (!rpcError) {
-          const rpcResult = rpcData as { success?: boolean; error?: string } | null;
-          if (rpcResult && typeof rpcResult === "object" && rpcResult.success === false) {
-            toast.error(rpcResult.error || "Failed to delete loop");
-            setIsDeleting(false);
-            return;
-          }
-          isSuccess = true;
+        if (!rpcError && cancelledRows.length > 0) {
+          toast.success("Ride cancelled for everyone");
         } else {
-          logger.warn("delete_loop RPC failed, falling back to direct table update:", rpcError);
-          const { error: updateError } = await supabase
+          if (rpcError) {
+            logger.warn("delete_loop RPC failed, falling back to direct table update:", rpcError);
+          }
+          const { data: updateRows, error: updateError } = await supabase
             .from("loops")
             .update({ status: "cancelled" })
-            .eq("id", loopId);
+            .eq("id", loopId)
+            .select("id");
 
           if (updateError) {
             logger.error("Error deleting loop:", updateError);
-            toast.error(updateError.message || "Failed to delete loop");
-            setIsDeleting(false);
+            toast.error(updateError.message || "Failed to delete ride");
             return;
           }
-          isSuccess = true;
+          if (!updateRows || updateRows.length === 0) {
+            // RLS filtered the row out — the caller does not own this ride.
+            toast.error("Ride not found or you are not the host");
+            return;
+          }
+          toast.success("Ride cancelled for everyone");
         }
 
-        if (isSuccess) {
-          toast.success("Loop deleted");
-          setActiveLoops((prev) => prev.filter((l) => l.id !== loopId));
-          setUserLoops((prev) => prev.filter((id) => id !== loopId));
-          setSelectedLoop(null);
-          setView("home");
-          fetchLoops(true);
-          fetchUserMemberships(true);
-        }
+        setActiveLoops((prev) => prev.filter((l) => l.id !== loopId));
+        setUserLoops((prev) => prev.filter((id) => id !== loopId));
+        setSelectedLoop(null);
+        setView("home");
+        fetchLoops(true);
+        fetchUserMemberships(true);
       } catch (err: unknown) {
         logger.error("Unexpected error deleting loop:", err);
-        toast.error("Failed to delete loop");
+        toast.error("Failed to delete ride");
       } finally {
         setIsDeleting(false);
       }

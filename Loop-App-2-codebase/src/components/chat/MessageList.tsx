@@ -116,7 +116,13 @@ export function MessageList({
           const isLocationMsg = Boolean(mapsUrl);
           const showSender = (idx === 0 || messages[idx - 1]?.user_id !== msg.user_id) && !isLocationMsg;
           const isEditing = editingMsgId === msg.id;
-          const isOptimistic = msg.id.startsWith("opt-");
+          // Optimistic prefixes: "opt-" (useChatRoom), "temp-"/"loc-" (location +
+          // attachment placeholders) — none of these are persisted DB ids, so they
+          // all get the optimistic treatment (no context menu, delivery marker).
+          const isOptimistic =
+            msg.id.startsWith("opt-") ||
+            msg.id.startsWith("temp-") ||
+            msg.id.startsWith("loc-");
           const senderName = isMe ? profile.display_name || "You" : msg.profiles?.display_name || "Member";
           const senderAvatar = isMe ? profile.avatar_url : msg.profiles?.avatar_url;
           const isSearchActive = Boolean(searchQuery.trim());

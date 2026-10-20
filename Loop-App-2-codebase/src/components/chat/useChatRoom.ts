@@ -68,6 +68,9 @@ export function useChatRoom({
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const currentLoopIdRef = useRef<string | null>(null);
   const loopMembersRef = useRef<LoopMember[]>([]);
+  // Monotonic fetch generation: replies from a stale fetch (loop switched,
+  // slow poll raced a realtime refresh) must never paint or overwrite cache.
+  const fetchGenRef = useRef(0);
   // Owner of the module-level in-memory message cache; the mount effect wipes
   // the cache when a different account starts using the same tab.
   const cacheOwnerRef = useRef<string | null>(null);
@@ -121,6 +124,7 @@ export function useChatRoom({
 
   const fetchMessages = useCallback(
     async (loopId: string) => {
+      const gen = ++fetchGenRef.current;
       const { data, error } = await supabase
         .from("messages")
         .select(
@@ -130,6 +134,8 @@ export function useChatRoom({
         .order("created_at", { ascending: false })
         .limit(PAGE_SIZE);
 
+      if (gen !== fetchGenRef.current) return; // a newer fetch superseded this one
+
       if (error) {
         logger.error("fetchMessages error:", error);
         const { data: fallbackData } = await supabase
@@ -138,6 +144,7 @@ export function useChatRoom({
           .eq("loop_id", loopId)
           .order("created_at", { ascending: false })
           .limit(PAGE_SIZE);
+        if (gen !== fetchGenRef.current) return; // stale during the fallback round-trip
         if (fallbackData) {
           const enriched = fallbackData.reverse().map((m) => {
             const sender = loopMembersRef.current.find((mem) => mem.user_id === m.user_id);
@@ -276,6 +283,7 @@ export function useChatRoom({
     setIsLoadingMore(true);
 
     const oldestMessage = messages[0];
+    const gen = fetchGenRef.current; // superseded fetches apply, but must not paint a different loop
     const { data, error } = await supabase
       .from("messages")
       .select(
@@ -286,6 +294,10 @@ export function useChatRoom({
       .order("created_at", { ascending: false })
       .limit(PAGE_SIZE);
 
+    if (gen !== fetchGenRef.current) {
+      setIsLoadingMore(false);
+      return;
+    }
     if (!error && data && data.length > 0) {
       const olderMessages = (data as unknown as Message[]).reverse();
       setMessages((prev) => {
@@ -334,7 +346,9 @@ export function useChatRoom({
 
       if (error) {
         logger.error("Send message error:", error);
-        toast.error("Message failed to send");
+        // DB-side fair-use caps (rate limits) send user-friendly message text;
+        // surface it instead of the generic failure toast.
+        toast.error(error.message || "Message failed to send");
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setNewMessage(textToSend);
       } else if (data) {

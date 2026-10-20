@@ -1,0 +1,44 @@
+name: Daily Ride Cleanup
+
+on:
+  schedule:
+    # Runs daily at 03:33 UTC. Fallback for environments where the pg_cron
+    # extension is not available; where pg_cron IS available the schedules in
+    # migration 20261024 handle expiry (15-min) and purge (daily) in-DB.
+    - cron: '33 3 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+# This workflow only performs an outbound HTTP call: no repository access at all.
+permissions: {}
+
+jobs:
+  cleanup:
+    name: Trigger /api/cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call cleanup endpoint
+        env:
+          CLEANUP_CRON_SECRET: ${{ secrets.CLEANUP_CRON_SECRET }}
+          APP_URL: ${{ secrets.LOOP_APP_URL || vars.LOOP_APP_URL || vars.NEXT_PUBLIC_SITE_URL }}
+        run: |
+          if [ -z "$CLEANUP_CRON_SECRET" ]; then
+            echo "::error::Missing CLEANUP_CRON_SECRET secret. Add it in Repo Settings > Secrets > Actions (or rely on pg_cron)."
+            exit 1
+          fi
+          if [ -z "$APP_URL" ]; then
+            echo "::error::Missing LOOP_APP_URL secret/variable (or NEXT_PUBLIC_SITE_URL variable)."
+            exit 1
+          fi
+          HTTP_STATUS=$(curl -s -o /tmp/cleanup-response.json -w "%{http_code}" \
+            -X POST "${APP_URL%/}/api/cleanup" \
+            -H "Authorization: Bearer $CLEANUP_CRON_SECRET" \
+            -H "Content-Type: application/json")
+          echo "Cleanup endpoint responded with HTTP $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Cleanup trigger completed."
+            cat /tmp/cleanup-response.json
+          else
+            echo "Cleanup trigger failed:" >&2
+            cat /tmp/cleanup-response.json >&2
+            exit 1
+          fi

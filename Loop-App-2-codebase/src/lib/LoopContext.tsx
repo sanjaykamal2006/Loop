@@ -2,10 +2,11 @@
 
 import { logger } from "@/lib/logger";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
+import { readOwnedCache, writeOwnedCache } from "@/lib/storage";
 import type { View, Loop, Profile, ThemeClasses, EmergencyContact } from "@/lib/types";
 import { useAuthSession } from "@/lib/hooks/useAuthSession";
 import { useEmergencySos } from "@/lib/hooks/useEmergencySos";
@@ -104,17 +105,16 @@ export function useLoop() {
 
 export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
   const [view, setViewState] = useState<View>("home");
-  const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("loop_selected_loop");
-        if (cached) return JSON.parse(cached);
-      } catch (err) { logger.error("src/lib/LoopContext.tsx: swallowed non-fatal error", err); }
-    }
-    return null;
-  });
+  const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() =>
+    // Owner-checked cache: two accounts sharing a device never restore
+    // each other's last-opened ride.
+    readOwnedCache<Loop>("loop_selected_loop", session.user.id)
+  );
 
-  const [unreadLoopIds, setUnreadLoopIds] = useState<string[]>([]);
+  // Unread badges survive reloads via the same owner-checked cache.
+  const [unreadLoopIds, setUnreadLoopIds] = useState<string[]>(
+    () => readOwnedCache<string[]>("loop_unread_loopids", session.user.id) ?? []
+  );
   const [chatSource, setChatSource] = useState<"ride-details" | "chat-list">("ride-details");
   const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
 
@@ -139,20 +139,21 @@ export function LoopProvider({ session, children }: { session: Session; children
     if (loop?.id) {
       setUnreadLoopIds((prev) => prev.filter((id) => id !== loop.id));
     }
-    if (typeof window !== "undefined") {
-      try {
-        if (loop) {
-          localStorage.setItem("loop_selected_loop", JSON.stringify(loop));
-        } else {
-          localStorage.removeItem("loop_selected_loop");
-        }
-      } catch (err) { logger.error("src/lib/LoopContext.tsx: swallowed non-fatal error", err); }
+    if (loop) {
+      writeOwnedCache("loop_selected_loop", loop, session.user.id);
+    } else {
+      writeOwnedCache("loop_selected_loop", null, session.user.id);
     }
-  }, []);
+  }, [session.user.id]);
 
   const markLoopAsRead = useCallback((loopId: string) => {
     setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
   }, []);
+
+  // Persist the unread badge set so it survives reloads (per account).
+  useEffect(() => {
+    writeOwnedCache("loop_unread_loopids", unreadLoopIds, session.user.id);
+  }, [unreadLoopIds, session.user.id]);
 
   // Auth & Profile & Theme hook
   const {
@@ -310,7 +311,8 @@ export function LoopProvider({ session, children }: { session: Session; children
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
   }, []);
 
-  const value: LoopContextValue = {
+  const value: LoopContextValue = useMemo(
+    () => ({
     session,
     view,
     setView,
@@ -368,7 +370,21 @@ export function LoopProvider({ session, children }: { session: Session; children
     isChatSearchOpen,
     setIsChatSearchOpen,
     toggleChatSearch,
-  };
+  }),
+    [
+      session, view, setView, selectedLoop, setSelectedLoop, theme, themeTransition, toggleTheme,
+      profile, isProfileLoaded, updateProfile, handleSignOut, activeLoops, fetchLoops,
+      userJoinedLoops, userLoops, fetchUserMemberships, registerCreatedLoop, joinLoop, deleteLoop,
+      leaveLoop, isJoining, isDeleting, showGenderSelect, setShowGenderSelect, pendingAction,
+      setPendingAction, formatTime, chatSource, setChatSource, unreadLoopIds, markLoopAsRead,
+      createPrefill, setCreatePrefill, emergencyContact, emergencyContacts, saveEmergencyContact,
+      saveEmergencyContacts, showSosModal, setShowSosModal, showEmergencyContactModal,
+      setShowEmergencyContactModal, triggerSos, showTermsModal, setShowTermsModal,
+      showTeluguGuideModal, setShowTeluguGuideModal, showCreatorModal, setShowCreatorModal,
+      showBuyCoffeeModal, setShowBuyCoffeeModal, isMessageSearchOpen, setIsMessageSearchOpen,
+      toggleMessageSearch, isChatSearchOpen, setIsChatSearchOpen, toggleChatSearch,
+    ]
+  );
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;
 }
