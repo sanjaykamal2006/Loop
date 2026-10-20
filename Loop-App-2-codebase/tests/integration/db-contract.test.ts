@@ -7,10 +7,11 @@ import postgres from "postgres";
  * These assertions encode the security and schema invariants that must hold
  * after every migration or RLS change.
  * In local dev without a test database, these are skipped unless you provide
- * TEST_DATABASE_URL. In CI, a PostgreSQL 15 service container applies all
+ * TEST_DATABASE_URL. In CI, a PostgreSQL 17 service container applies all
  * migrations and runs this suite against TEST_DATABASE_URL.
  *
- * PostgreSQL 15+ compatible (pinned to postgres:15 in CI to match Supabase Postgres version).
+ * PostgreSQL 17+ compatible (pinned to postgres:17 in CI to match the
+ * production Supabase PostgreSQL version).
  *
  * Run against a test/branch database, or read-only against production:
  *   PowerShell:  $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
@@ -469,12 +470,13 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       expect(loop).toBeDefined();
       expect(loop.creator_id).toBeNull();
 
-      // 6. Assert message survived with user_id = NULL (anonymised, NOT wiped, NOT blocked by trigger)
+      // 6. Assert message survived with user_id = NULL and the body scrubbed by
+      //    trg_scrub_user_message_content (true-erasure privacy guarantee).
       const [msg] = await tx<{ user_id: string | null; content: string }[]>`
         SELECT user_id, content FROM public.messages WHERE id = ${testMsgId}
       `;
       expect(msg).toBeDefined();
-      expect(msg.content).toBe('Hello from delete test!');
+      expect(msg.content).toBe("[Message removed: account deleted]");
       expect(msg.user_id).toBeNull();
 
       // 7. Verify the trigger STILL prevents transferring to another active user
@@ -574,10 +576,14 @@ describe.skipIf(!hasDb)("database schema contract", () => {
     const expectedTriggers = [
       { trigger_name: "trg_check_emergency_contacts_limit", table_name: "emergency_contacts", function_name: "check_emergency_contacts_limit" },
       { trigger_name: "trg_check_loop_capacity", table_name: "loop_members", function_name: "check_loop_capacity" },
+      { trigger_name: "trg_join_rate_cap", table_name: "loop_members", function_name: "enforce_join_rate_cap" },
       { trigger_name: "trg_auto_add_creator_to_loop_members", table_name: "loops", function_name: "auto_add_creator_to_loop_members" },
       { trigger_name: "trg_check_active_loops_quota", table_name: "loops", function_name: "check_active_loops_quota" },
+      { trigger_name: "trg_loop_rate_cap", table_name: "loops", function_name: "enforce_loop_rate_cap" },
       { trigger_name: "trg_protect_message_updates", table_name: "messages", function_name: "protect_message_updates" },
+      { trigger_name: "trg_delete_user_avatars", table_name: "profiles", function_name: "delete_user_avatars" },
       { trigger_name: "trg_protect_profile_updates", table_name: "profiles", function_name: "protect_profile_updates" },
+      { trigger_name: "trg_scrub_user_message_content", table_name: "profiles", function_name: "scrub_user_message_content" },
     ];
 
     expect(triggers.length).toBe(expectedTriggers.length);
@@ -950,6 +956,284 @@ describe.skipIf(!hasDb)("database schema contract", () => {
         }
       }).catch(() => {});
       expect(genderErrMsg).toMatch(/Cannot change gender while actively hosting or participating in a female-only ride/i);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  // ===========================================================================
+  // Contact-gating / female-only / rate-cap behaviors
+  // (20261023_contact_gating_and_female_only.sql)
+  // ===========================================================================
+
+  it("blocks a male creator from inserting or switching a loop to female-only (RLS)", async () => {
+    const maleCreator = "a1000000-0000-4000-8000-000000000001";
+    const femalePeer = "a1000000-0000-4000-8000-000000000002";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${maleCreator}, 'male_creator@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name, gender) VALUES (${maleCreator}, 'Male Creator', 'male') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO auth.users (id, email) VALUES (${femalePeer}, 'female_peer@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name, gender) VALUES (${femalePeer}, 'Female Peer', 'female') ON CONFLICT (id) DO NOTHING`;
+
+      // Male creator setting session context and inserting female-only loop
+      await tx`SELECT set_config('request.jwt.claim.sub', ${maleCreator}, true)`;
+      await tx`SELECT set_config('request.jwt.claim.role', 'authenticated', true)`;
+      await tx`SET LOCAL ROLE authenticated`;
+
+      let firstErr = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (id, creator_id, destination, participants_limit, is_female_only, status, expires_at)
+            VALUES ('a1000000-0000-4000-8000-000000000011', ${maleCreator}, 'Campus Gate', 2, true, 'open', now() + interval '3 hours')
+          `;
+        } catch (err: unknown) {
+          firstErr = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(firstErr).toMatch(/new row violates row-level security policy/i);
+
+      // A female creator CAN create the female-only loop
+      await tx`SELECT set_config('request.jwt.claim.sub', ${femalePeer}, true)`;
+      let created = false;
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`
+            INSERT INTO public.loops (id, creator_id, destination, participants_limit, is_female_only, status, expires_at)
+            VALUES ('a1000000-0000-4000-8000-000000000012', ${femalePeer}, 'Mall Road', 2, true, 'open', now() + interval '3 hours')
+          `;
+          created = true;
+        } catch {
+          // rejection is measured via `created`; savepoint rolled back below
+        }
+      }).catch(() => {});
+      expect(created).toBe(true);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("blocks a male joiner from joining someone else's female-only loop (RLS)", async () => {
+    const femaleHost = "a1000000-0000-4000-8000-000000000003";
+    const maleUser = "a1000000-0000-4000-8000-000000000004";
+    const effLoop = "a1000000-0000-4000-8000-000000000013";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${femaleHost}, 'fo_host@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name, gender) VALUES (${femaleHost}, 'Female Host Flex', 'female') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO auth.users (id, email) VALUES (${maleUser}, 'male_join@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name, gender) VALUES (${maleUser}, 'Male Joiner', 'male') ON CONFLICT (id) DO NOTHING`;
+
+      // Host seeds her ride directly (bypass RLS as superuser; triggers still run)
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, is_female_only, status, expires_at)
+        VALUES (${effLoop}, ${femaleHost}, 'Market', 3, true, 'open', now() + interval '3 hours')
+      `;
+
+      // Male attempts self-join under his own authenticated context
+      await tx`SELECT set_config('request.jwt.claim.sub', ${maleUser}, true)`;
+      await tx`SELECT set_config('request.jwt.claim.role', 'authenticated', true)`;
+      await tx`SET LOCAL ROLE authenticated`;
+
+      let joinErr = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${effLoop}, ${maleUser})`;
+        } catch (err: unknown) {
+          joinErr = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(joinErr).toMatch(/new row violates row-level security policy/i);
+
+      // The female host is auto-added by the loop-creation trigger and remains
+      // the only (female) member after the rejected male join.
+      await tx`SELECT set_config('request.jwt.claim.sub', ${femaleHost}, true)`;
+      const roster = await tx<{ user_id: string }[]>`SELECT user_id FROM public.loop_members WHERE loop_id = ${effLoop}`;
+      expect(roster.map((m) => m.user_id)).toEqual([femaleHost]);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("gates get_loop_contacts: latest joiner sees only self + host; earlier joiner sees later passenger; host sees all", async () => {
+    const host = "a1000000-0000-4000-8000-000000000005";
+    const p1 = "a1000000-0000-4000-8000-000000000006"; // joined first
+    const p2 = "a1000000-0000-4000-8000-000000000007"; // joined after p1
+    const drifter = "a1000000-0000-4000-8000-000000000008"; // joined last (attacker spot)
+    const rideId = "a1000000-0000-4000-8000-000000000021";
+
+    await sql.begin(async (tx) => {
+      for (const [id, name, gender, email] of [
+        [host, "Gate Host", "female", "host_gate@vitapstudent.ac.in"],
+        [p1, "Passenger One", "female", "p1@vitapstudent.ac.in"],
+        [p2, "Passenger Two", "female", "p2@vitapstudent.ac.in"],
+        [drifter, "Driveby Rita", "female", "drifter@vitapstudent.ac.in"],
+      ] as const) {
+        await tx`INSERT INTO auth.users (id, email) VALUES (${id}, ${email}) ON CONFLICT (id) DO NOTHING`;
+        await tx`INSERT INTO public.profiles (id, display_name, gender) VALUES (${id}, ${name}, ${gender}) ON CONFLICT (id) DO NOTHING`;
+      }
+
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${rideId}, ${host}, 'Station Y', 4, 'open', now() + interval '4 hours')
+      `;
+      // Distinct join order so the visibility rule is unambiguous (same-tx
+      // now() ticks would otherwise collide).
+      await tx`INSERT INTO public.loop_members (loop_id, user_id, joined_at) VALUES (${rideId}, ${p1}, now() - interval '12 minutes')`;
+      await tx`INSERT INTO public.loop_members (loop_id, user_id, joined_at) VALUES (${rideId}, ${p2}, now() - interval '6 minutes')`;
+      await tx`INSERT INTO public.loop_members (loop_id, user_id, joined_at) VALUES (${rideId}, ${drifter}, now() - interval '1 minute')`;
+
+      for (const id of [host, p1, p2, drifter]) {
+        const phone = "91000000" + id.substring(35);
+        await tx`INSERT INTO public.profile_contacts (user_id, phone_number) VALUES (${id}, ${phone}) ON CONFLICT (user_id) DO NOTHING`;
+      }
+
+      const callAs = async (user: string) => {
+        await tx`SELECT set_config('request.jwt.claim.sub', ${user}, true)`;
+        await tx`SELECT set_config('request.jwt.claim.role', 'authenticated', true)`;
+        await tx`SET LOCAL ROLE authenticated`;
+        return tx<{ user_id: string }[]>`
+          SELECT user_id FROM public.get_loop_contacts(${rideId}) ORDER BY user_id
+        `;
+      };
+
+      // Seed the outsider BEFORE switching to the authenticated role; INSERTs
+      // into auth.users are not available as `authenticated`.
+      const outsider = "a1000000-0000-4000-8000-000000000009";
+      await tx`INSERT INTO auth.users (id, email) VALUES (${outsider}, 'outsider@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${outsider}, 'Outsider') ON CONFLICT (id) DO NOTHING`;
+
+      // Host sees all four
+      const seenByHost = (await callAs(host)).map((r) => r.user_id).sort();
+      expect(seenByHost).toEqual([drifter, host, p1, p2].sort());
+
+      // p1 (earliest passenger) sees self + host + later joiners (p2, drifter)
+      const seenByP1 = (await callAs(p1)).map((r) => r.user_id).sort();
+      expect(seenByP1).toEqual([drifter, host, p1, p2].sort());
+
+      // p2 joined BEFORE drifter but AFTER p1: sees self + host + only the
+      // joiner who arrived after p2. p1's number stays invisible to p2.
+      const seenByP2 = (await callAs(p2)).map((r) => r.user_id).sort();
+      expect(seenByP2).toEqual([drifter, host, p2].sort());
+
+      // Drive-by (latest joiner) harvests nobody but self + host
+      const seenByDrifter = (await callAs(drifter)).map((r) => r.user_id).sort();
+      expect(seenByDrifter).toEqual([drifter, host].sort());
+
+      // Non-member gets an empty set
+      const seenByOutsider = await callAs(outsider);
+      expect(seenByOutsider.length).toBe(0);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("caps ride joins at 8 per account per 24 hours", async () => {
+    const hoarder = "a1000000-0000-4000-8000-00000000000a";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${hoarder}, 'hoarder@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${hoarder}, 'Hoarder') ON CONFLICT (id) DO NOTHING`;
+
+      // Eight rides, each under a distinct host, so every host stays far below
+      // its own creation / membership caps. The hoarder joins all eight with
+      // fresh timestamps (joined_at = now()) — all inside the 24 h window.
+      for (let i = 1; i <= 8; i++) {
+        const n = i.toString().padStart(2, "0");
+        const host = `a1000000-0000-4000-8000-00000000c1${n}`;
+        await tx`INSERT INTO auth.users (id, email) VALUES (${host}, ${"host_cap" + i + "@vitapstudent.ac.in"}) ON CONFLICT (id) DO NOTHING`;
+        await tx`INSERT INTO public.profiles (id, display_name) VALUES (${host}, ${"Host Cap " + i}) ON CONFLICT (id) DO NOTHING`;
+        const rideId = `a1000000-0000-4000-8000-0000000020${n}`;
+        await tx`
+          INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+          VALUES (${rideId}, ${host}, ${"Metro " + i}, 4, 'open', now() + interval '4 hours')
+        `;
+        await tx`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${rideId}, ${hoarder})`;
+      }
+
+      // A 9th join within the 24 h window is rejected by trg_join_rate_cap.
+      // The 9th host is unused, so the loop insert itself cannot be the error.
+      const ninthHost = "a1000000-0000-4000-8000-00000000c199";
+      await tx`INSERT INTO auth.users (id, email) VALUES (${ninthHost}, 'host_cap9@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${ninthHost}, 'Host Cap 9') ON CONFLICT (id) DO NOTHING`;
+      const ninth = "a1000000-0000-4000-8000-000000002099";
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${ninth}, ${ninthHost}, 'Metro 9', 4, 'open', now() + interval '4 hours')
+      `;
+
+      let capErr = "";
+      await tx.savepoint(async (sp) => {
+        try {
+          await sp`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${ninth}, ${hoarder})`;
+        } catch (err: unknown) {
+          capErr = (err as Error).message;
+          throw err;
+        }
+      }).catch(() => {});
+      expect(capErr).toMatch(/Too many rides joined in the last 24 hours/i);
+
+      throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
+    }).catch((err) => {
+      if (err.message !== "ROLLBACK_FOR_TEST_ISOLATION") throw err;
+    });
+  }, DB_TIMEOUT_MS);
+
+  it("author deletes own message; host may moderate; a plain member may not", async () => {
+    const author = "a1000000-0000-4000-8000-00000000000c";
+    const host = "a1000000-0000-4000-8000-00000000000d";
+    const bystander = "a1000000-0000-4000-8000-00000000000e";
+    const rideId = "a1000000-0000-4000-8000-000000000022";
+    const msgA = "a1000000-0000-4000-8000-000000000023";
+    const msgB = "a1000000-0000-4000-8000-000000000024";
+
+    await sql.begin(async (tx) => {
+      await tx`INSERT INTO auth.users (id, email) VALUES (${author}, 'author_del@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${author}, 'Author') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO auth.users (id, email) VALUES (${host}, 'host_mod@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${host}, 'Host Mod') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO auth.users (id, email) VALUES (${bystander}, 'bystander@vitapstudent.ac.in') ON CONFLICT (id) DO NOTHING`;
+      await tx`INSERT INTO public.profiles (id, display_name) VALUES (${bystander}, 'Bystander') ON CONFLICT (id) DO NOTHING`;
+
+      await tx`
+        INSERT INTO public.loops (id, creator_id, destination, participants_limit, status, expires_at)
+        VALUES (${rideId}, ${host}, 'Campus B', 3, 'open', now() + interval '3 hours')
+      `;
+      for (const id of [author, bystander]) {
+        await tx`INSERT INTO public.loop_members (loop_id, user_id) VALUES (${rideId}, ${id})`;
+      }
+      await tx`INSERT INTO public.messages (id, loop_id, user_id, content) VALUES (${msgA}, ${rideId}, ${author}, 'my message to delete')`;
+      await tx`INSERT INTO public.messages (id, loop_id, user_id, content) VALUES (${msgB}, ${rideId}, ${author}, 'my message kept')`;
+
+      await tx`SELECT set_config('request.jwt.claim.sub', ${author}, true)`;
+      await tx`SELECT set_config('request.jwt.claim.role', 'authenticated', true)`;
+      await tx`SET LOCAL ROLE authenticated`;
+      const deletedOwn = await tx`DELETE FROM public.messages WHERE id = ${msgA} RETURNING id`;
+      expect(deletedOwn.length).toBe(1);
+
+      // Bystander (plain member) cannot delete anyone else's message: RLS makes
+      // the delete a no-op that returns zero rows (and never raises).
+      await tx`SELECT set_config('request.jwt.claim.sub', ${bystander}, true)`;
+      const noop = await tx`DELETE FROM public.messages WHERE id = ${msgB} RETURNING id`;
+      expect(noop.length).toBe(0);
+      const stillThere = await tx<{ id: string }[]>`SELECT id FROM public.messages WHERE id = ${msgB}`;
+      expect(stillThere.length).toBe(1);
+
+      // Host moderation still works under the reconciled messages_delete policy.
+      await tx`SELECT set_config('request.jwt.claim.sub', ${host}, true)`;
+      const moderated = await tx`DELETE FROM public.messages WHERE id = ${msgB} RETURNING id`;
+      expect(moderated.length).toBe(1);
 
       throw new Error("ROLLBACK_FOR_TEST_ISOLATION");
     }).catch((err) => {

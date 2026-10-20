@@ -99,6 +99,7 @@ export default function ProfileQuickActionsCard({
             type="button"
             role="switch"
             aria-checked={notifEnabled}
+            aria-label="Enable notifications"
             onClick={onToggleNotifications}
             className={`w-11 h-6.5 rounded-full p-0.5 transition-colors ease-in-out flex items-center cursor-pointer ${
               notifEnabled

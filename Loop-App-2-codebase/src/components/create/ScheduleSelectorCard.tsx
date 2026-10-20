@@ -119,6 +119,7 @@ export default function ScheduleSelectorCard({
         <input
           ref={dateInputRef}
           type="date"
+          aria-label="Travel date"
           min={todayStr}
           value={travelDate}
           onChange={(e) => setTravelDate(e.target.value)}
@@ -186,6 +187,7 @@ export default function ScheduleSelectorCard({
         <input
           ref={timeInputRef}
           type="time"
+          aria-label="Departure time"
           value={rawTime24}
           onChange={onTimeChange}
           onClick={(e) => {

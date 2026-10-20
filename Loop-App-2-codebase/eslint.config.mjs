@@ -14,6 +14,9 @@ const eslintConfig = [
       "graphify-out/**",
       "scripts/**",
       ".agents/**",
+      // Untracked local tooling (audit agents, editor skills) is not source code.
+      ".claude/**",
+      ".codex/**",
     ],
   },
   {

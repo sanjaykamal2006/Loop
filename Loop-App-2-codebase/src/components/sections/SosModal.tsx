@@ -1,23 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
-import { 
-  ShieldAlert, 
-  X, 
-  Phone, 
-  Send, 
-  MessageSquare, 
-  AlertTriangle, 
-  Edit3, 
-  CheckCircle2, 
-  Loader2 
+import {
+  ShieldAlert,
+  X,
+  Phone,
+  Send,
+  MessageSquare,
+  AlertTriangle,
+  Edit3,
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import { useModalA11y } from "@/lib/hooks/useModalA11y";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
+import { useSosLocation } from "@/lib/hooks/useSosLocation";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 export default function SosModal() {
@@ -36,47 +37,18 @@ export default function SosModal() {
   } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
 
-  const [location, setLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [locError, setLocError] = useState<string | null>(null);
   const [selectedContactIdx, setSelectedContactIdx] = useState(0);
   const modalRef = useModalA11y(showSosModal, () => setShowSosModal(false));
+
+  // GPS state is owned by useSosLocation: a fresh fix every SOS open,
+  // never a leak from a previous session. */
+  const { location, isLocating, locError } = useSosLocation(showSosModal);
 
   // Active targeted emergency contact
   const currentContact = emergencyContacts[selectedContactIdx] || emergencyContacts[0] || null;
   const hasValidContact = Boolean(
     currentContact?.phone && /^[6-9]\d{9}$/.test(sanitizeIndianPhoneNumber(currentContact.phone))
   );
-
-  // Auto-fetch real-time GPS coordinates as soon as SOS opens
-  useEffect(() => {
-    if (!showSosModal) return;
-
-    if (!navigator.geolocation) {
-      setLocError("GPS not supported on this device");
-      return;
-    }
-
-    setIsLocating(true);
-    setLocError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: Math.round(pos.coords.accuracy),
-        });
-        setIsLocating(false);
-      },
-      (err) => {
-        logger.warn("SOS Geolocation error:", err);
-        setLocError("Could not retrieve GPS pin. Sharing ride details.");
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-    );
-  }, [showSosModal]);
 
   if (!showSosModal) return null;
 
@@ -153,7 +125,6 @@ export default function SosModal() {
     const cleanPhone = sanitizeIndianPhoneNumber(currentContact.phone);
     openWhatsApp({ phone: cleanPhone, text: msg });
   };
-
   const handleSmsAlert = () => {
     if (!hasValidContact || !currentContact) {
       toast.error("Please add an emergency contact first");
@@ -396,4 +367,7 @@ export default function SosModal() {
       </div>
     </div>
   );
+
+  // The old GPS-fetch useEffect is now owned by useSosLocation. It guarantees
+  // location resets on every SOS open, eliminating the stale-pin hazard.
 }

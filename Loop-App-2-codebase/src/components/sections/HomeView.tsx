@@ -38,6 +38,14 @@ const LoopCard = React.memo(function LoopCard({
   return (
     <div
       onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       style={{ "--stagger-delay": `${Math.min(index, 8) * 45}ms` } as React.CSSProperties}
       className={`p-3 px-3.5 sm:px-4 flex items-center ${cardBg} rounded-[24px] shadow-sm cursor-pointer active:scale-[0.965] border ${border} relative transition-all duration-150 hover:border-[#FFC554]/30 animate-card-enter`}
     >

@@ -392,7 +392,7 @@ export default function AuthLogin({
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 z-10 text-white/80 hover:text-[#FFC554] active:scale-95 transition-all cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-[#FFC554] active:scale-95 transition-all cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

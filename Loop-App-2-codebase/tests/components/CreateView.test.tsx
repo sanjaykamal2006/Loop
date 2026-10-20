@@ -110,10 +110,8 @@ describe('CreateView Component', () => {
   it('switches to Offering a Ride mode and displays Scooter, Bike, and Car options', () => {
     render(<CreateView />);
 
-    const buttons = screen.getAllByRole('button');
     // Toggle "Offering a Ride" switch
-    const offerSwitch = buttons.find((b) => b.className.includes('w-12 h-7'));
-    if (offerSwitch) fireEvent.click(offerSwitch);
+    fireEvent.click(screen.getByRole('switch', { name: /offering a ride/i }));
 
     expect(screen.getByText(/scooter \(1\)/i)).toBeInTheDocument();
     expect(screen.getByText(/bike \(1\)/i)).toBeInTheDocument();

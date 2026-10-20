@@ -422,6 +422,17 @@ export default function ChatListView() {
               setChatSource("chat-list");
               setView("chat");
             }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (isUnread) markLoopAsRead(loop.id);
+                setSelectedLoop(loop);
+                setChatSource("chat-list");
+                setView("chat");
+              }
+            }}
             className={`p-3 px-3.5 rounded-[20px] border transition-all duration-150 cursor-pointer active:scale-[0.965] animate-card-enter ${
               isDark
                 ? "bg-[#121214] border-white/10 hover:border-white/20"

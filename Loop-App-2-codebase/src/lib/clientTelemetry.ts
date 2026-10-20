@@ -58,9 +58,32 @@ export function installGlobalErrorHandlers(): void {
 
   window.addEventListener("error", (event) => {
     logger.error("Unhandled window error", event.error ?? event.message);
+    reportClientError({
+      level: "error",
+      message: "Unhandled window error: " + (event.error?.name ?? "Error"),
+      timestamp: new Date().toISOString(),
+      error: {
+        name: event.error?.name ?? "Error",
+        message: String(event.error?.message ?? event.message ?? "unknown"),
+        stack: event.error?.stack,
+        digest: (event.error as { digest?: string } | undefined)?.digest,
+      },
+    });
   });
 
   window.addEventListener("unhandledrejection", (event) => {
     logger.error("Unhandled promise rejection", event.reason);
+    const reason = event.reason as { name?: string; message?: string; stack?: string; digest?: string } | undefined;
+    reportClientError({
+      level: "error",
+      message: "Unhandled promise rejection: " + (reason?.name ?? "Error"),
+      timestamp: new Date().toISOString(),
+      error: {
+        name: reason?.name ?? "Error",
+        message: String(reason?.message ?? "unknown rejection"),
+        stack: reason?.stack,
+        digest: reason?.digest,
+      },
+    });
   });
 }

@@ -86,6 +86,9 @@ export default function VehiclePreferencesCard({
                 ? "bg-zinc-800"
                 : "bg-zinc-300"
             }`}
+            role="switch"
+            aria-checked={isDriver}
+            aria-label="Offering a ride"
           >
             <div
               className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${
@@ -281,6 +284,9 @@ export default function VehiclePreferencesCard({
           className={`w-12 h-7 rounded-full p-0.5 transition-colors duration-200 shrink-0 cursor-pointer ${
             isFemaleOnly ? "bg-pink-500" : isDark ? "bg-zinc-800" : "bg-zinc-300"
           }`}
+          role="switch"
+          aria-checked={isFemaleOnly}
+          aria-label="Female only"
         >
           <div
             className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${

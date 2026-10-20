@@ -535,6 +535,7 @@ describe("API Routes Test Suite", () => {
               delete: deleteSpy,
             };
           }),
+          rpc: vi.fn(() => Promise.resolve({ error: null })),
         };
       }) as any);
 
@@ -599,6 +600,7 @@ describe("API Routes Test Suite", () => {
               delete: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) })),
             };
           }),
+          rpc: vi.fn(() => Promise.resolve({ error: null })),
         };
       }) as any);
 
@@ -697,6 +699,7 @@ describe("API Routes Test Suite", () => {
               eq: vi.fn(() => Promise.resolve({ error: null })),
             })),
           })),
+          rpc: vi.fn(() => Promise.resolve({ error: null })),
         };
       }) as any);
 

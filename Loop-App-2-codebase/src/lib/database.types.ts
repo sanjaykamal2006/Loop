@@ -235,6 +235,9 @@ isOneToOne: false
 "purge_old_data":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"tools_delete_user_assets":
+{ Args: { "p_user_id": string }; Returns: undefined
+                           },
 "sync_emergency_contacts":
 { Args: { "contacts_payload": Json }; Returns: {
               "id": string,"name": string,"phone": string,"relation": string

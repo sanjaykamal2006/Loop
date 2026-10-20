@@ -7,7 +7,7 @@
 
 [![Live Web App](https://img.shields.io/badge/Production-loop--app.runs--on.dev-FFC554?style=for-the-badge&logoColor=black)](https://loop-app.runs-on.dev)
 [![Legacy Redirect](https://img.shields.io/badge/Legacy_Mirror-HTTP_308_Permanent-38bdf8?style=for-the-badge)](https://loop-demo-app.vercel.app)
-[![Tests Passing](https://img.shields.io/badge/Tests-282%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Tests Passing](https://img.shields.io/badge/Tests-285%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%200%20Any-blue?style=for-the-badge)](https://www.typescriptlang.org/)
 
 <br/>
@@ -152,7 +152,7 @@ Cross-Origin-Resource-Policy: same-origin
 ### Prerequisites
 - Node.js 22.12+ (Node 24 recommended; Vitest 5 requires 22.12 or newer)
 - npm 10+
-- Supabase project or PostgreSQL 15+ instance (production runs PostgreSQL 17.6; the SQL is compatible with the CI `postgres:15` container)
+- Supabase project or PostgreSQL 17 instance (production runs PostgreSQL 17.6; CI pins the `postgres:17` container)
 
 ### Setup
 ```bash
@@ -168,13 +168,13 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 282 unit, component, and API tests (23 database integration tests skip unless TEST_DATABASE_URL is set)
+# Run 285 unit, component, and API tests (28 database contract tests skip unless TEST_DATABASE_URL is set)
 npm run test:run
 
 # Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)
 npm run test:coverage
 
-# Run read-only database schema & behavioral RLS contract tests (23 tests) against a live PostgreSQL instance
+# Run read-only database schema & behavioral RLS contract tests (28 tests) against a live PostgreSQL 17 instance
 $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
 
 # Run end-to-end browser automation suite via Playwright

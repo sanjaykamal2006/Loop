@@ -1,0 +1,16 @@
+# Local working copies / generated offline artifacts (kept out of the canonical repo)
+# Site/app build outputs and dependencies already live in Loop-App-2-codebase/.gitignore.
+
+# Agent & editor tooling memory — not source code
+Loop-App-2-codebase/AGENTS.md
+Loop-App-2-codebase/CONTEXT.md
+Loop-App-2-codebase/.mcp.json
+Loop-App-2-codebase/skills-lock.json
+Loop-App-2-codebase/.claude/
+Loop-App-2-codebase/.codex/
+
+# App-store submission package (regenerated from playstore/ working notes, not needed in git)
+Loop-App-2-codebase/playstore/
+
+# Database worktrees
+*.dump

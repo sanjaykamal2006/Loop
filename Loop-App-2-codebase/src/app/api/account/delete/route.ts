@@ -130,6 +130,10 @@ export async function POST(req: NextRequest) {
     assertOk(await adminClient.from("trusted_vehicles").delete().eq("user_id", userId), "remove trusted vehicles");
     assertOk(await adminClient.from("expected_fares").delete().eq("user_id", userId), "remove expected fares");
 
+    // 5b. True erasure: scrub storage avatars and chat message content so the
+    //     privacy page's "erase profile, memberships, chat messages" holds.
+    assertOk(await adminClient.rpc("tools_delete_user_assets", { p_user_id: userId }), "scrub user assets");
+
     // 6. Delete the profile, then the auth record last so a failed run can
     //    always be retried by the user.
     assertOk(await adminClient.from("profiles").delete().eq("id", userId), "delete profile");

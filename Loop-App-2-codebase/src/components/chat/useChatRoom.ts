@@ -201,6 +201,17 @@ export function useChatRoom({
     fetchMembers(selectedLoop.id);
   }, [selectedLoop?.id, fetchMessages, fetchMembers, messagesCacheKey, session.user.id]);
 
+  // Latest-fetch refs: keep the realtime subscription alive across parent
+  // re-renders. fetchMembers/fetchMessages identities churn with context objects
+  // (loops, profile); recreating the channel on every refresh caused missed
+  // messages while the socket re-connected. Only loopId should re-subscribe.
+  const fetchMessagesRef = useRef(fetchMessages);
+  const fetchMembersRef = useRef(fetchMembers);
+  useEffect(() => {
+    fetchMessagesRef.current = fetchMessages;
+    fetchMembersRef.current = fetchMembers;
+  }, [fetchMessages, fetchMembers]);
+
   // Realtime WebSocket subscription for instant message & member updates with relaxed 25s fallback
   useEffect(() => {
     if (!selectedLoop?.id) return;
@@ -217,7 +228,7 @@ export function useChatRoom({
           filter: `loop_id=eq.${loopId}`,
         },
         () => {
-          fetchMessages(loopId);
+          fetchMessagesRef.current(loopId);
         }
       )
       .on(
@@ -229,7 +240,7 @@ export function useChatRoom({
           filter: `loop_id=eq.${loopId}`,
         },
         () => {
-          fetchMembers(loopId);
+          fetchMembersRef.current(loopId);
         }
       )
       .subscribe();
@@ -237,8 +248,8 @@ export function useChatRoom({
     // Fallback polling: relaxed to 25s to preserve connection limits
     const fallbackPoll = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        fetchMessages(loopId);
-        fetchMembers(loopId);
+        fetchMessagesRef.current(loopId);
+        fetchMembersRef.current(loopId);
       }
     };
 
@@ -258,7 +269,7 @@ export function useChatRoom({
       pollIntervalRef.current = null;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [selectedLoop?.id, fetchMessages, fetchMembers]);
+  }, [selectedLoop?.id]);
 
   const loadMoreMessages = async () => {
     if (!selectedLoop?.id || messages.length === 0 || isLoadingMore) return;
@@ -345,7 +356,9 @@ export function useChatRoom({
           const updated = prev.map((m) => (m.id === tempId ? enriched : m));
           messageCache.set(selectedLoop.id, updated);
           try {
-            localStorage.setItem(`loop_messages_${selectedLoop.id}`, JSON.stringify(updated));
+            // Same per-user scoped key the read path uses — never the raw
+            // unscoped loop id, which leaked chat bytes across accounts.
+            localStorage.setItem(messagesCacheKey(selectedLoop.id), JSON.stringify(updated));
           } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
           return updated;
         });

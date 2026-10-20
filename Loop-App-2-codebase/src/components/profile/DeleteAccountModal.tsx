@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { toast } from "@/components/ui/NativeToast";
 import { useModalA11y } from "@/lib/hooks/useModalA11y";
+import { clearUserStorage } from "@/lib/storage";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ export default function DeleteAccountModal({
       }
 
       await supabase.auth.signOut({ scope: "global" });
+      clearUserStorage();
       toast.success("Account permanently deleted.");
     } catch (error: unknown) {
       logger.error("Account delete error:", error);

@@ -60,7 +60,7 @@ export default function ProfileDetailsCard({
               ? isDark
                 ? "text-zinc-200"
                 : "text-zinc-800"
-              : `${mutedText} italic opacity-50`
+              : `${mutedText} italic`
           }`}
         >
           {profile.bio?.trim() ? profile.bio : "No bio added yet"}

@@ -49,18 +49,22 @@ Do not add Upstash variables. Rate limiting is backed by the `rate_limits` table
 
 Migrations live in `supabase/migrations/` and are applied in filename order.
 
-To apply a migration to production:
+Every applied migration must be recorded in the production ledger
+`supabase_migrations.schema_migrations` (see section 6a). To apply a new
+migration to production:
 
-1. Open the Supabase SQL editor for project `molpzciemegendacaglt`.
-2. Paste the migration file and run it as the database owner.
-3. Confirm the expected objects exist:
+1. Run the targeted ledger runner with the new file only (never replay history):
+   `node migrate-with-ledger.cjs <env-file> <migration-filename-fragment>`
+   or paste the file in the Supabase SQL editor and then
+   `insert into supabase_migrations.schema_migrations(version, name, statements, statements_executed, statements_errors) values ('<yyyymmddhhmmss>', '<file>', 1, 1, 0);`
+2. Confirm the expected objects exist:
    ```sql
    select relname, relrowsecurity
    from pg_class
    where relnamespace = 'public'::regnamespace and relkind = 'r'
    order by relname;
    ```
-4. Re-run the read-only contract tests with a non-production database:
+3. Re-run the read-only contract tests with a non-production database:
    ```bash
    $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
    ```
@@ -120,9 +124,42 @@ Dependabot opens pull requests for npm and GitHub Actions updates. Security upda
 ## 6. Observability
 
 - **Client errors:** `POST /api/telemetry` writes structured JSON to server logs. Payloads are size-capped and deduplicated client-side to avoid floods.
+- **Client error aggregation:** global `error` / `unhandledrejection` listeners in `clientTelemetry.installGlobalErrorHandlers()` forward every failure React boundaries cannot see (async listeners, timers, promises) to the same capped, deduplicated telemetry channel. First-party only — no third-party or paid monitoring service.
 - **Server logs:** Vercel function logs contain the same structured entries.
 - **Browser diagnostics:** `window.__LOOP_DIAGNOSTICS__()` returns the local 20-entry ring buffer. `sessionStorage["loop_last_crash"]` stores the most recent unhandled error.
 - **Security scanning:** CodeQL runs on pushes and pull requests. Dependabot covers npm and Actions.
+
+## 6a. Migration Ledger
+
+Every schema change is tracked in the production ledger table `supabase_migrations.schema_migrations` (28 rows as of 2026-10-20). To inspect or extend it:
+
+```bash
+# What is recorded?
+psql "$DATABASE_URL" -c "select version, name, statements_executed from supabase_migrations.schema_migrations order by version;"
+```
+
+- `statements_executed = 0` marks historical migrations applied before the ledger existed (verified by the schema-contract suite, not replayed).
+- Apply new migrations to production with a targeted runner (never replay history): pass only the new file(s), e.g. `node migrate-with-ledger.cjs <env-file> 20261024_new_change`.
+- CI and local verification run the full history against an empty PostgreSQL 17 database with `scripts/run-migrations.js`, so a fresh environment and production converge to the same final schema.
+
+## 6b. Backup & Restore Drill (monthly, free tier)
+
+1. **Dump.** From any machine with `psql`/`pg_dump` 17:
+   `pg_dump "$DATABASE_URL" --schema=public --format=custom --file=loop-prod-YYYYMMDD.dump`
+   (plus `--schema=supabase_migrations` for the ledger).
+2. **Verify.** `pg_restore --list loop-prod-YYYYMMDD.dump | findstr /C:"TABLE DATA" ` — the 11 public tables plus the ledger must appear.
+3. **Restore drill.** Spin up a scratch database (a local `postgres:17` container or the `embedded-postgres` npm package), restore with
+   `pg_restore --clean --if-exists -d "$SCRATCH_URL" loop-prod-YYYYMMDD.dump`, then run
+   `TEST_DATABASE_URL="$SCRATCH_URL" npm run test:db` — all 28 contract tests must pass against the restored data.
+4. **Log the drill** (date, dump size, restore result) in this file or the team channel. If a step fails, treat it as a P2 incident.
+5. Supabase's own automatic daily backups remain the first line of defense; this drill validates that a restore actually works.
+
+## 6c. Incident Escalation ("red run")
+
+- The **Uptime** GitHub Action (`/.github/workflows/uptime.yml`) checks `GET /api/keep-alive` every 15 minutes. A failure (non-2xx or missing `"status":"healthy"`) emails the repository owner automatically — do not silence notifications for this repo.
+- **Paging:** if Vercel is down, check status.vercel.com; if Supabase is down, check status.supabase.com. Respond to a failed health check within 30 minutes during waking hours.
+- **Degraded DB:** `/api/keep-alive` reports `status:"degraded"` when the DB RPC times out but the app is up. If two consecutive checks (30 min) report degraded, investigate the Supabase dashboard before restarting anything.
+- **Rate-limit false positives:** the health endpoint allows 30 requests / 5 min per IP. If the uptime check hits 429, extend the window in `src/app/api/keep-alive/route.ts` rather than disabling rate limiting.
 
 ## 7. Security Headers
 

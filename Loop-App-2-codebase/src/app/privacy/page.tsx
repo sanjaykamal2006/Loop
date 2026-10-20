@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
             <li>Facilitate real-time ride discovery, matching, and seat booking between students.</li>
             <li>Enable temporary group chat, fare splitting calculations, and coordinate meeting points.</li>
             <li>Maintain trust and safety through student verification and female-only filters.</li>
-            <li>Send essential push and local notifications when co-passengers message or join your ride.</li>
+            <li>Deliver essential local notifications when co-passengers message or join your ride, and device-level app badges you control from your profile.</li>
             <li><strong className="text-white">We never sell, monetize, rent, or lease your personal information to third parties, advertising networks, or data brokers.</strong></li>
           </ul>
         </section>
@@ -143,7 +143,7 @@ export default function PrivacyPolicyPage() {
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-zinc-300 space-y-2 leading-relaxed">
             <p className="font-semibold text-white">In-App Account & Data Deletion:</p>
             <p className="text-xs text-zinc-300">
-              You maintain full control over your personal data. At any time, you can navigate to <strong className="text-white">Profile → Settings → Delete Account</strong> to permanently erase your profile, memberships, chat messages, and authentication records immediately.
+              You maintain full control over your personal data. At any time, you can navigate to <strong className="text-white">Profile → Settings → Delete Account</strong> to permanently erase your profile, memberships, contact cards, uploaded photos (including your avatar), and authentication records immediately. Message bodies you sent are scrubbed in place and replaced with an anonymised placeholder so ride history stays intact for the remaining members without keeping your words.
             </p>
             <p className="text-xs text-zinc-400">
               Past completed loops are automatically expired and cleaned up by scheduled database procedures.

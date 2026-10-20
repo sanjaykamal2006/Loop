@@ -6,7 +6,7 @@
 ### Real-Time, Purpose-Based Campus Mobility for VIT-AP University
 
 [![Live Web App](https://img.shields.io/badge/Production-loop--app.runs--on.dev-FFC554?style=for-the-badge&logoColor=black)](https://loop-app.runs-on.dev)
-[![Tests Passing](https://img.shields.io/badge/Tests-256%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Tests Passing](https://img.shields.io/badge/Tests-285%20Passed-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%200%20Any-blue?style=for-the-badge)](https://www.typescriptlang.org/)
 
 <br/>
@@ -32,7 +32,7 @@ flowchart TD
     Client["Mobile Client (PWA / Web)\nNext.js 16 + React 19 + Tailwind 4"]
     Edge["Edge & CDN (Vercel)\nHTTP 308 Permanent Redirect\nStrict CSP & HSTS"]
     API["Serverless API Routes\n/api/account/delete · /api/admin/*\nTiming-Safe Cryptographic Auth"]
-    DB[("Supabase PostgreSQL Engine\n10 Public Tables · 34 RLS Policies\nInitplan (SELECT auth.uid()) Optimized")]
+    DB[("Supabase PostgreSQL Engine\n11 Public Tables · 34 RLS Policies\nInitplan (SELECT auth.uid()) Optimized")]
     RT["Supabase Realtime Broker\nPostgres CDC WebSockets\nLive Chat & Membership Broadcast"]
     Trig["Database Engine Triggers\n• check_auth_user_email_domain (Domain Firewall)\n• trg_auto_add_creator_to_loop_members (Atomicity)"]
 
@@ -61,7 +61,7 @@ flowchart TD
 
 ## 3. Database Schema & RLS Contract
 
-LOOP enforces Row Level Security (RLS) across all 10 public tables using subquery-wrapped identity checks (`(SELECT auth.uid())`) to enable PostgreSQL query planner **InitPlan caching** and prevent per-row execution overhead:
+LOOP enforces Row Level Security (RLS) across all 11 public tables using subquery-wrapped identity checks (`(SELECT auth.uid())`) to enable PostgreSQL query planner **InitPlan caching** and prevent per-row execution overhead:
 
 | Table | Purpose | RLS Invariants |
 | :--- | :--- | :--- |
@@ -113,24 +113,21 @@ All server-side API endpoints are located under `src/app/api/`:
 
 ## 5. Security & Content Security Policy (CSP)
 
-LOOP deploys strict HTTP response headers configured in [`next.config.ts`](./next.config.ts):
+LOOP generates a fresh CSP nonce for every HTML request in [`src/proxy.ts`](./Loop-App-2-codebase/src/proxy.ts) and passes it to Next.js through the `x-nonce` request header, so framework inline hydration scripts can carry `'nonce-<per-request>'` instead of `'unsafe-inline'`. The effective policy is:
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self'; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://wa.me;
-Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-<per-request>' 'sha256-<json-ld>' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; ...
 ```
 
-- **Audio Asset Hardening:** Internalized notification chime synthesized directly via the Web Audio API (`AudioContext`), eliminating external media CDN dependencies.
+Static headers in `next.config.ts`: HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP, and CORP. Do not add a static CSP to `next.config.ts`; two policies are intersected by the browser and the static one would block nonce-bearing scripts.
+
 - **Timing-Safe Crypto:** All administrative and webhook bearer tokens are verified using `crypto.timingSafeEqual`.
 - **Zero-Trust Client Bundling:** Service role keys and database connection strings are never exposed to browser bundles.
 
 ### Observability & Diagnostics
 - **Server Runtime:** Structured JSON log output for Vercel and Node serverless functions.
 - **Client Runtime:** Local 20-entry circular diagnostic buffer (`getDiagnosticLogs()`) and crash persistence in `sessionStorage["loop_last_crash"]`.
+- **Client Error Aggregation:** Unhandled `error`/`unhandledrejection` events are deduplicated and forwarded to `/api/telemetry` (capped per session), where they are written as structured JSON to server logs — no third-party or paid monitoring service.
 - **Forensic Triage:** Diagnostic history inspectable via `window.__LOOP_DIAGNOSTICS__()` and rendered in the `ErrorReporter` debug panel.
 - **Pluggable Telemetry:** Extensible handler registration via `logger.registerTelemetryHandler()` for external monitoring services.
 
@@ -139,9 +136,9 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 ## 6. Development & Verification Guide
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22.12+ (Node 24 recommended; Vitest 5 requires 22.12 or newer)
 - npm 10+
-- Supabase Project or PostgreSQL 15 instance (matching CI `postgres:15` container and production Supabase engine)
+- Supabase Project or PostgreSQL 17 instance (production runs PostgreSQL 17.6; CI pins a `postgres:17` container)
 
 ### Setup
 ```bash
@@ -157,23 +154,19 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 234 unit, component, and API tests (+22 database contract tests when TEST_DATABASE_URL is set)
+# Run 285 unit, component, and API tests (28 database contract tests skip unless TEST_DATABASE_URL is set)
 npm run test:run
 
 # Run full code coverage suite (asserts ratcheted thresholds across statements, branches, functions, lines)
 npm run test:coverage
 
-# Run read-only database schema & behavioral RLS contract tests (22 tests) against a live PostgreSQL 15 instance
+# Run read-only database schema & behavioral RLS contract tests (28 tests) against a live PostgreSQL 17 instance
 $env:TEST_DATABASE_URL="postgresql://..."; npm run test:db
+```
 
-# Run end-to-end browser automation suite via Playwright
-npm run test:e2e
+CI (`Loop-Repo/.github/workflows/ci.yml`) boots a `postgres:17` service container, applies every migration with `scripts/run-migrations.js`, and runs the contract suite automatically; local PostgreSQL binaries are not required for it (e.g. the `embedded-postgres` npm package works well for Windows).
 
-# Run linter
-npm run lint
-
-# Type-check the app AND the tests (both must stay clean in CI)
-npm run typecheck
+All 28 migrations are recorded in the production `supabase_migrations.schema_migrations` ledger.
 
 # Run optimized Next.js 16 Turbopack production build
 npm run build
@@ -197,7 +190,7 @@ npm run build
 
 - **Framework:** Next.js 16 (App Router, Turbopack)
 - **Runtime:** React 19, TypeScript (Strict 0 `any` types)
-- **Database & Realtime:** Supabase (PostgreSQL 15, RLS, WebSockets)
+- **Database & Realtime:** Supabase (PostgreSQL 17, RLS, WebSockets)
 - **Styling:** Tailwind CSS 4, Lucide React
 - **Testing:** Vitest, Testing Library, Jest DOM
 - **Deployment:** Vercel Edge Network (`loop-app.runs-on.dev`)
