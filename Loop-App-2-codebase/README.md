@@ -116,9 +116,9 @@ All server-side API endpoints are located under `src/app/api/`:
 - **Purpose:** Automated maintenance: moves rides whose departure window has passed to `ended` (so ride history works), then purges rides older than 7 days.
 - **How it runs:** three interchangeable paths —
   1. **pg_cron** (preferred, in-DB): migration `20261024_ride_lifecycle_and_privacy.sql` schedules `expire_old_loops()` every 15 min and `purge_old_data()` daily when the `pg_cron` extension is available.
-  2. **GitHub Action** (fallback when pg_cron is unavailable): `Daily Ride Cleanup` workflow POSTs to this endpoint daily at 03:33 UTC. Requires the `CLEANUP_CRON_SECRET` and `LOOP_APP_URL` (or `NEXT_PUBLIC_SITE_URL`) repo secrets/variables.
+  2. **GitHub Action** (fallback when pg_cron is unavailable): `Daily Ride Cleanup` workflow POSTs to this endpoint daily at 03:33 UTC. Requires the `CLEANUP_CRON_SECRET` or `SUPABASE_SERVICE_ROLE_KEY` repo secret and the `LOOP_APP_URL` (or `NEXT_PUBLIC_SITE_URL`) secret/variable; on a 401 — e.g. the deployment rotated its cron secret without updating the repo — the workflow retries once with the service-role key.
   3. **Manual** trigger same as above.
-- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET>` (route answers 503 when unset; `GET` is rejected with 405; IP rate-limited to 10/10min)
+- **Headers:** `Authorization: Bearer <CLEANUP_CRON_SECRET | SUPABASE_SERVICE_ROLE_KEY>` (route answers 503 when neither is configured; `GET` is rejected with 405; IP rate-limited to 10/10min)
 
 ---
 
@@ -200,7 +200,7 @@ npm run build
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key (RLS enforced) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only admin key (account deletion) |
-| `CLEANUP_CRON_SECRET` | Yes | Bearer secret for `/api/cleanup` (route answers 503 when unset) |
+| `CLEANUP_CRON_SECRET` | Yes | Bearer secret for `/api/cleanup` (route answers 503 when neither this nor the service-role key is set) |
 | `ADMIN_STATS_SECRET` | Yes | Bearer secret for `/api/admin/stats` (falls back to `CLEANUP_CRON_SECRET`) |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | No longer used | Rate limits are stored in Supabase via the service-role-only `check_rate_limit()` RPC, with an in-memory fallback when the database is unreachable. |
 | `ASSETLINKS_SHA256` | For Android TWA | Comma-separated signing-certificate SHA-256 fingerprints served at `/.well-known/assetlinks.json` (empty = `[]`) |

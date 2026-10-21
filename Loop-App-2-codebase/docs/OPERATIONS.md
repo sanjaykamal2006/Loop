@@ -18,7 +18,7 @@ This document covers production operations for `https://loop-app.runs-on.dev` an
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase REST/Realtime endpoint |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public RLS-enforced key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for account deletion, admin routes, and the shared rate limiter |
-| `CLEANUP_CRON_SECRET` | Bearer secret for `/api/cleanup` |
+| `CLEANUP_CRON_SECRET` | Bearer secret for `/api/cleanup` (the service-role key is accepted as a fallback bearer, matching `/api/admin/sync-whitelist`) |
 | `ADMIN_STATS_SECRET` | Bearer secret for `/api/admin/stats` (falls back to `CLEANUP_CRON_SECRET`) |
 | `EXTERNAL_EMAIL_WHITELIST` | Optional comma-separated outside emails allowed past the institutional-domain gate. Personal emails are NOT hardcoded in the bundle; the DB `allowed_external_emails` table remains authoritative for signups. |
 | `ASSETLINKS_SHA256` | Optional Android TWA signing fingerprints |
@@ -114,7 +114,7 @@ Migration `20261024_ride_lifecycle_and_privacy.sql` introduced real ride lifecyc
    select jobname, schedule, active from cron.job;
    select status, count(*) from cron.job_run_details where jobname='loop-expire-rides' group by status;
    ```
-2. **GitHub Action fallback:** `.github/workflows/cleanup.yml` POSTs to `/api/cleanup` daily at 03:33 UTC. Requires repository secret `CLEANUP_CRON_SECRET` and secret/variable `LOOP_APP_URL` (falls back to `NEXT_PUBLIC_SITE_URL`). A red run is actionable — check the workflow log for the HTTP status.
+2. **GitHub Action fallback:** `.github/workflows/cleanup.yml` POSTs to `/api/cleanup` daily at 03:33 UTC. Needs the `LOOP_APP_URL` secret/variable (or `NEXT_PUBLIC_SITE_URL`) and one of the repo secrets `CLEANUP_CRON_SECRET` or `SUPABASE_SERVICE_ROLE_KEY` (the route accepts both; the workflow retries with the service-role key after a 401, covering deployments where the cron secret was rotated without updating the repo secret). A red run is actionable — check the workflow log for the HTTP status.
 3. **Manual:** trigger the workflow from the Actions tab, or call the endpoint yourself:
    ```bash
    curl -X POST "https://loop-app.runs-on.dev/api/cleanup" \

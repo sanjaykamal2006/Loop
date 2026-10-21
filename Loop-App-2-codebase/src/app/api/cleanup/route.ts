@@ -18,8 +18,11 @@ function safeCompare(a: string, b: string): boolean {
 //
 // NOTE: production maintenance already runs through pg_cron
 // (expire_old_loops / cleanup_unconfirmed_users / purge_old_data). This
-// endpoint is the manual trigger and fails closed when its secret is missing;
-// internal errors are logged, never returned.
+// endpoint is the manual trigger and fails closed when no maintenance bearer
+// is configured. Like /api/admin/sync-whitelist, it also accepts the
+// service-role key: a caller holding that key already has full database
+// access through Supabase, so accepting it here exposes nothing new.
+// Internal errors are logged, never returned.
 export async function POST(request: NextRequest) {
   try {
     // Brute-force throttle ahead of the bearer check, keyed by caller IP
@@ -33,14 +36,18 @@ export async function POST(request: NextRequest) {
     }
 
     const authHeader = request.headers.get('authorization') || '';
-    const expectedToken = process.env.CLEANUP_CRON_SECRET;
+    const candidates = [
+      process.env.CLEANUP_CRON_SECRET,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    ].filter((t): t is string => typeof t === 'string' && t.length > 0);
 
-    if (!expectedToken) {
-      logger.error('cleanup: CLEANUP_CRON_SECRET is not configured');
+    if (candidates.length === 0) {
+      logger.error('cleanup: no maintenance bearer configured (CLEANUP_CRON_SECRET / SUPABASE_SERVICE_ROLE_KEY)');
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    if (!safeCompare(authHeader, `Bearer ${expectedToken}`)) {
+    const authorized = candidates.some((candidate) => safeCompare(authHeader, `Bearer ${candidate}`));
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

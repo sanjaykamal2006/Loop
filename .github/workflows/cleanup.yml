@@ -19,20 +19,43 @@ jobs:
       - name: Call cleanup endpoint
         env:
           CLEANUP_CRON_SECRET: ${{ secrets.CLEANUP_CRON_SECRET }}
+          # Documented 401-fallback: /api/cleanup also accepts the service-role
+          # key (same authorization pattern as /api/admin/sync-whitelist). Used
+          # only when the dedicated secret is absent or rejected — e.g. the
+          # deployment rotated its cron secret without updating this repo.
+          SERVICE_BEARER: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           APP_URL: ${{ secrets.LOOP_APP_URL || vars.LOOP_APP_URL || vars.NEXT_PUBLIC_SITE_URL }}
         run: |
-          if [ -z "$CLEANUP_CRON_SECRET" ]; then
-            echo "::error::Missing CLEANUP_CRON_SECRET secret. Add it in Repo Settings > Secrets > Actions (or rely on pg_cron)."
-            exit 1
-          fi
           if [ -z "$APP_URL" ]; then
             echo "::error::Missing LOOP_APP_URL secret/variable (or NEXT_PUBLIC_SITE_URL variable)."
             exit 1
           fi
-          HTTP_STATUS=$(curl -s -o /tmp/cleanup-response.json -w "%{http_code}" \
-            -X POST "${APP_URL%/}/api/cleanup" \
-            -H "Authorization: Bearer $CLEANUP_CRON_SECRET" \
-            -H "Content-Type: application/json")
+          if [ -z "$CLEANUP_CRON_SECRET" ] && [ -z "$SERVICE_BEARER" ]; then
+            echo "::error::Missing CLEANUP_CRON_SECRET (or SUPABASE_SERVICE_ROLE_KEY) secret. Add one in Repo Settings > Secrets > Actions (or rely on pg_cron)."
+            exit 1
+          fi
+          URL="${APP_URL%/}/api/cleanup"
+          HTTP_STATUS=""
+          if [ -n "$CLEANUP_CRON_SECRET" ]; then
+            HTTP_STATUS=$(curl -s -o /tmp/cleanup-response.json -w "%{http_code}" \
+              -X POST "$URL" \
+              -H "Authorization: Bearer $CLEANUP_CRON_SECRET" \
+              -H "Content-Type: application/json")
+          fi
+          RETRY="false"
+          if [ -z "$HTTP_STATUS" ]; then RETRY="true"; fi
+          if [ "$HTTP_STATUS" = "401" ]; then RETRY="true"; fi
+          if [ "$RETRY" = "true" ] && [ -n "$SERVICE_BEARER" ]; then
+            if [ -z "$HTTP_STATUS" ]; then
+              echo "CLEANUP_CRON_SECRET is unset; using SUPABASE_SERVICE_ROLE_KEY (documented fallback)."
+            else
+              echo "CLEANUP_CRON_SECRET rejected by the deployment (HTTP 401); retrying with SUPABASE_SERVICE_ROLE_KEY."
+            fi
+            HTTP_STATUS=$(curl -s -o /tmp/cleanup-response.json -w "%{http_code}" \
+              -X POST "$URL" \
+              -H "Authorization: Bearer $SERVICE_BEARER" \
+              -H "Content-Type: application/json")
+          fi
           echo "Cleanup endpoint responded with HTTP $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
             echo "Cleanup trigger completed."

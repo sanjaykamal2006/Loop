@@ -234,9 +234,11 @@ describe("API Routes Test Suite", () => {
       expect(res.status).toBe(405);
     });
 
-    it("returns 503 when CLEANUP_CRON_SECRET is not configured", async () => {
+    it("returns 503 when no maintenance bearer is configured", async () => {
       const origCron = process.env.CLEANUP_CRON_SECRET;
+      const origService = process.env.SUPABASE_SERVICE_ROLE_KEY;
       delete process.env.CLEANUP_CRON_SECRET;
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
       const { POST } = await import("@/app/api/cleanup/route");
       const req = new NextRequest("http://localhost/api/cleanup", {
@@ -250,6 +252,24 @@ describe("API Routes Test Suite", () => {
       expect(body.error).toBe("Service unavailable");
 
       process.env.CLEANUP_CRON_SECRET = origCron;
+      process.env.SUPABASE_SERVICE_ROLE_KEY = origService;
+    });
+
+    it("accepts SUPABASE_SERVICE_ROLE_KEY as the documented fallback bearer", async () => {
+      process.env.CLEANUP_CRON_SECRET = "valid_cleanup_secret_123";
+      process.env.SUPABASE_SERVICE_ROLE_KEY = "mock_service_key";
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+
+      const { POST } = await import("@/app/api/cleanup/route");
+      const req = new NextRequest("http://localhost/api/cleanup", {
+        method: "POST",
+        headers: { authorization: "Bearer mock_service_key" },
+      });
+
+      const res = await POST(req);
+      const body = await res.json();
+      expect(res.status).toBe(200);
+      expect(body.success).toBe(true);
     });
 
     it("returns 401 on unauthorized request", async () => {
