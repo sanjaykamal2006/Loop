@@ -75,42 +75,7 @@ export default function ChatView() {
     };
   }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, isJoining, setView]);
 
-  const {
-    messages,
-    newMessage,
-    editingMsgId,
-    setEditingMsgId,
-    editingContent,
-    setEditingContent,
-    actionMenuMsg,
-    setActionMenuMsg,
-    holdingMsgId,
-    didTriggerHoldRef,
-    startHold,
-    moveHold,
-    endHold,
-    members,
-    selectedUser,
-    setSelectedUser,
-    avatarErrors,
-    hasMoreMessages,
-    isLoadingMore,
-    isSharingLocation,
-    searchQuery,
-    setSearchQuery,
-    matchingMsgIds,
-    messagesEndRef,
-    chatScrollRef,
-    loadMoreMessages,
-    sendMessage,
-    saveEditMessage,
-    deleteMessage,
-    handleOpenReturnLoop,
-    handleInputChange,
-    startEditMessage,
-    handleShareLocation,
-    handleShare,
-  } = useChatRoom({
+  const room = useChatRoom({
     session,
     selectedLoop,
     setSelectedLoop,
@@ -120,6 +85,24 @@ export default function ChatView() {
     activeLoops,
     setView,
   });
+  const {
+    newMessage,
+    actionMenuMsg,
+    setActionMenuMsg,
+    members,
+    selectedUser,
+    setSelectedUser,
+    avatarErrors,
+    isSharingLocation,
+    searchQuery,
+    setSearchQuery,
+    matchingMsgIds,
+    sendMessage,
+    deleteMessage,
+    handleInputChange,
+    handleShareLocation,
+    handleShare,
+  } = room;
 
   if (!selectedLoop) return null;
 
@@ -153,34 +136,7 @@ export default function ChatView() {
         matchingCount={matchingMsgIds.size}
       />
 
-      <MessageList
-        messages={messages}
-        sessionUserId={session.user.id}
-        profile={profile}
-        theme={theme}
-        formatTime={formatTime}
-        hasMoreMessages={hasMoreMessages}
-        isLoadingMore={isLoadingMore}
-        onLoadMoreMessages={loadMoreMessages}
-        searchQuery={searchQuery}
-        matchingMsgIds={matchingMsgIds}
-        editingMsgId={editingMsgId}
-        editingContent={editingContent}
-        setEditingContent={setEditingContent}
-        onSaveEdit={saveEditMessage}
-        onCancelEdit={() => setEditingMsgId(null)}
-        holdingMsgId={holdingMsgId}
-        startHold={startHold}
-        moveHold={moveHold}
-        endHold={endHold}
-        onActionMenu={setActionMenuMsg}
-        onStartEditMessage={startEditMessage}
-        onOpenReturnLoop={handleOpenReturnLoop}
-        onSelectUser={setSelectedUser}
-        chatScrollRef={chatScrollRef}
-        messagesEndRef={messagesEndRef}
-        didTriggerHoldRef={didTriggerHoldRef}
-      />
+      <MessageList room={room} />
 
       <ChatComposer
         newMessage={newMessage}
@@ -204,7 +160,7 @@ export default function ChatView() {
         mutedText={mutedText}
         formatTime={formatTime}
         onClose={() => setActionMenuMsg(null)}
-        onStartEdit={startEditMessage}
+        onStartEdit={room.startEditMessage}
         onDeleteMessage={deleteMessage}
       />
     </div>

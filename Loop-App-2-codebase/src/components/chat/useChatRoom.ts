@@ -12,6 +12,7 @@ import { triggerHaptic } from "@/lib/haptics";
 import { useChatSearch } from "./useChatSearch";
 import { useMessageHoldActions } from "./useMessageHoldActions";
 import { useChatRoster } from "./useChatRoster";
+import { insertChatMessage, MESSAGE_SELECT_COLUMNS } from "@/lib/chatMessages";
 
 const messageCache = new LRUCache<string, Message[]>({ maxSize: 30 });
 const PAGE_SIZE = 25;
@@ -127,9 +128,7 @@ export function useChatRoom({
       const gen = ++fetchGenRef.current;
       const { data, error } = await supabase
         .from("messages")
-        .select(
-          "id, loop_id, user_id, content, created_at, edited_at, reactions, profiles!fk_messages_profiles (display_name, avatar_url, reg_no, gender, bio)"
-        )
+        .select(MESSAGE_SELECT_COLUMNS)
         .eq("loop_id", loopId)
         .order("created_at", { ascending: false })
         .limit(PAGE_SIZE);
@@ -286,9 +285,7 @@ export function useChatRoom({
     const gen = fetchGenRef.current; // superseded fetches apply, but must not paint a different loop
     const { data, error } = await supabase
       .from("messages")
-      .select(
-        "id, loop_id, user_id, content, created_at, edited_at, reactions, profiles!fk_messages_profiles (display_name, avatar_url, reg_no, gender, bio)"
-      )
+      .select(MESSAGE_SELECT_COLUMNS)
       .eq("loop_id", selectedLoop.id)
       .lt("created_at", oldestMessage.created_at)
       .order("created_at", { ascending: false })
@@ -312,6 +309,33 @@ export function useChatRoom({
     setIsLoadingMore(false);
   };
 
+  // ---------- Optimistic message plumbing (shared by text + location sends) ----------
+  const appendOptimisticMessage = useCallback((m: Message) => {
+    setMessages((prev) => [...prev, m]);
+  }, []);
+
+  const revertOptimisticMessage = useCallback((tempId: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== tempId));
+  }, []);
+
+  // Swap an optimistic row for its DB row and persist exactly once — both send
+  // variants (text, location share) previously duplicated this block.
+  const settleOptimisticMessage = useCallback(
+    (tempId: string, realMsg: Message, loopId: string) => {
+      setMessages((prev) => {
+        const next = prev.map((m) => (m.id === tempId ? realMsg : m));
+        messageCache.set(loopId, next);
+        try {
+          // Same per-user scoped key the read path uses — never the raw
+          // unscoped loop id, which leaked chat bytes across accounts.
+          localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(next));
+        } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
+        return next;
+      });
+    },
+    [messagesCacheKey]
+  );
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedLoop?.id) return;
     triggerHaptic(10);
@@ -319,9 +343,10 @@ export function useChatRoom({
     setNewMessage("");
 
     const tempId = `temp-${Date.now()}`;
-    const optimisticMessage: Message = {
+    const loopId = selectedLoop.id;
+    appendOptimisticMessage({
       id: tempId,
-      loop_id: selectedLoop.id,
+      loop_id: loopId,
       user_id: session.user.id,
       content: textToSend,
       created_at: new Date().toISOString(),
@@ -332,29 +357,30 @@ export function useChatRoom({
         gender: profile.gender,
         bio: profile.bio,
       },
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
+    });
     scrollToBottom(true);
 
-    try {
-      const { data, error } = await supabase
-        .from("messages")
-        .insert({ loop_id: selectedLoop.id, user_id: session.user.id, content: textToSend })
-        .select("id, loop_id, user_id, content, created_at, reactions")
-        .single();
+    const { data, error } = await insertChatMessage({
+      loopId,
+      userId: session.user.id,
+      content: textToSend,
+    });
 
-      if (error) {
-        logger.error("Send message error:", error);
-        // DB-side fair-use caps (rate limits) send user-friendly message text;
-        // surface it instead of the generic failure toast.
-        toast.error(error.message || "Message failed to send");
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        setNewMessage(textToSend);
-      } else if (data) {
-        const enriched: Message = {
-          ...data,
-          loop_id: data.loop_id || selectedLoop.id,
+    if (error) {
+      logger.error("Send message error:", error);
+      // DB-side fair-use caps (rate limits) send user-friendly message text;
+      // surface it instead of the generic failure toast.
+      toast.error(error.message || "Message failed to send");
+      revertOptimisticMessage(tempId);
+      setNewMessage(textToSend);
+      return;
+    }
+    if (data) {
+      settleOptimisticMessage(
+        tempId,
+        {
+          ...(data as unknown as Partial<Message>),
+          loop_id: data.loop_id || loopId,
           user_id: data.user_id || session.user.id,
           created_at: data.created_at || new Date().toISOString(),
           reactions: (data.reactions && typeof data.reactions === "object" ? data.reactions : {}) as Message["reactions"],
@@ -365,23 +391,9 @@ export function useChatRoom({
             gender: profile.gender,
             bio: profile.bio,
           },
-        };
-        setMessages((prev) => {
-          const updated = prev.map((m) => (m.id === tempId ? enriched : m));
-          messageCache.set(selectedLoop.id, updated);
-          try {
-            // Same per-user scoped key the read path uses — never the raw
-            // unscoped loop id, which leaked chat bytes across accounts.
-            localStorage.setItem(messagesCacheKey(selectedLoop.id), JSON.stringify(updated));
-          } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
-          return updated;
-        });
-      }
-    } catch (err) {
-      logger.error("sendMessage exception:", err);
-      toast.error("Message failed to send");
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setNewMessage(textToSend);
+        } as Message,
+        loopId
+      );
     }
   };
 
@@ -453,15 +465,16 @@ export function useChatRoom({
     }
     setIsSharingLocation(true);
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
+        const loopId = selectedLoop.id;
         const { latitude, longitude } = pos.coords;
         const mapsUrl = `https://maps.google.com/maps?q=${latitude},${longitude}`;
         const content = `Location shared: ${mapsUrl}`;
 
         const optimisticId = `loc-${Date.now()}`;
-        const optimisticMsg: Message = {
+        appendOptimisticMessage({
           id: optimisticId,
-          loop_id: selectedLoop.id,
+          loop_id: loopId,
           user_id: session.user.id,
           content,
           created_at: new Date().toISOString(),
@@ -471,48 +484,41 @@ export function useChatRoom({
             gender: profile.gender || "",
             reg_no: profile.reg_no,
           },
-        };
-        setMessages((prev) => [...prev, optimisticMsg]);
+        });
         if (chatScrollRef.current) {
           chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
         }
 
-        const { data: inserted, error } = await supabase
-          .from("messages")
-          .insert({
-            loop_id: selectedLoop.id,
-            user_id: session.user.id,
+        void (async () => {
+          const { data: inserted, error } = await insertChatMessage({
+            loopId,
+            userId: session.user.id,
             content,
-          })
-          .select("id, loop_id, user_id, content, created_at")
-          .single();
-
-        setIsSharingLocation(false);
-        if (error || !inserted) {
-          toast.error("Failed to share location");
-          setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
-        } else {
-          const realMsg: Message = {
-            ...inserted,
-            loop_id: inserted.loop_id || selectedLoop.id,
-            user_id: inserted.user_id || session.user.id,
-            created_at: inserted.created_at || new Date().toISOString(),
-            profiles: {
-              display_name: profile.display_name || "Me",
-              avatar_url: profile.avatar_url,
-              gender: profile.gender || "",
-              reg_no: profile.reg_no,
-            },
-          };
-          setMessages((prev) => {
-            const next = prev.map((m) => (m.id === optimisticId ? realMsg : m));
-            messageCache.set(selectedLoop.id, next);
-            try {
-              localStorage.setItem(messagesCacheKey(selectedLoop.id), JSON.stringify(next));
-            } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
-            return next;
           });
-        }
+
+          setIsSharingLocation(false);
+          if (error || !inserted) {
+            toast.error("Failed to share location");
+            revertOptimisticMessage(optimisticId);
+            return;
+          }
+          settleOptimisticMessage(
+            optimisticId,
+            {
+              ...(inserted as unknown as Partial<Message>),
+              loop_id: inserted.loop_id || loopId,
+              user_id: inserted.user_id || session.user.id,
+              created_at: inserted.created_at || new Date().toISOString(),
+              profiles: {
+                display_name: profile.display_name || "Me",
+                avatar_url: profile.avatar_url,
+                gender: profile.gender || "",
+                reg_no: profile.reg_no,
+              },
+            } as Message,
+            loopId
+          );
+        })();
       },
       (err) => {
         setIsSharingLocation(false);
@@ -591,3 +597,5 @@ export function useChatRoom({
     handleShare,
   };
 }
+
+export type ChatRoom = ReturnType<typeof useChatRoom>;

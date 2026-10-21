@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { MessageSquare, ChevronRight, Bus, Plane, Train, Search, X, MapPin } from "lucide-react";
 import { AutoRickshawIcon, ScooterIcon, MotorcycleIcon, CarIcon, ShareAutoIcon } from "@/components/ui/VehicleIcons";
 import type { Database } from "@/lib/database.types";
+import { getProfileDisplayName } from "@/lib/profileNameCache";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 function formatDepartureDate(departureIso: string): string {
@@ -291,12 +292,9 @@ export default function ChatListView() {
             // and two or three identical writes per message).
             let senderName = isMe ? (profileRef.current?.display_name || "You") : "";
             if (!isMe && msg.user_id) {
-              const { data } = await supabase
-                .from("profiles")
-                .select("display_name")
-                .eq("id", msg.user_id)
-                .single();
-              senderName = data?.display_name || "";
+              // Shared TTL cache — the unread handler (useLoopDirectory) may
+              // have just fetched the same sender profile for this event.
+              senderName = (await getProfileDisplayName(msg.user_id)) || "";
             }
 
             setRecentMessages((prev) => {

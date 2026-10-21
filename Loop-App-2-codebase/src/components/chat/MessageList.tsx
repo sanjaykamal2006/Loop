@@ -4,68 +4,45 @@ import React from "react";
 import { Send, Check, X, Navigation, Map as MapIcon, ChevronRight, Search, Repeat, MoreHorizontal } from "lucide-react";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { getMapsUrlFromMessage } from "@/lib/utils";
-import type { Message, Profile, ThemeClasses } from "@/lib/types";
-import type { UserProfileData } from "@/components/sections/UserProfileModal";
+import type { Message } from "@/lib/types";
+import { useLoop } from "@/lib/LoopContext";
 import { parseReturnTripMessage } from "./chatUtils";
+import type { ChatRoom } from "./useChatRoom";
 
-interface MessageListProps {
-  messages: Message[];
-  sessionUserId: string;
-  profile: Profile;
-  theme: ThemeClasses;
-  formatTime: (iso: string) => string;
-  hasMoreMessages: boolean;
-  isLoadingMore: boolean;
-  onLoadMoreMessages: () => void;
-  searchQuery: string;
-  matchingMsgIds: Set<string>;
-  editingMsgId: string | null;
-  editingContent: string;
-  setEditingContent: (val: string) => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
-  holdingMsgId: string | null;
-  startHold: (msg: Message, e: React.TouchEvent | React.MouseEvent) => void;
-  moveHold: (e: React.TouchEvent | React.MouseEvent) => void;
-  endHold: () => void;
-  onActionMenu: (msg: Message) => void;
-  onStartEditMessage: (msg: Message) => void;
-  onOpenReturnLoop: (loopId: string) => void;
-  onSelectUser: (user: UserProfileData) => void;
-  chatScrollRef: React.RefObject<HTMLDivElement | null>;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  didTriggerHoldRef: React.MutableRefObject<boolean>;
+export interface MessageListProps {
+  /** The whole useChatRoom bundle — replaces the previous 26-prop handoff. */
+  room: ChatRoom;
 }
 
-export function MessageList({
-  messages,
-  sessionUserId,
-  profile,
-  theme,
-  formatTime,
-  hasMoreMessages,
-  isLoadingMore,
-  onLoadMoreMessages,
-  searchQuery,
-  matchingMsgIds,
-  editingMsgId,
-  editingContent,
-  setEditingContent,
-  onSaveEdit,
-  onCancelEdit,
-  holdingMsgId,
-  startHold,
-  moveHold,
-  endHold,
-  onActionMenu,
-  onStartEditMessage,
-  onOpenReturnLoop,
-  onSelectUser,
-  chatScrollRef,
-  messagesEndRef,
-  didTriggerHoldRef,
-}: MessageListProps) {
+export function MessageList({ room }: MessageListProps) {
+  const {
+    messages,
+    hasMoreMessages,
+    isLoadingMore,
+    loadMoreMessages,
+    searchQuery,
+    matchingMsgIds,
+    editingMsgId,
+    setEditingMsgId,
+    editingContent,
+    setEditingContent,
+    saveEditMessage,
+    holdingMsgId,
+    didTriggerHoldRef,
+    startHold,
+    moveHold,
+    endHold,
+    setActionMenuMsg,
+    startEditMessage,
+    handleOpenReturnLoop,
+    setSelectedUser,
+    chatScrollRef,
+    messagesEndRef,
+  } = room;
+  const { session, profile, theme, formatTime } = useLoop();
+  const sessionUserId = session.user.id;
   const { isDark, border, cardBg, mutedText, text } = theme;
+  const onCancelEdit = () => setEditingMsgId(null);
 
   return (
     <div
@@ -79,7 +56,7 @@ export function MessageList({
       {hasMoreMessages && (
         <div className="flex justify-center py-2">
           <button
-            onClick={onLoadMoreMessages}
+            onClick={loadMoreMessages}
             disabled={isLoadingMore}
             className={`text-[11px] font-bold ${
               isDark
@@ -136,7 +113,7 @@ export function MessageList({
               {showSender && (
                 <div
                   onClick={() =>
-                    onSelectUser({
+                    setSelectedUser({
                       user_id: msg.user_id,
                       display_name: isMe ? profile.display_name : msg.profiles?.display_name || "Member",
                       avatar_url: isMe ? profile.avatar_url : msg.profiles?.avatar_url,
@@ -177,13 +154,13 @@ export function MessageList({
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") onSaveEdit();
+                      if (e.key === "Enter") saveEditMessage();
                       if (e.key === "Escape") onCancelEdit();
                     }}
                     className="flex-1 bg-transparent text-[13px] font-medium outline-none"
                   />
                   <button
-                    onClick={onSaveEdit}
+                    onClick={saveEditMessage}
                     className={`w-7 h-7 rounded-lg ${
                       isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
                     } flex items-center justify-center shrink-0 active:scale-90`}
@@ -221,10 +198,10 @@ export function MessageList({
                   onContextMenu={(e) => {
                     e.preventDefault();
                     if (!isOptimistic && !editingMsgId) {
-                      onActionMenu(msg);
+                      setActionMenuMsg(msg);
                     }
                   }}
-                  onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && onStartEditMessage(msg)}
+                  onDoubleClick={() => isMe && !isOptimistic && !isLocationMsg && startEditMessage(msg)}
                 >
                   {!mapsUrl ? (
                     (() => {
@@ -245,7 +222,7 @@ export function MessageList({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onOpenReturnLoop(returnInfo.returnLoopId!);
+                                handleOpenReturnLoop(returnInfo.returnLoopId!);
                               }}
                               className={`mt-2.5 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider active:scale-95 transition-all shadow-sm ${
                                 isMe
@@ -338,7 +315,7 @@ export function MessageList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onActionMenu(msg);
+                        setActionMenuMsg(msg);
                       }}
                       aria-label="Message options"
                       className={`absolute ${

@@ -8,6 +8,7 @@ import type { View, Loop, Profile } from "@/lib/types";
 import { preloadAvatars } from "@/lib/imageOptimization";
 import { registerServiceWorker, sendLocalNotification } from "@/lib/notifications";
 import { readOwnedCache, writeOwnedCache } from "@/lib/storage";
+import { getProfileDisplayName } from "@/lib/profileNameCache";
 import type { Database } from "@/lib/database.types";
 import { useLoopMemberships } from "./useLoopMemberships";
 
@@ -30,6 +31,8 @@ interface UseLoopDirectoryOptions {
   setSelectedLoopState: React.Dispatch<React.SetStateAction<Loop | null>>;
   setChatSource: (s: "ride-details" | "chat-list") => void;
   setUnreadLoopIds: React.Dispatch<React.SetStateAction<string[]>>;
+  /** Adopts the server-side unread set (get_unread_loop_ids RPC) into context. */
+  reconcileUnread: () => Promise<void>;
 }
 
 export function useLoopDirectory({
@@ -44,6 +47,7 @@ export function useLoopDirectory({
   setSelectedLoopState,
   setChatSource,
   setUnreadLoopIds,
+  reconcileUnread,
 }: UseLoopDirectoryOptions) {
   const [activeLoops, setActiveLoops] = useState<Loop[]>(() =>
     // Owner-checked cache: the feed snapshot is private per account.
@@ -214,7 +218,10 @@ export function useLoopDirectory({
   useEffect(() => {
     registerServiceWorker();
     fetchProfile();
-    Promise.all([fetchLoops(), fetchUserMemberships()]);
+    Promise.all([fetchLoops(), fetchUserMemberships()]).then(() => {
+      // Adopt the server-side unread set once memberships are known.
+      reconcileUnread();
+    });
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let hideTimer: NodeJS.Timeout | null = null;
@@ -391,14 +398,10 @@ export function useLoopDirectory({
 
               let senderName = "New message";
               if (newMsg.user_id) {
-                try {
-                  const { data: prof } = await supabase
-                    .from("profiles")
-                    .select("display_name")
-                    .eq("id", newMsg.user_id)
-                    .single();
-                  if (prof?.display_name) senderName = prof.display_name;
-                } catch (err) { logger.error("src/lib/hooks/useLoopDirectory.ts: swallowed non-fatal error", err); }
+                // Shared TTL cache — the chat-list preview handler fires for
+                // the same event and no longer re-fetches this profile.
+                const fetched = await getProfileDisplayName(newMsg.user_id);
+                if (fetched) senderName = fetched;
               }
 
               const matchedLoop = activeLoopsRef.current.find((l) => l.id === loopId);
@@ -432,6 +435,7 @@ export function useLoopDirectory({
         subscribeChannel();
         fetchLoops(true);
         fetchUserMemberships(true);
+        reconcileUnread();
       }
     };
 
@@ -441,6 +445,7 @@ export function useLoopDirectory({
       if (document.visibilityState === "visible") {
         fetchLoops();
         fetchUserMemberships();
+        reconcileUnread();
       }
     }, 45000);
 

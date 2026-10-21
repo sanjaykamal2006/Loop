@@ -25,6 +25,7 @@ const hasDb = Boolean(TEST_DATABASE_URL);
 
 const EXPECTED_PUBLIC_TABLES = [
   "allowed_external_emails",
+  "chat_read_state",
   "emergency_contacts",
   "expected_fares",
   "loop_members",
@@ -42,6 +43,11 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
     { name: "created_at", type: "timestamp with time zone", nullable: "YES" },
     { name: "description", type: "text", nullable: "YES" },
     { name: "email", type: "text", nullable: "NO" },
+  ],
+  chat_read_state: [
+    { name: "last_read_at", type: "timestamp with time zone", nullable: "NO" },
+    { name: "loop_id", type: "uuid", nullable: "NO" },
+    { name: "user_id", type: "uuid", nullable: "NO" },
   ],
   emergency_contacts: [
     { name: "created_at", type: "timestamp with time zone", nullable: "YES" },
@@ -136,6 +142,8 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
 };
 
 const EXPECTED_FOREIGN_KEYS = [
+  { table: "chat_read_state", column: "loop_id", refSchema: "public", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "chat_read_state", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
   { table: "emergency_contacts", column: "user_id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
   { table: "expected_fares", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
   { table: "loop_members", column: "loop_id", refSchema: "public", refTable: "loops", refColumn: "id", deleteRule: "CASCADE" },
@@ -255,7 +263,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       order by rel.relname, att.attname, con.conname
     `;
 
-    // 1. Assert exact total foreign key count matches production (all 12 FKs across all schemas)
+    // 1. Assert exact total foreign key count matches production (all 14 FKs across all schemas)
     expect(fks.length, `Expected exactly ${EXPECTED_FOREIGN_KEYS.length} foreign keys, received ${fks.length}`).toBe(EXPECTED_FOREIGN_KEYS.length);
 
     // 2. Assert every expected foreign key matches full 6-tuple: table, column, refSchema, refTable, refColumn, deleteRule
@@ -604,6 +612,8 @@ describe.skipIf(!hasDb)("database schema contract", () => {
 
     const expectedIndexes = [
       { tablename: "allowed_external_emails", indexname: "allowed_external_emails_pkey", isUnique: true, columns: ["email"] },
+      { tablename: "chat_read_state", indexname: "chat_read_state_loop_idx", isUnique: false, columns: ["loop_id"] },
+      { tablename: "chat_read_state", indexname: "chat_read_state_pkey", isUnique: true, columns: ["user_id", "loop_id"] },
       { tablename: "emergency_contacts", indexname: "emergency_contacts_pkey", isUnique: true, columns: ["id"] },
       { tablename: "emergency_contacts", indexname: "idx_emergency_contacts_user_id", isUnique: false, columns: ["user_id"] },
       { tablename: "expected_fares", indexname: "expected_fares_pkey", isUnique: true, columns: ["id"] },
@@ -654,6 +664,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
 
     const expectedDefaults = [
       { table_name: "allowed_external_emails", column_name: "created_at", column_default: "now()" },
+      { table_name: "chat_read_state", column_name: "last_read_at", column_default: "now()" },
       { table_name: "emergency_contacts", column_name: "created_at", column_default: "now()" },
       { table_name: "emergency_contacts", column_name: "id", column_default: "gen_random_uuid()" },
       { table_name: "emergency_contacts", column_name: "relation", column_default: "'Parent'::text" },

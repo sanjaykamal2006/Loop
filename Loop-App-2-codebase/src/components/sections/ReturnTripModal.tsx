@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
+import { postChatAnnouncement } from "@/lib/chatMessages";
 import { toast } from "@/components/ui/NativeToast";
 import { Repeat, ArrowRight, Calendar, Clock, X } from "lucide-react";
 import {
@@ -191,15 +192,11 @@ export default function ReturnTripModal({
 
         // Post announcement in outbound loop's chat from the author
         if (primaryLoop.id) {
-          try {
-            await supabase.from("messages").insert({
-              loop_id: primaryLoop.id,
-              user_id: session.user.id,
-              content: `Return trip available! Check it out [return_loop:${data.id}]`,
-            });
-          } catch (chatErr) {
-            logger.error("Failed to post return ride notification in outbound chat:", chatErr);
-          }
+          await postChatAnnouncement(
+            primaryLoop.id,
+            session.user.id,
+            `Return trip available! Check it out [return_loop:${data.id}]`
+          );
         }
 
         toast.success("Return ride created successfully");

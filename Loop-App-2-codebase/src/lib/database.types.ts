@@ -19,6 +19,32 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"chat_read_state": {
+                  Row: {
+                    "last_read_at": string,"loop_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "last_read_at"?: string,"loop_id": string,"user_id": string
+                  }
+                  Update: {
+                    "last_read_at"?: string,"loop_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_read_state_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chat_read_state_loop_id_fkey"
+      columns: ["loop_id"]
+isOneToOne: false
+      referencedRelation: "loops"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"emergency_contacts": {
                   Row: {
                     "created_at": string | null,"id": string,"name": string,"phone": string,"relation": string | null,"updated_at": string | null,"user_id": string
@@ -226,6 +252,11 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "avatar_url": string | null,"created_at": string,"display_name": string | null,"expected_fare": number,"from_location": string,"id": string,"to_location": string,"user_id": string | null,"vehicle_type": string | null
 }[] },
+"get_unread_loop_ids":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "loop_id": string
+            }[]
+                           },
 "get_loop_contacts":
 { Args: { "target_loop_id": string }; Returns: {
               "phone_number": string,"user_id": string

@@ -91,6 +91,7 @@ describe("LoopContext", () => {
         select: vi.fn(() => q),
         eq: vi.fn(() => q),
         single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        upsert: vi.fn(() => Promise.resolve({ data: null, error: null })),
       };
       return q;
     });
@@ -173,6 +174,7 @@ describe("LoopContext", () => {
           })
         ),
         maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        upsert: vi.fn(() => Promise.resolve({ data: null, error: null })),
       };
       return q;
     });
@@ -187,5 +189,8 @@ describe("LoopContext", () => {
       expect(screen.getByTestId("view").textContent).toBe("ride-details");
     });
     expect(screen.getByTestId("selected").textContent).toBe("loop-9");
+    // Every ride-open path persists the server-side read mark (cross-device
+    // badges) — the provider must have written to chat_read_state.
+    expect(mocks.from).toHaveBeenCalledWith("chat_read_state");
   });
 });

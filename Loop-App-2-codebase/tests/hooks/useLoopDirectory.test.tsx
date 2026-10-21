@@ -81,6 +81,7 @@ const session = { user: { id: "user-1", email: "a@b.c" } } as unknown as Session
 const profile = { display_name: "Test", theme: "dark", gender: "male" } as Profile;
 
 let loopsResponse: { data: unknown[]; error: unknown };
+let profilesResponse: { data: unknown; error: unknown };
 let channelHandlers: ((payload: any) => void)[];
 
 function makeQuery() {
@@ -92,6 +93,7 @@ function makeQuery() {
   q.limit = vi.fn(() => q);
   q.eq = vi.fn(() => q);
   q.single = vi.fn(() => Promise.resolve(loopsResponse));
+  q.maybeSingle = vi.fn(() => Promise.resolve(profilesResponse));
   q.then = (resolve: any, reject: any) => Promise.resolve(loopsResponse).then(resolve, reject);
   return q;
 }
@@ -118,6 +120,7 @@ const stableSetSelectedLoop = vi.fn();
 const stableSetSelectedLoopState = vi.fn();
 const stableSetChatSource = vi.fn();
 const stableSetUnreadLoopIds = vi.fn();
+const stableReconcileUnread = vi.fn(async () => {});
 
 function renderDirectory(overrides: Record<string, unknown> = {}) {
   return renderHook(() =>
@@ -133,6 +136,7 @@ function renderDirectory(overrides: Record<string, unknown> = {}) {
       setSelectedLoopState: stableSetSelectedLoopState,
       setChatSource: stableSetChatSource,
       setUnreadLoopIds: stableSetUnreadLoopIds,
+      reconcileUnread: stableReconcileUnread,
       ...overrides,
     })
   );
@@ -143,6 +147,7 @@ describe("useLoopDirectory", () => {
     vi.clearAllMocks();
     localStorage.clear();
     loopsResponse = { data: [], error: null };
+    profilesResponse = { data: null, error: null };
     channelHandlers = [];
     membership.userLoops = [];
     membership.joined = [];
@@ -235,5 +240,100 @@ describe("useLoopDirectory", () => {
     });
 
     expect(result.current.activeLoops.map((loop) => loop.id)).toEqual(["second"]);
+  });
+
+  it("badges unread when a message lands in one of my rides while elsewhere", async () => {
+    membership.joined = ["loop-x"];
+    membership.joinedRef.current = ["loop-x"];
+    profilesResponse = { data: { display_name: "Asha" }, error: null };
+
+    const { result } = renderDirectory();
+    await waitFor(() => expect(mocks.from).toHaveBeenCalled());
+
+    const messagesHandler = channelHandlers[5]; // messages INSERT handler (last registered)
+    await act(async () => {
+      await messagesHandler({
+        new: {
+          id: "m-1",
+          loop_id: "loop-x",
+          user_id: "sender-9",
+          content: "bus leaves in 5",
+          created_at: new Date().toISOString(),
+        },
+      });
+    });
+
+    expect(stableSetUnreadLoopIds).toHaveBeenCalledTimes(1);
+    const updater = stableSetUnreadLoopIds.mock.calls.at(-1)![0] as (prev: string[]) => string[];
+    expect(typeof updater).toBe("function");
+    expect(updater(["existing"])).toEqual(["existing", "loop-x"]);
+    // Sender name resolved via the dedup path + destination falls back when loop unknown.
+    expect(mocks.sendLocalNotification).toHaveBeenCalledWith(
+      "Asha (to your ride)",
+      expect.objectContaining({ tag: "loop-msg-loop-x" })
+    );
+  });
+
+  it("does not badge the chat the user is currently viewing", async () => {
+    membership.joined = ["loop-x"];
+    membership.joinedRef.current = ["loop-x"];
+
+    renderDirectory({
+      view: "chat",
+      selectedLoop: makeLoop({ id: "loop-x" }) as any,
+    });
+    await waitFor(() => expect(mocks.from).toHaveBeenCalled());
+
+    const messagesHandler = channelHandlers[5];
+    await act(async () => {
+      await messagesHandler({
+        new: {
+          id: "m-2",
+          loop_id: "loop-x",
+          user_id: "sender-9",
+          content: "hi",
+          created_at: new Date().toISOString(),
+        },
+      });
+    });
+
+    expect(stableSetUnreadLoopIds).not.toHaveBeenCalled();
+    expect(mocks.sendLocalNotification).not.toHaveBeenCalled();
+  });
+
+  it("ignores own messages and messages for rides the user is not in", async () => {
+    membership.joined = ["loop-mine"];
+    membership.joinedRef.current = ["loop-mine"];
+    renderDirectory();
+    await waitFor(() => expect(mocks.from).toHaveBeenCalled());
+
+    const messagesHandler = channelHandlers[5];
+    await act(async () => {
+      await messagesHandler({
+        new: {
+          id: "m-3",
+          loop_id: "loop-mine",
+          user_id: "user-1",
+          content: "my own message",
+          created_at: new Date().toISOString(),
+        },
+      });
+      await messagesHandler({
+        new: {
+          id: "m-4",
+          loop_id: "not-a-member",
+          user_id: "someone-else",
+          content: "stray event",
+          created_at: new Date().toISOString(),
+        },
+      });
+    });
+
+    expect(stableSetUnreadLoopIds).not.toHaveBeenCalled();
+  });
+
+  it("reconciles unread with the server once memberships resolve", async () => {
+    renderDirectory();
+    await waitFor(() => expect(stableReconcileUnread).toHaveBeenCalled());
   });
 });

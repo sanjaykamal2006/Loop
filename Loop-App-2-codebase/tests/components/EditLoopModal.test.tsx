@@ -43,7 +43,12 @@ vi.mock('@/lib/supabase', () => ({
       }
       if (table === 'messages') {
         return {
-          insert: mockInsert.mockResolvedValue({ error: null }),
+          // insertChatMessage (shared writer): insert → select → single
+          insert: mockInsert.mockImplementation(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(() => Promise.resolve({ data: { id: 'sys-1' }, error: null })),
+            })),
+          })),
         };
       }
       return {};

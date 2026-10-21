@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
+import { postChatAnnouncement } from "@/lib/chatMessages";
 import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Loop } from "@/lib/types";
@@ -154,15 +155,11 @@ export default function EditLoopModal({
 
       // Send chat announcement if there were any changes
       if (changes.length > 0) {
-        try {
-          await supabase.from("messages").insert({
-            loop_id: loop.id,
-            user_id: loop.creator_id,
-            content: `[Update] Ride updated by host:\n• ${changes.join("\n• ")}`,
-          });
-        } catch (msgErr) {
-          logger.warn("Could not post update announcement to chat:", msgErr);
-        }
+        await postChatAnnouncement(
+          loop.id,
+          loop.creator_id,
+          `[Update] Ride updated by host:\n• ${changes.join("\n• ")}`
+        );
       }
 
       const updatedData = updated as unknown as {

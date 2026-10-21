@@ -62,6 +62,7 @@ export interface LoopContextValue {
   // Messages & notifications
   unreadLoopIds: string[];
   markLoopAsRead: (loopId: string) => void;
+  reconcileUnread: () => Promise<void>;
 
   // Return trip prefill
   createPrefill: { startPoint?: string; destination?: string; isReturn?: boolean } | null;
@@ -116,6 +117,13 @@ export function LoopProvider({ session, children }: { session: Session; children
     () => readOwnedCache<string[]>("loop_unread_loopids", session.user.id) ?? []
   );
   const [chatSource, setChatSource] = useState<"ride-details" | "chat-list">("ride-details");
+
+  // Mirrors `view` for callbacks that must not re-subscribe on view changes.
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
   const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
 
   // Declarative Modals & Search Controls State
@@ -134,21 +142,73 @@ export function LoopProvider({ session, children }: { session: Session; children
     setIsChatSearchOpen((prev) => !prev);
   }, []);
 
-  const setSelectedLoop = useCallback((loop: Loop | null) => {
-    setSelectedLoopState(loop);
-    if (loop?.id) {
-      setUnreadLoopIds((prev) => prev.filter((id) => id !== loop.id));
-    }
-    if (loop) {
-      writeOwnedCache("loop_selected_loop", loop, session.user.id);
-    } else {
-      writeOwnedCache("loop_selected_loop", null, session.user.id);
-    }
-  }, [session.user.id]);
+  // ---------- Server-backed chat read state ----------
+  // Badges used to live only in localStorage; they now sync from
+  // chat_read_state so they are cross-device and survive local wipes.
 
-  const markLoopAsRead = useCallback((loopId: string) => {
-    setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
+  // Fire-and-forget write of "this chat has been read". A badge must never
+  // depend on the write succeeding — failures are logged and swallowed.
+  const persistReadMark = useCallback(
+    (loopId: string) => {
+      void supabase
+        .from("chat_read_state")
+        .upsert(
+          { user_id: session.user.id, loop_id: loopId, last_read_at: new Date().toISOString() },
+          { onConflict: "user_id,loop_id" }
+        )
+        .then(({ error }) => {
+          if (error) logger.error("unread read-mark write failed:", error);
+        });
+    },
+    [session.user.id]
+  );
+
+  // Ask the DB for the authoritative unread set and adopt it. Called on load
+  // and on every membership refresh; the loop the user is actively reading is
+  // excluded (the same rule the realtime handler applies).
+  const unreadReconcileBusyRef = useRef(false);
+  const reconcileUnread = useCallback(async () => {
+    if (unreadReconcileBusyRef.current) return;
+    unreadReconcileBusyRef.current = true;
+    try {
+      const { data, error } = await supabase.rpc("get_unread_loop_ids");
+      if (error) {
+        logger.error("unread reconcile failed:", error);
+        return;
+      }
+      const serverUnread = (data as { loop_id: string }[] | null)?.map((r) => r.loop_id) ?? [];
+      const readingId = viewRef.current === "chat" ? selectedLoopRef.current?.id : undefined;
+      setUnreadLoopIds(serverUnread.filter((id) => id !== readingId));
+    } finally {
+      unreadReconcileBusyRef.current = false;
+    }
   }, []);
+
+  const setSelectedLoop = useCallback(
+    (loop: Loop | null) => {
+      setSelectedLoopState(loop);
+      if (loop?.id) {
+        setUnreadLoopIds((prev) => prev.filter((id) => id !== loop.id));
+        // Every open-chat path funnels through setSelectedLoop — this single
+        // call keeps the server's last-read timestamp mirroring the local clear.
+        persistReadMark(loop.id);
+      }
+      if (loop) {
+        writeOwnedCache("loop_selected_loop", loop, session.user.id);
+      } else {
+        writeOwnedCache("loop_selected_loop", null, session.user.id);
+      }
+    },
+    [session.user.id, persistReadMark]
+  );
+
+  const markLoopAsRead = useCallback(
+    (loopId: string) => {
+      setUnreadLoopIds((prev) => prev.filter((id) => id !== loopId));
+      persistReadMark(loopId);
+    },
+    [persistReadMark]
+  );
 
   // Persist the unread badge set so it survives reloads (per account).
   useEffect(() => {
@@ -285,6 +345,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     setSelectedLoopState,
     setChatSource,
     setUnreadLoopIds,
+    reconcileUnread,
   });
 
   // Emergency SOS hook
@@ -345,6 +406,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     setChatSource,
     unreadLoopIds,
     markLoopAsRead,
+    reconcileUnread,
     createPrefill,
     setCreatePrefill,
     emergencyContact,
@@ -377,6 +439,7 @@ export function LoopProvider({ session, children }: { session: Session; children
       userJoinedLoops, userLoops, fetchUserMemberships, registerCreatedLoop, joinLoop, deleteLoop,
       leaveLoop, isJoining, isDeleting, showGenderSelect, setShowGenderSelect, pendingAction,
       setPendingAction, formatTime, chatSource, setChatSource, unreadLoopIds, markLoopAsRead,
+      reconcileUnread,
       createPrefill, setCreatePrefill, emergencyContact, emergencyContacts, saveEmergencyContact,
       saveEmergencyContacts, showSosModal, setShowSosModal, showEmergencyContactModal,
       setShowEmergencyContactModal, triggerSos, showTermsModal, setShowTermsModal,
