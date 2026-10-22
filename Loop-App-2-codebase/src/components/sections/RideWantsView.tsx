@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { useRideWants } from "@/components/sections/useRideWants";
 import { formatLocation } from "@/lib/locationFormatter";
 import { getQuickDayOptions, RideWantRow } from "@/lib/rideWants";
 import { triggerHaptic } from "@/lib/haptics";
-import { ArrowLeft, RefreshCw, Users, MapPin, Sparkles, Plus, Check, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, RefreshCw, Users, MapPin, Sparkles, Plus, Check, Calendar, Clock, ChevronDown } from "lucide-react";
 
 const POPULAR_DESTINATIONS = [
   "Vijayawada Railway Station",
@@ -57,6 +57,33 @@ export default function RideWantsView() {
   const [selectedDate, setSelectedDate] = useState<string>(quickDayOptions[0]?.dateStr || "");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [note, setNote] = useState<string>("");
+
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+
+  // Picker-only entry: the native inputs stay non-interactive; taps open
+  // the calendar/clock popup via showPicker() (no keyboard typing).
+  const openDatePick = () => {
+    triggerHaptic(8);
+    const el = dateRef.current;
+    if (!el) return;
+    try {
+      el.showPicker?.();
+    } catch {
+      try { el.focus(); } catch {}
+    }
+  };
+
+  const openTimePick = () => {
+    triggerHaptic(8);
+    const el = timeRef.current;
+    if (!el) return;
+    try {
+      el.showPicker?.();
+    } catch {
+      try { el.focus(); } catch {}
+    }
+  };
 
   const handleDestinationChip = (dest: string) => {
     triggerHaptic(8);
@@ -181,48 +208,60 @@ export default function RideWantsView() {
             <input
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="Where to? (e.g. Station, Airport)"
+              placeholder="Where to?"
               aria-label="Destination"
-              className="flex-1 bg-transparent text-xs font-semibold outline-none placeholder:text-zinc-500 placeholder:font-normal"
+              className="flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-zinc-500 placeholder:font-normal"
             />
           </div>
 
-          {/* Travel Date — single specific line */}
+          {/* Travel Date — one-tap calendar only, no typing */}
           <div className="space-y-1.5">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
-            <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 focus-within:border-[#FFC554]/80 transition-all`}>
-              <Calendar size={15} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+            <div
+              onClick={openDatePick}
+              className={`w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 cursor-pointer focus-within:border-[#FFC554]/80 transition-all active:scale-[0.99]`}
+            >
+              <Calendar size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <span className="flex-1 text-sm font-bold">
+                {selectedDate ? formatDepartDateLabel(selectedDate) || selectedDate : "Pick a date"}
+              </span>
               <input
+                ref={dateRef}
                 type="date"
                 value={selectedDate}
                 min={quickDayOptions[0]?.dateStr}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                aria-label="Travel date"
-                className="flex-1 bg-transparent text-xs font-bold outline-none cursor-pointer"
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                className="absolute w-px h-px opacity-0 pointer-events-none"
               />
-              {selectedDate && (
-                <span className="text-[10px] font-bold text-zinc-400 shrink-0">{formatDepartDateLabel(selectedDate)}</span>
-              )}
+              <ChevronDown size={16} className="opacity-60 shrink-0" />
             </div>
           </div>
 
-          {/* Travel Time — optional hint line below the date */}
+          {/* Travel Time — one-tap clock popup only, no typing */}
           <div className="space-y-1.5">
-            <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>
-              Travel Time <span className="font-medium normal-case tracking-normal">(optional — rough time is fine)</span>
-            </label>
-            <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 focus-within:border-[#FFC554]/80 transition-all`}>
-              <Clock size={15} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+            <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Time (optional)</label>
+            <div
+              onClick={openTimePick}
+              className={`w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 cursor-pointer focus-within:border-[#FFC554]/80 transition-all active:scale-[0.99]`}
+            >
+              <Clock size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <span className="flex-1 text-sm font-bold">
+                {selectedTime ? formatTimeLabel(selectedTime) || selectedTime : "Pick a time"}
+              </span>
               <input
+                ref={timeRef}
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                aria-label="Travel time"
-                className="flex-1 bg-transparent text-xs font-bold outline-none cursor-pointer"
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                className="absolute w-px h-px opacity-0 pointer-events-none"
               />
-              {selectedTime && (
-                <span className="text-[10px] font-bold text-zinc-400 shrink-0">{formatTimeLabel(selectedTime)}</span>
-              )}
+              <ChevronDown size={16} className="opacity-60 shrink-0" />
             </div>
           </div>
 
@@ -230,10 +269,10 @@ export default function RideWantsView() {
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Optional note (e.g. flight at 6 PM)"
+            placeholder="Optional note — anything useful"
             aria-label="Optional note"
             maxLength={80}
-            className={`w-full h-9 px-3 text-xs rounded-xl bg-white/5 border ${border} outline-none placeholder:text-zinc-500 focus:border-[#FFC554]/50 transition-all`}
+            className={`w-full h-10 px-3 text-sm rounded-xl bg-white/5 border ${border} outline-none placeholder:text-zinc-500 focus:border-[#FFC554]/50 transition-all`}
           />
 
           {/* Submit Button */}
