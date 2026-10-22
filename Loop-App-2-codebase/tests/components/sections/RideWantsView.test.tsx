@@ -138,6 +138,10 @@ describe("RideWantsView Component", () => {
     const noteInput = screen.getByLabelText("Optional note");
     fireEvent.change(noteInput, { target: { value: "Flight at 6 PM" } });
 
+    // Select travel date
+    const dateInput = screen.getByLabelText("Travel date");
+    fireEvent.change(dateInput, { target: { value: "2028-10-25" } });
+
     // Submit form
     const submitBtn = screen.getByTestId("post-want-btn");
     fireEvent.click(submitBtn);
@@ -146,6 +150,7 @@ describe("RideWantsView Component", () => {
       expect(postSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           destination: "Airport",
+          departDate: "2028-10-25",
           note: "Flight at 6 PM",
         })
       );
@@ -277,6 +282,7 @@ describe("RideWantsView Component", () => {
       const dateInput = screen.getByLabelText("Travel date") as HTMLInputElement;
       expect(dateInput).toBeInTheDocument();
       expect(dateInput.type).toBe("date");
+      expect(screen.getByText("Pick a date")).toBeInTheDocument();
 
       // Change date
       fireEvent.change(dateInput, { target: { value: "2028-12-25" } });

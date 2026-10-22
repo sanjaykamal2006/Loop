@@ -65,7 +65,7 @@ export default function RideWantsView() {
   const quickDayOptions = useMemo(() => getQuickDayOptions(), []);
 
   const [destination, setDestination] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(quickDayOptions[0]?.dateStr || "");
+  const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [note, setNote] = useState<string>("");
 
@@ -105,6 +105,8 @@ export default function RideWantsView() {
     });
     if (ok) {
       setDestination("");
+      setSelectedDate("");
+      setSelectedTime("");
       setNote("");
     }
   };
