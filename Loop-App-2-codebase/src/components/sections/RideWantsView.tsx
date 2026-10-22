@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { useRideWants } from "@/components/sections/useRideWants";
 import { formatLocation } from "@/lib/locationFormatter";
@@ -57,6 +57,25 @@ export default function RideWantsView() {
   const [selectedDate, setSelectedDate] = useState<string>(quickDayOptions[0]?.dateStr || "");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [note, setNote] = useState<string>("");
+
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+
+  // Full-row popup entry. Phones: the native input covers the whole row, so a
+  // tap opens the native calendar/clock directly. Desktop (fine pointer):
+  // native inputs only open their popup from the indicator icon, so a click
+  // anywhere on the row explicitly calls showPicker(). Entering text is
+  // blocked either way (keydown filter below).
+  const openPickerIfDesktop = (el: HTMLInputElement | null) => {
+    if (!el) return;
+    if (typeof window !== "undefined" && !window.matchMedia?.("(pointer: fine)").matches) return;
+    try {
+      el.showPicker?.();
+    } catch {
+      // Safari < 16 / unsupported: focused desktop users can still use the
+      // arrow keys on the focused input.
+    }
+  };
 
   const handleDestinationChip = (dest: string) => {
     triggerHaptic(8);
@@ -190,13 +209,17 @@ export default function RideWantsView() {
           {/* Travel Date — one-tap calendar via native input tap (full-row invisible input) */}
           <div className="space-y-1.5">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
-            <div className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all`}>
+            <div
+              onClick={() => openPickerIfDesktop(dateRef.current)}
+              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all cursor-pointer`}
+            >
               <Calendar size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedDate ? formatDepartDateLabel(selectedDate) || selectedDate : "Pick a date"}
               </span>
               <ChevronDown size={16} className="opacity-60 shrink-0 pointer-events-none" aria-hidden="true" />
               <input
+                ref={dateRef}
                 type="date"
                 value={selectedDate}
                 min={quickDayOptions[0]?.dateStr}
@@ -215,13 +238,17 @@ export default function RideWantsView() {
           {/* Travel Time — one-tap clock via native input tap (full-row invisible input) */}
           <div className="space-y-1.5">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Time (optional)</label>
-            <div className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all`}>
+            <div
+              onClick={() => openPickerIfDesktop(timeRef.current)}
+              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all cursor-pointer`}
+            >
               <Clock size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedTime ? formatTimeLabel(selectedTime) || selectedTime : "Pick a time"}
               </span>
               <ChevronDown size={16} className="opacity-60 shrink-0 pointer-events-none" aria-hidden="true" />
               <input
+                ref={timeRef}
                 type="time"
                 value={selectedTime}
                 onClick={() => triggerHaptic(8)}
