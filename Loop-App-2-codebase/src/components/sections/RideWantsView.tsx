@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { useRideWants } from "@/components/sections/useRideWants";
 import { formatLocation } from "@/lib/locationFormatter";
@@ -57,33 +57,6 @@ export default function RideWantsView() {
   const [selectedDate, setSelectedDate] = useState<string>(quickDayOptions[0]?.dateStr || "");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [note, setNote] = useState<string>("");
-
-  const dateRef = useRef<HTMLInputElement>(null);
-  const timeRef = useRef<HTMLInputElement>(null);
-
-  // Picker-only entry: the native inputs stay non-interactive; taps open
-  // the calendar/clock popup via showPicker() (no keyboard typing).
-  const openDatePick = () => {
-    triggerHaptic(8);
-    const el = dateRef.current;
-    if (!el) return;
-    try {
-      el.showPicker?.();
-    } catch {
-      try { el.focus(); } catch {}
-    }
-  };
-
-  const openTimePick = () => {
-    triggerHaptic(8);
-    const el = timeRef.current;
-    if (!el) return;
-    try {
-      el.showPicker?.();
-    } catch {
-      try { el.focus(); } catch {}
-    }
-  };
 
   const handleDestinationChip = (dest: string) => {
     triggerHaptic(8);
@@ -214,54 +187,52 @@ export default function RideWantsView() {
             />
           </div>
 
-          {/* Travel Date — one-tap calendar only, no typing */}
+          {/* Travel Date — one-tap calendar via native input tap (full-row invisible input) */}
           <div className="space-y-1.5">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
-            <div
-              onClick={openDatePick}
-              className={`w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 cursor-pointer focus-within:border-[#FFC554]/80 transition-all active:scale-[0.99]`}
-            >
+            <div className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all`}>
               <Calendar size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
-              <span className="flex-1 text-sm font-bold">
+              <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedDate ? formatDepartDateLabel(selectedDate) || selectedDate : "Pick a date"}
               </span>
+              <ChevronDown size={16} className="opacity-60 shrink-0 pointer-events-none" aria-hidden="true" />
               <input
-                ref={dateRef}
                 type="date"
                 value={selectedDate}
                 min={quickDayOptions[0]?.dateStr}
+                onClick={() => triggerHaptic(8)}
+                onKeyDown={(e) => {
+                  // Catch keyboard typing: only navigation keys get through.
+                  if (e.key !== "Tab" && e.key !== "Escape" && e.key !== "Enter") e.preventDefault();
+                }}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                readOnly
-                tabIndex={-1}
-                aria-hidden="true"
-                className="absolute w-px h-px opacity-0 pointer-events-none"
+                aria-label="Travel date"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <ChevronDown size={16} className="opacity-60 shrink-0" />
             </div>
           </div>
 
-          {/* Travel Time — one-tap clock popup only, no typing */}
+          {/* Travel Time — one-tap clock via native input tap (full-row invisible input) */}
           <div className="space-y-1.5">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Time (optional)</label>
-            <div
-              onClick={openTimePick}
-              className={`w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 cursor-pointer focus-within:border-[#FFC554]/80 transition-all active:scale-[0.99]`}
-            >
+            <div className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all`}>
               <Clock size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
-              <span className="flex-1 text-sm font-bold">
+              <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedTime ? formatTimeLabel(selectedTime) || selectedTime : "Pick a time"}
               </span>
+              <ChevronDown size={16} className="opacity-60 shrink-0 pointer-events-none" aria-hidden="true" />
               <input
-                ref={timeRef}
                 type="time"
                 value={selectedTime}
+                onClick={() => triggerHaptic(8)}
+                onKeyDown={(e) => {
+                  // Catch keyboard typing: only navigation keys get through.
+                  if (e.key !== "Tab" && e.key !== "Escape" && e.key !== "Enter") e.preventDefault();
+                }}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                readOnly
-                tabIndex={-1}
-                aria-hidden="true"
-                className="absolute w-px h-px opacity-0 pointer-events-none"
+                aria-label="Travel time"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <ChevronDown size={16} className="opacity-60 shrink-0" />
             </div>
           </div>
 
