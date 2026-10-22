@@ -108,12 +108,14 @@ describe("rideWants lib utility", () => {
         destination: "Vijayawada Railway Station",
         departDate: "2026-10-25",
         note: "Have luggage",
+        departTime: "18:30",
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith("post_ride_intent", {
         p_destination_key: "Vijayawada Railway Station",
         p_depart_date: "2026-10-25",
         p_note: "Have luggage",
+        p_depart_time: "18:30",
       });
       expect(result.count).toBe(3);
       expect(result.error).toBeNull();
@@ -131,6 +133,7 @@ describe("rideWants lib utility", () => {
         p_destination_key: "Airport",
         p_depart_date: "2026-10-26",
         p_note: null,
+        p_depart_time: null,
       });
       expect(result.count).toBe(1);
       expect(result.error).toBeNull();

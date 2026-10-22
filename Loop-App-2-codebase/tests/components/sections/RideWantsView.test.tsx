@@ -79,8 +79,8 @@ describe("RideWantsView Component", () => {
 
     render(<RideWantsView />);
 
-    expect(screen.getByText("Ride Wanted")).toBeInTheDocument();
-    expect(screen.getByText("Signal demand without commitment")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Find Co-Travellers" })).toBeInTheDocument();
+    expect(screen.getByText("Match with students going the same way")).toBeInTheDocument();
 
     const backBtn = screen.getByLabelText("Back to home");
     fireEvent.click(backBtn);
@@ -93,7 +93,7 @@ describe("RideWantsView Component", () => {
     render(<RideWantsView />);
 
     await waitFor(() => {
-      expect(screen.getByText("No active ride wants yet")).toBeInTheDocument();
+      expect(screen.getByText("No co-travellers yet")).toBeInTheDocument();
     });
   });
 
@@ -130,7 +130,7 @@ describe("RideWantsView Component", () => {
         })
       );
       expect(toast.success).toHaveBeenCalledWith(
-        expect.stringContaining("Now 3 students want this ride")
+        expect.stringContaining("3 students going this way")
       );
     });
   });
@@ -142,6 +142,7 @@ describe("RideWantsView Component", () => {
         depart_date: "2028-10-25",
         intent_count: 3,
         has_mine: false,
+        first_depart_time: "18:30:00",
       },
     ];
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
@@ -151,7 +152,7 @@ describe("RideWantsView Component", () => {
 
     await waitFor(() => {
       expect(screen.getByText("3")).toBeInTheDocument();
-      expect(screen.getByText("students want this ride")).toBeInTheDocument();
+      expect(screen.getByText(/students going this way/)).toBeInTheDocument();
     });
 
     const meTooBtn = screen.getByTestId("me-too-btn");
@@ -165,9 +166,9 @@ describe("RideWantsView Component", () => {
         departDate: "2028-10-25",
       });
       expect(toast.success).toHaveBeenCalledWith(
-        expect.stringContaining("You signaled demand for this ride")
+        expect.stringContaining("Your plan is added")
       );
-      expect(meTooBtn).toHaveTextContent("Added");
+      expect(meTooBtn).toHaveTextContent("You're in");
       expect(meTooBtn).toBeDisabled();
     });
   });
@@ -179,6 +180,7 @@ describe("RideWantsView Component", () => {
         depart_date: "2028-10-25",
         intent_count: 5,
         has_mine: true,
+        first_depart_time: "18:05:00",
       },
     ];
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
@@ -195,6 +197,7 @@ describe("RideWantsView Component", () => {
     expect(mockSetCreatePrefill).toHaveBeenCalledWith({
       destination: "Vijayawada Railway Station",
       travelDate: "2028-10-25",
+      departTime: "18:05:00",
     });
     expect(mockSetView).toHaveBeenCalledWith("create");
   });
@@ -206,6 +209,7 @@ describe("RideWantsView Component", () => {
         depart_date: "2028-10-25",
         intent_count: 4,
         has_mine: false,
+        first_depart_time: "07:30:00",
       },
     ];
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
@@ -223,7 +227,7 @@ describe("RideWantsView Component", () => {
 
     expect(mockSetPendingAction).toHaveBeenCalledWith({
       type: "create",
-      prefill: { destination: "Guntur", depart_date: "2028-10-25" },
+      prefill: { destination: "Guntur", depart_date: "2028-10-25", depart_time: "07:30:00" },
     });
     expect(mockSetShowGenderSelect).toHaveBeenCalledWith(true);
 

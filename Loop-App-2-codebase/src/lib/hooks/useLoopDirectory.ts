@@ -33,8 +33,8 @@ interface UseLoopDirectoryOptions {
   setUnreadLoopIds: React.Dispatch<React.SetStateAction<string[]>>;
   /** Adopts the server-side unread set (get_unread_loop_ids RPC) into context. */
   reconcileUnread: () => Promise<void>;
-  /** Applies a pending-action prefill (from the Ride Wanted board) into CreateView state. */
-  setCreatePrefill?: (p: { startPoint?: string; destination?: string; travelDate?: string; isReturn?: boolean } | null) => void;
+  /** Applies a pending-action prefill (from the co-traveller board) into CreateView state. */
+  setCreatePrefill?: (p: { startPoint?: string; destination?: string; travelDate?: string; departTime?: string; isReturn?: boolean } | null) => void;
 }
 
 export function useLoopDirectory({
@@ -59,7 +59,7 @@ export function useLoopDirectory({
 
   // Gender guard & pending actions
   const [showGenderSelect, setShowGenderSelect] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop; prefill?: { destination?: string; depart_date?: string } } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop; prefill?: { destination?: string; depart_date?: string; depart_time?: string } } | null>(null);
 
   const viewRef = useRef(view);
   useEffect(() => {
@@ -215,12 +215,13 @@ export function useLoopDirectory({
       }
       setPendingAction(null);
     } else if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
-      // Ride Wanted board: adopt the saved prefill before entering CreateView,
-      // otherwise the pre-filled destination/date is lost after profile setup.
+      // Co-traveller board: adopt the saved prefill before entering CreateView,
+      // otherwise the pre-filled destination/date/time is lost after profile setup.
       if (pendingAction.prefill) {
         setCreatePrefill?.({
           destination: pendingAction.prefill.destination,
           travelDate: pendingAction.prefill.depart_date,
+          ...(pendingAction.prefill.depart_time ? { departTime: pendingAction.prefill.depart_time } : {}),
         });
       }
       setView("create");

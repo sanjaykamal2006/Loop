@@ -112,15 +112,15 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
 
         // --- Invariant 3: Destination normalization + On-conflict deduplication ---
         await impersonate(userB);
-        // Post with mixed casing and spaces
+        // Post with mixed casing and spaces (with a rough departure time)
         const countB = await tx`
-          SELECT public.post_ride_intent('  Vijayawada  ', ${futureDate}::date, 'Me too') AS c
+          SELECT public.post_ride_intent('  Vijayawada  ', ${futureDate}::date, 'Me too', '18:30') AS c
         `;
         expect(Number(countB[0].c)).toBe(2);
 
         // Posting duplicate intent for same user+dest+date is deduplicated
         const countBDup = await tx`
-          SELECT public.post_ride_intent('vijayawada', ${futureDate}::date, 'Duplicate ping') AS c
+          SELECT public.post_ride_intent('vijayawada', ${futureDate}::date, 'Duplicate ping', '19:00') AS c
         `;
         expect(Number(countBDup[0].c)).toBe(2);
 
@@ -133,17 +133,16 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         expect(boardForB[0].has_mine).toBe(true);
         // Verify user_id is NOT a key on the returned row
         expect(boardForB[0]).not.toHaveProperty("user_id");
-
         // Stranger calls board: should see the same row, but has_mine = false
         await impersonate(strangerD);
         const boardForStranger = await tx`SELECT * FROM public.get_ride_intent_board()`;
         expect(boardForStranger).toHaveLength(1);
         expect(boardForStranger[0].has_mine).toBe(false);
 
-        // User C joins -> count reaches 3
+        // User C joins -> count reaches 3 (earlier time so first_depart_time = min)
         await impersonate(userC);
         const countC = await tx`
-          SELECT public.post_ride_intent('vijayawada', ${futureDate}::date, NULL) AS c
+          SELECT public.post_ride_intent('vijayawada', ${futureDate}::date, NULL, '18:05') AS c
         `;
         expect(Number(countC[0].c)).toBe(3);
 
@@ -152,6 +151,26 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
           SELECT public.post_ride_intent('   ', ${futureDate}::date, NULL) AS c
         `;
         expect(Number(emptyResult[0].c)).toBe(0);
+
+        // --- Invariant 5b: Invalid time format is rejected loudly ---
+        await tx`SAVEPOINT invalid_time_intent`;
+        let invalidTimeRejected = false;
+        try {
+          await tx`
+            SELECT public.post_ride_intent('vijayawada', ${futureDate}::date, NULL, 'tomorrow evening') AS c
+          `;
+        } catch (err) {
+          invalidTimeRejected = /Invalid time format/i.test(String((err as Error)?.message));
+        } finally {
+          await tx`ROLLBACK TO SAVEPOINT invalid_time_intent`;
+        }
+        expect(invalidTimeRejected).toBe(true);
+        // The board still reflects the pre-probe state (3 intents) after rollback
+        const boardAfterProbe = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        expect(boardAfterProbe).toHaveLength(1);
+        expect(boardAfterProbe[0].intent_count).toBe(3);
+        // first_depart_time = earliest time mentioned in the group (18:05 vs 18:30)
+        expect(boardAfterProbe[0].first_depart_time).toBe("18:05:00");
 
         // --- Invariant 6: Expiry filter ---
         // Insert expired intent rows manually (depart_date in the past).
@@ -187,7 +206,7 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
       SELECT
         has_table_privilege('anon', 'public.ride_intents', 'SELECT') AS anon_table,
         has_function_privilege('anon', 'public.get_ride_intent_board()', 'EXECUTE') AS anon_board,
-        has_function_privilege('anon', 'public.post_ride_intent(text, date, text)', 'EXECUTE') AS anon_post
+        has_function_privilege('anon', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS anon_post
     `;
     expect(granted[0].anon_table).toBe(false);
     expect(granted[0].anon_board).toBe(false);
@@ -205,7 +224,7 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         has_table_privilege('authenticated', 'public.ride_intents', 'SELECT') AS authed_sel,
         has_table_privilege('authenticated', 'public.ride_intents', 'INSERT') AS authed_ins,
         has_function_privilege('authenticated', 'public.get_ride_intent_board()', 'EXECUTE') AS authed_board,
-        has_function_privilege('authenticated', 'public.post_ride_intent(text, date, text)', 'EXECUTE') AS authed_post
+        has_function_privilege('authenticated', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS authed_post
     `;
     expect(granted[0].authed_sel).toBe(true);
     expect(granted[0].authed_ins).toBe(true);

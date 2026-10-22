@@ -158,8 +158,8 @@ describe('MainApp Component (Root Application Container)', () => {
       render(<MainApp session={mockSession} />);
     });
 
-    expect(await screen.findByText('Ride Wanted')).toBeInTheDocument();
-    expect(screen.getByText('Signal demand without commitment')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Find Co-Travellers' })).toBeInTheDocument();
+    expect(screen.getByText('Match with students going the same way')).toBeInTheDocument();
   });
 
   it('renders modal dialogs when respective state flags are true', async () => {

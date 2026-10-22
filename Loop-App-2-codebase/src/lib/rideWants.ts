@@ -8,12 +8,14 @@ export interface RideWantRow {
   depart_date: string;
   intent_count: number;
   has_mine: boolean;
+  first_depart_time: string | null;
 }
 
 export interface PostRideWantParams {
   destination: string;
   departDate: string; // ISO date 'YYYY-MM-DD'
   note?: string | null;
+  departTime?: string | null; // 'HH:MM' (optional)
 }
 
 export interface RideWantResult {
@@ -98,6 +100,7 @@ export async function postRideWant(params: PostRideWantParams): Promise<PostRide
     p_destination_key: dest,
     p_depart_date: date,
     p_note: params.note ? params.note.trim() : null,
+    p_depart_time: params.departTime ? params.departTime.trim() : null,
   });
 
   if (error) {

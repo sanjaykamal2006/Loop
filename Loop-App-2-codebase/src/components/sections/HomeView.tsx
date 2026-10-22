@@ -227,7 +227,7 @@ export default function HomeView() {
             data-testid="wants-board-empty-btn"
             className={`h-10 px-4 rounded-full border ${border} ${cardBg} font-black text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center gap-2 cursor-pointer`}
           >
-            <span>I Need a Ride</span>
+            <span>Find Co-Travellers</span>
             {hotWantsCount > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
                 isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
@@ -254,17 +254,17 @@ export default function HomeView() {
       >
         <div className="flex items-center gap-2">
           <Sparkles size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-          <span className="text-xs font-bold">I need a ride · Ride Wanted Board</span>
+          <span className="text-xs font-bold">Find Co-Travellers · Ride Wanted Board</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {hotWantsCount > 0 && (
             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
               isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
             }`}>
-              {hotWantsCount} hot
+              {hotWantsCount} active
             </span>
           )}
-          <span className={`text-xs font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Signal Demand →</span>
+          <span className={`text-xs font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>See who&apos;s going →</span>
         </div>
       </button>
 

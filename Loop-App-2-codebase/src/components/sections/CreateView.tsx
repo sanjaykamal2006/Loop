@@ -69,6 +69,18 @@ export default function CreateView() {
       if (createPrefill.destination) setDest(createPrefill.destination);
       if (createPrefill.travelDate) setTravelDate(createPrefill.travelDate);
       if (createPrefill.isReturn) setIsReturnTrip(true);
+      // Co-traveller board hint: map "HH:MM" into the hour/minute/AM-PM pickers
+      if (createPrefill.departTime) {
+        const parts = createPrefill.departTime.split(":").map(Number);
+        if (parts.length >= 2 && parts.every((n) => !isNaN(n))) {
+          const [h24, m] = parts;
+          if (h24 >= 0 && h24 <= 23 && m >= 0 && m <= 59) {
+            setAmpm(h24 >= 12 ? "PM" : "AM");
+            setHour(String(h24 % 12 || 12));
+            setMinute(String(m).padStart(2, "0"));
+          }
+        }
+      }
     }
   }, [createPrefill]);
 

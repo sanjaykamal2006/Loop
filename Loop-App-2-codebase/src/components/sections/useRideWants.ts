@@ -36,8 +36,8 @@ export function useRideWants() {
       triggerHaptic(10);
       toast.success(
         res.count >= 2
-          ? `Demand recorded! Now ${res.count} students want this ride.`
-          : "Demand recorded! We'll show it once another student wants it too."
+          ? `You're in! ${res.count} students going this way.`
+          : "Saved! Your plan shows once another student joins."
       );
       await loadBoard();
       return true;
@@ -58,7 +58,7 @@ export function useRideWants() {
       return;
     }
     triggerHaptic(14);
-    toast.success("Added! You signaled demand for this ride.");
+    toast.success("You're in! Your plan is added.");
     setWants((prev) =>
       prev.map((item) =>
         item.destination_key === row.destination_key && item.depart_date === row.depart_date

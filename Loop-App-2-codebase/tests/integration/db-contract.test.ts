@@ -132,6 +132,7 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
   ride_intents: [
     { name: "created_at", type: "timestamp with time zone", nullable: "NO" },
     { name: "depart_date", type: "date", nullable: "NO" },
+    { name: "depart_time", type: "time without time zone", nullable: "YES" },
     { name: "destination_key", type: "text", nullable: "NO" },
     { name: "expires_at", type: "timestamp with time zone", nullable: "NO" },
     { name: "id", type: "uuid", nullable: "NO" },

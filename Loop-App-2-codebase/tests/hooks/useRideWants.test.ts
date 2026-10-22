@@ -19,7 +19,7 @@ describe("useRideWants hook", () => {
 
   it("fetches active board on mount and sets wants state", async () => {
     const mockBoard = [
-      { destination_key: "vijayawada", depart_date: "2026-10-25", intent_count: 3, has_mine: false },
+      { destination_key: "vijayawada", depart_date: "2026-10-25", intent_count: 3, has_mine: false, first_depart_time: null },
     ];
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
       data: mockBoard,
@@ -75,7 +75,7 @@ describe("useRideWants hook", () => {
     expect(ok).toBe(true);
     expect(postSpy).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("once another student wants it too")
+      expect.stringContaining("once another student joins")
     );
   });
 
@@ -102,7 +102,7 @@ describe("useRideWants hook", () => {
 
     expect(ok).toBe(true);
     expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("Now 3 students want this ride")
+      expect.stringContaining("3 students going this way")
     );
   });
 
@@ -133,8 +133,8 @@ describe("useRideWants hook", () => {
 
   it("handles handleMeToo optimistic update when joining demand", async () => {
     const initialRows = [
-      { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false },
-      { destination_key: "airport", depart_date: "2026-10-26", intent_count: 3, has_mine: false },
+      { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false, first_depart_time: null },
+      { destination_key: "airport", depart_date: "2026-10-26", intent_count: 3, has_mine: false, first_depart_time: null },
     ];
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
       data: initialRows,
@@ -152,14 +152,14 @@ describe("useRideWants hook", () => {
       await result.current.handleMeToo(initialRows[0]);
     });
 
-    expect(toast.success).toHaveBeenCalledWith("Added! You signaled demand for this ride.");
+    expect(toast.success).toHaveBeenCalledWith("You're in! Your plan is added.");
     const updated = result.current.wants.find((r) => r.destination_key === "guntur");
     expect(updated?.has_mine).toBe(true);
     expect(updated?.intent_count).toBe(3);
   });
 
   it("ignores handleMeToo when row already has caller intent", async () => {
-    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true };
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
       data: [row],
       error: null,
@@ -177,7 +177,7 @@ describe("useRideWants hook", () => {
   });
 
   it("handles handleMeToo error gracefully", async () => {
-    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false };
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false, first_depart_time: null };
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
       data: [row],
       error: null,

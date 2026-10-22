@@ -6,12 +6,11 @@ import { useRideWants } from "@/components/sections/useRideWants";
 import { formatLocation } from "@/lib/locationFormatter";
 import { getQuickDayOptions, RideWantRow } from "@/lib/rideWants";
 import { triggerHaptic } from "@/lib/haptics";
-import { ArrowLeft, RefreshCw, Users, MapPin, Sparkles, Plus, Check, Calendar } from "lucide-react";
+import { ArrowLeft, RefreshCw, Users, MapPin, Sparkles, Plus, Check, Calendar, Clock } from "lucide-react";
 
 const POPULAR_DESTINATIONS = [
   "Vijayawada Railway Station",
   "Airport",
-  "Guntur Railway Station",
   "Vijayawada Bus Stand",
 ];
 
@@ -34,6 +33,18 @@ export function formatDepartDateLabel(dateStr: string): string {
   return `${days[target.getDay()]}, ${months[target.getMonth()]} ${target.getDate()}`;
 }
 
+/** '18:05' | '18:05:00' -> '6:05 PM' */
+export function formatTimeLabel(timeStr: string | null | undefined): string {
+  if (!timeStr) return "";
+  const parts = timeStr.split(":").map(Number);
+  if (parts.length < 2 || parts.some(isNaN)) return "";
+  const [h24, m] = [parts[0], parts[1]];
+  if (h24 < 0 || h24 > 23 || m < 0 || m > 59) return "";
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h = h24 % 12 || 12;
+  return `${h}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
 export default function RideWantsView() {
   const { setView, theme, profile, setCreatePrefill, setPendingAction, setShowGenderSelect } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
@@ -44,16 +55,12 @@ export default function RideWantsView() {
 
   const [destination, setDestination] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(quickDayOptions[0]?.dateStr || "");
+  const [selectedTime, setSelectedTime] = useState<string>("");
   const [note, setNote] = useState<string>("");
 
   const handleDestinationChip = (dest: string) => {
     triggerHaptic(8);
     setDestination(dest);
-  };
-
-  const handleDateChip = (dateStr: string) => {
-    triggerHaptic(8);
-    setSelectedDate(dateStr);
   };
 
   const onSubmitWant = async (e: React.FormEvent) => {
@@ -64,6 +71,7 @@ export default function RideWantsView() {
       destination: formatted,
       departDate: selectedDate,
       note: note.trim() || null,
+      departTime: selectedTime || null,
     });
     if (ok) {
       setDestination("");
@@ -79,7 +87,11 @@ export default function RideWantsView() {
     if (!isProfileComplete) {
       setPendingAction({
         type: "create",
-        prefill: { destination: formatLocation(row.destination_key), depart_date: row.depart_date },
+        prefill: {
+          destination: formatLocation(row.destination_key),
+          depart_date: row.depart_date,
+          ...(row.first_depart_time ? { depart_time: row.first_depart_time } : {}),
+        },
       });
       setShowGenderSelect(true);
       return;
@@ -88,6 +100,7 @@ export default function RideWantsView() {
     setCreatePrefill({
       destination: formatLocation(row.destination_key),
       travelDate: row.depart_date,
+      ...(row.first_depart_time ? { departTime: row.first_depart_time } : {}),
     });
     setView("create");
   };
@@ -108,8 +121,8 @@ export default function RideWantsView() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-lg font-black tracking-tight leading-none">Ride Wanted</h1>
-            <p className={`text-[11px] font-medium ${mutedText} mt-1`}>Signal demand without commitment</p>
+            <h1 className="text-lg font-black tracking-tight leading-none">Find Co-Travellers</h1>
+            <p className={`text-[11px] font-medium ${mutedText} mt-1`}>Match with students going the same way</p>
           </div>
         </div>
 
@@ -126,14 +139,14 @@ export default function RideWantsView() {
         </button>
       </div>
 
-      {/* Signal Demand Form Card (≤ 5 seconds flow) */}
+      {/* Signal Demand Form Card (≤ 10 seconds flow) */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm space-y-3.5`}>
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-black uppercase tracking-wider text-[#FFC554] flex items-center gap-1.5">
             <Sparkles size={13} />
-            Post Demand
+            Your Trip
           </span>
-          <span className={`text-[10px] ${mutedText}`}>Anonymous until ride forms</span>
+          <span className={`text-[10px] ${mutedText}`}>Anonymous until the ride forms</span>
         </div>
 
         <form onSubmit={onSubmitWant} className="space-y-3">
@@ -168,52 +181,48 @@ export default function RideWantsView() {
             <input
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="Destination (e.g. Vijayawada, Airport)"
+              placeholder="Where to? (e.g. Station, Airport)"
               aria-label="Destination"
               className="flex-1 bg-transparent text-xs font-semibold outline-none placeholder:text-zinc-500 placeholder:font-normal"
             />
           </div>
 
-          {/* Day Selector Chips */}
+          {/* Travel Date — single specific line */}
           <div className="space-y-1.5">
-            <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Day</label>
-            <div className="grid grid-cols-3 gap-2">
-              {quickDayOptions.map((opt) => {
-                const isSelected = selectedDate === opt.dateStr;
-                return (
-                  <button
-                    key={opt.label}
-                    type="button"
-                    onClick={() => handleDateChip(opt.dateStr)}
-                    className={`h-9 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center text-center ${
-                      isSelected
-                        ? isDark
-                          ? "bg-[#FFC554] text-black shadow-sm"
-                          : "bg-[#881337] text-white shadow-sm"
-                        : isDark
-                        ? "bg-white/5 border border-white/10 text-zinc-300 hover:border-white/20"
-                        : "bg-black/5 border border-black/10 text-zinc-700 hover:border-black/20"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
+            <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
+            <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 focus-within:border-[#FFC554]/80 transition-all`}>
+              <Calendar size={15} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <input
+                type="date"
+                value={selectedDate}
+                min={quickDayOptions[0]?.dateStr}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                aria-label="Travel date"
+                className="flex-1 bg-transparent text-xs font-bold outline-none cursor-pointer"
+              />
+              {selectedDate && (
+                <span className="text-[10px] font-bold text-zinc-400 shrink-0">{formatDepartDateLabel(selectedDate)}</span>
+              )}
             </div>
-            {/* Custom Date Picker fallback */}
-            <div className="pt-1 flex items-center justify-between gap-2">
-              <span className={`text-[10px] ${mutedText}`}>Or pick specific date:</span>
-              <div className={`relative px-2.5 py-1 rounded-xl border ${border} bg-white/5 flex items-center gap-1.5`}>
-                <Calendar size={13} className="opacity-70" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  min={quickDayOptions[0]?.dateStr}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  aria-label="Pick date"
-                  className="bg-transparent text-xs font-bold outline-none cursor-pointer"
-                />
-              </div>
+          </div>
+
+          {/* Travel Time — optional hint line below the date */}
+          <div className="space-y-1.5">
+            <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>
+              Travel Time <span className="font-medium normal-case tracking-normal">(optional — rough time is fine)</span>
+            </label>
+            <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 focus-within:border-[#FFC554]/80 transition-all`}>
+              <Clock size={15} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <input
+                type="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                aria-label="Travel time"
+                className="flex-1 bg-transparent text-xs font-bold outline-none cursor-pointer"
+              />
+              {selectedTime && (
+                <span className="text-[10px] font-bold text-zinc-400 shrink-0">{formatTimeLabel(selectedTime)}</span>
+              )}
             </div>
           </div>
 
@@ -221,7 +230,7 @@ export default function RideWantsView() {
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Optional note (e.g. 2 bags, flight at 6 PM)"
+            placeholder="Optional note (e.g. flight at 6 PM)"
             aria-label="Optional note"
             maxLength={80}
             className={`w-full h-9 px-3 text-xs rounded-xl bg-white/5 border ${border} outline-none placeholder:text-zinc-500 focus:border-[#FFC554]/50 transition-all`}
@@ -241,21 +250,21 @@ export default function RideWantsView() {
             }`}
           >
             <Plus size={15} strokeWidth={3} />
-            <span>{submitting ? "Posting..." : "I Need This Ride"}</span>
+            <span>{submitting ? "Checking..." : "Find Co-Travellers"}</span>
           </button>
         </form>
       </div>
 
-      {/* Aggregate Demand Board Section */}
+      {/* Co-Traveller Board Section */}
       <div className="space-y-2.5 pt-1">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
             <Users size={14} />
-            Community Demand
+            Who&apos;s Going?
           </h2>
           {wants.length > 0 && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/15 text-[#881337]"}`}>
-              {wants.length} active {wants.length === 1 ? "want" : "wants"}
+              {wants.length} {wants.length === 1 ? "group" : "groups"} going
             </span>
           )}
         </div>
@@ -279,9 +288,9 @@ export default function RideWantsView() {
               <Users size={22} strokeWidth={1.75} />
             </div>
             <div>
-              <p className="text-sm font-black tracking-tight">No active ride wants yet</p>
+              <p className="text-sm font-black tracking-tight">No co-travellers yet</p>
               <p className={`text-xs ${mutedText} mt-1 max-w-[240px] mx-auto`}>
-                Be the first to post where you want to go. When 2 or more students want the same ride, it appears here.
+                Post your plan — stay anonymous until the ride forms. When 2 or more match, it shows here.
               </p>
             </div>
           </div>
@@ -291,6 +300,7 @@ export default function RideWantsView() {
         {wants.map((row) => {
           const displayDest = formatLocation(row.destination_key);
           const dateLabel = formatDepartDateLabel(row.depart_date);
+          const timeLabel = formatTimeLabel(row.first_depart_time);
           const isHot = row.intent_count >= 4;
 
           return (
@@ -310,9 +320,14 @@ export default function RideWantsView() {
                     }`}>
                       {dateLabel}
                     </span>
+                    {timeLabel && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isDark ? "bg-white/10 text-zinc-300" : "bg-black/5 text-zinc-700"
+                    }`}>
+                      first leave {timeLabel}
+                    </span>}
                   </div>
                   <p className="text-xs font-semibold mt-1 text-[#FFC554]">
-                    <span className="font-black text-sm">{row.intent_count}</span> students want this ride
+                    <span className="font-black text-sm">{row.intent_count}</span> students going this way
                   </p>
                 </div>
 
@@ -333,7 +348,7 @@ export default function RideWantsView() {
                   {row.has_mine ? (
                     <>
                       <Check size={14} strokeWidth={2.5} />
-                      <span>Added</span>
+                      <span>You&apos;re in</span>
                     </>
                   ) : (
                     <span>Me too!</span>
@@ -344,7 +359,7 @@ export default function RideWantsView() {
               {/* Threshold >= 4: Gold "Create this ride" CTA */}
               {isHot && (
                 <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                  <span className={`text-[11px] font-medium ${mutedText}`}>High demand ride</span>
+                  <span className={`text-[11px] font-medium ${mutedText}`}>4+ students going</span>
                   <button
                     onClick={() => handleCreateThisRide(row)}
                     data-testid="create-ride-btn"
