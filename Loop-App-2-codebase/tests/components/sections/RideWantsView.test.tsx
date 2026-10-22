@@ -268,154 +268,97 @@ describe("RideWantsView Component", () => {
     });
   });
 
-  describe("In-app Custom Date and Time Pickers", () => {
-    it("(a) clicking the date row opens the calendar popover and rotates chevron", async () => {
+  describe("Native Android / OS Date and Time Pickers", () => {
+    it("renders native Travel Date input with min=today and updates displayed label on change", async () => {
       vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
       render(<RideWantsView />);
       await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
 
-      const dateRow = screen.getByLabelText("Travel date");
-      expect(dateRow).toHaveAttribute("aria-expanded", "false");
-      expect(screen.queryByRole("dialog", { name: "Calendar date picker" })).not.toBeInTheDocument();
+      const dateInput = screen.getByLabelText("Travel date") as HTMLInputElement;
+      expect(dateInput).toBeInTheDocument();
+      expect(dateInput.type).toBe("date");
 
-      fireEvent.click(dateRow);
-
-      expect(dateRow).toHaveAttribute("aria-expanded", "true");
-      expect(screen.getByRole("dialog", { name: "Calendar date picker" })).toBeInTheDocument();
-      // Weekday columns Mon-Sun should be visible
-      expect(screen.getByText("Mon")).toBeInTheDocument();
-      expect(screen.getByText("Sun")).toBeInTheDocument();
+      // Change date
+      fireEvent.change(dateInput, { target: { value: "2028-12-25" } });
+      expect(dateInput.value).toBe("2028-12-25");
+      expect(screen.getByText(/Dec 25/)).toBeInTheDocument();
     });
 
-    it("(b) picking a date button in the grid updates the row label and Done closes it", async () => {
+    it("clicking the date row or input invokes showPicker when available", async () => {
       vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
+      const showPickerSpy = vi.fn();
+      HTMLInputElement.prototype.showPicker = showPickerSpy;
+
       render(<RideWantsView />);
       await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
 
-      const dateRow = screen.getByLabelText("Travel date");
-      fireEvent.click(dateRow);
+      const dateInput = screen.getByLabelText("Travel date");
+      fireEvent.click(dateInput);
 
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
-
-      // If tomorrow is in next month, click next month first
-      if (tomorrow.getMonth() !== now.getMonth()) {
-        const nextMonthBtn = screen.getByLabelText("Next month");
-        fireEvent.click(nextMonthBtn);
-      }
-
-      const dayBtn = screen.getByRole("button", { name: `Select ${tomorrowStr}` });
-      fireEvent.click(dayBtn);
-
-      // Label on row should now match formatDepartDateLabel
-      expect(dateRow).toHaveTextContent("Tomorrow");
-
-      // Clicking Done closes popover and returns focus to date row
-      const doneBtn = screen.getByRole("button", { name: "Done" });
-      fireEvent.click(doneBtn);
-
-      expect(screen.queryByRole("dialog", { name: "Calendar date picker" })).not.toBeInTheDocument();
-      expect(dateRow).toHaveFocus();
+      expect(showPickerSpy).toHaveBeenCalled();
     });
 
-    it("(c) click on the time row opens the clock popover, picking hour + minute + period updates label", async () => {
+    it("renders native Travel Time input and updates displayed label on change", async () => {
       vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
       render(<RideWantsView />);
       await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
 
-      const timeRow = screen.getByLabelText("Travel time");
-      expect(timeRow).toHaveTextContent("Pick a time");
+      const timeInput = screen.getByLabelText("Travel time") as HTMLInputElement;
+      expect(timeInput).toBeInTheDocument();
+      expect(timeInput.type).toBe("time");
+      expect(screen.getByText("Pick a time")).toBeInTheDocument();
 
-      fireEvent.click(timeRow);
-
-      expect(screen.getByRole("dialog", { name: "Clock time picker" })).toBeInTheDocument();
-
-      // Pick PM
-      const pmBtn = screen.getByRole("button", { name: "PM" });
-      fireEvent.click(pmBtn);
-
-      // Pick Hour 6
-      const hourBtn = screen.getByRole("button", { name: "6" });
-      fireEvent.click(hourBtn);
-
-      // Pick Minute :30
-      const minBtn = screen.getByRole("button", { name: ":30" });
-      fireEvent.click(minBtn);
-
-      // Click Done
-      const doneBtn = screen.getByRole("button", { name: "Done" });
-      fireEvent.click(doneBtn);
-
-      expect(screen.queryByRole("dialog", { name: "Clock time picker" })).not.toBeInTheDocument();
-      expect(timeRow).toHaveTextContent("6:30 PM");
-      expect(timeRow).toHaveFocus();
+      // Change time
+      fireEvent.change(timeInput, { target: { value: "18:30" } });
+      expect(timeInput.value).toBe("18:30");
+      expect(screen.getByText("6:30 PM")).toBeInTheDocument();
     });
 
-    it("(d) clicking 'Clear' in the time popover resets time to empty and displays 'Pick a time'", async () => {
+    it("clicking the time row or input invokes showPicker when available", async () => {
       vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
+      const showPickerSpy = vi.fn();
+      HTMLInputElement.prototype.showPicker = showPickerSpy;
+
       render(<RideWantsView />);
       await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
 
-      const timeRow = screen.getByLabelText("Travel time");
-      fireEvent.click(timeRow);
+      const timeInput = screen.getByLabelText("Travel time");
+      fireEvent.click(timeInput);
 
-      // Select 5 PM first
-      fireEvent.click(screen.getByRole("button", { name: "5" }));
-
-      // Click Clear
-      const clearBtn = screen.getByRole("button", { name: "Clear" });
-      fireEvent.click(clearBtn);
-
-      expect(screen.queryByRole("dialog", { name: "Clock time picker" })).not.toBeInTheDocument();
-      expect(timeRow).toHaveTextContent("Pick a time");
-      expect(timeRow).toHaveFocus();
+      expect(showPickerSpy).toHaveBeenCalled();
     });
 
-    it("(e) pressing 'Escape' closes the open popover and restores row focus", async () => {
+    it("submitting form with selected date and time passes them to postRideWant", async () => {
       vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
+      const postSpy = vi.spyOn(rideWantsLib, "postRideWant").mockResolvedValue({
+        count: 2,
+        error: null,
+      });
+
       render(<RideWantsView />);
       await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
 
-      const dateRow = screen.getByLabelText("Travel date");
-      fireEvent.click(dateRow);
-      expect(screen.getByRole("dialog", { name: "Calendar date picker" })).toBeInTheDocument();
+      const destInput = screen.getByLabelText("Destination");
+      fireEvent.change(destInput, { target: { value: "Airport" } });
 
-      fireEvent.keyDown(document, { key: "Escape" });
-      expect(screen.queryByRole("dialog", { name: "Calendar date picker" })).not.toBeInTheDocument();
-      expect(dateRow).toHaveFocus();
+      const dateInput = screen.getByLabelText("Travel date");
+      fireEvent.change(dateInput, { target: { value: "2028-10-25" } });
 
-      const timeRow = screen.getByLabelText("Travel time");
-      fireEvent.click(timeRow);
-      expect(screen.getByRole("dialog", { name: "Clock time picker" })).toBeInTheDocument();
+      const timeInput = screen.getByLabelText("Travel time");
+      fireEvent.change(timeInput, { target: { value: "14:15" } });
 
-      fireEvent.keyDown(document, { key: "Escape" });
-      expect(screen.queryByRole("dialog", { name: "Clock time picker" })).not.toBeInTheDocument();
-      expect(timeRow).toHaveFocus();
-    });
+      const submitBtn = screen.getByTestId("post-want-btn");
+      fireEvent.click(submitBtn);
 
-    it("ensures only one popover is open at a time and toggles on keyboard Enter", async () => {
-      vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [], error: null });
-      render(<RideWantsView />);
-      await waitFor(() => expect(screen.getByText("No co-travellers yet")).toBeInTheDocument());
-
-      const dateRow = screen.getByLabelText("Travel date");
-      const timeRow = screen.getByLabelText("Travel time");
-
-      // Open with keyboard Enter
-      fireEvent.keyDown(dateRow, { key: "Enter" });
-      expect(screen.getByRole("dialog", { name: "Calendar date picker" })).toBeInTheDocument();
-
-      // Opening time closes date
-      fireEvent.keyDown(timeRow, { key: " " });
-      expect(screen.queryByRole("dialog", { name: "Calendar date picker" })).not.toBeInTheDocument();
-      expect(screen.getByRole("dialog", { name: "Clock time picker" })).toBeInTheDocument();
-
-      // Outside click closes time popover
-      fireEvent.mouseDown(document.body);
-      expect(screen.queryByRole("dialog", { name: "Clock time picker" })).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(postSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            destination: "Airport",
+            departDate: "2028-10-25",
+            departTime: "14:15",
+          })
+        );
+      });
     });
   });
 });
