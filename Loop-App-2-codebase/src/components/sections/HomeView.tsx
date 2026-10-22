@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
-import { MapPin, Search, X, Repeat } from "lucide-react";
+import { MapPin, Search, X, Repeat, Sparkles } from "lucide-react";
+import { fetchRideWants } from "@/lib/rideWants";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import type { Loop } from "@/lib/types";
@@ -139,6 +140,22 @@ export default function HomeView() {
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [hotWantsCount, setHotWantsCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchRideWants()
+      .then(({ data }) => {
+        if (isMounted && data) {
+          const hot = data.filter((r) => r.intent_count >= 4).length;
+          setHotWantsCount(hot);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleCreateClick = () => {
     triggerHaptic(12);
@@ -193,20 +210,64 @@ export default function HomeView() {
           <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
           <p className={`text-xs ${mutedText} mt-1 max-w-[220px]`}>Start a new loop or check back soon for active rides.</p>
         </div>
-        <button
-          onClick={handleCreateClick}
-          className={`h-10 px-5 rounded-full ${
-            isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-          } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform`}
-        >
-          + Create Loop
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-2.5">
+          <button
+            onClick={handleCreateClick}
+            className={`h-10 px-5 rounded-full ${
+              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+            } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform`}
+          >
+            + Create Loop
+          </button>
+          <button
+            onClick={() => {
+              triggerHaptic(10);
+              setView("wants");
+            }}
+            data-testid="wants-board-empty-btn"
+            className={`h-10 px-4 rounded-full border ${border} ${cardBg} font-black text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center gap-2 cursor-pointer`}
+          >
+            <span>I Need a Ride</span>
+            {hotWantsCount > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+              }`}>
+                {hotWantsCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3 pt-1 pb-8">
+      {/* Ride Wanted Demand Strip */}
+      <button
+        onClick={() => {
+          triggerHaptic(10);
+          setView("wants");
+        }}
+        data-testid="wants-board-feed-btn"
+        className={`w-full px-3.5 py-2.5 rounded-2xl ${cardBg} border ${border} flex items-center justify-between text-left cursor-pointer hover:border-[#FFC554]/30 active:scale-[0.98] transition-all`}
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+          <span className="text-xs font-bold">I need a ride · Ride Wanted Board</span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {hotWantsCount > 0 && (
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+            }`}>
+              {hotWantsCount} hot
+            </span>
+          )}
+          <span className={`text-xs font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>Signal Demand →</span>
+        </div>
+      </button>
+
       {/* Pill Search Bar */}
       <div className={`relative w-full h-[42px] ${cardBg} border ${border} rounded-full flex items-center px-3.5 gap-2.5 shadow-sm ${
         isDark

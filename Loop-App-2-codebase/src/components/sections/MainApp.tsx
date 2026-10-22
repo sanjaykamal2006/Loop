@@ -30,6 +30,7 @@ const ProfileView = dynamic(() => import("./ProfileView"), { loading: viewLoadin
 const RideDetailsView = dynamic(() => import("./RideDetailsView"), { loading: viewLoading });
 const TrustedVehiclesView = dynamic(() => import("./TrustedVehiclesView"), { loading: viewLoading });
 const PastLoopsView = dynamic(() => import("./PastLoopsView"), { loading: viewLoading });
+const RideWantsView = dynamic(() => import("./RideWantsView"), { loading: viewLoading });
 
 const TermsModal = dynamic(() => import("./TermsModal"));
 const CreatorModal = dynamic(() => import("./CreatorModal"));
@@ -69,6 +70,7 @@ const DETAIL_VIEWS = new Set<View>([
   "chat",
   "trusted-vehicles",
   "past-loops",
+  "wants",
 ]);
 
 function AppContent() {
@@ -131,8 +133,8 @@ function AppContent() {
     <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
       <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
 
-      {/* When in past-loops, the view manages its own top bar / back button, or header can adapt */}
-      {view !== "past-loops" && <AppHeader />}
+      {/* When in past-loops or wants, the view manages its own top bar / back button */}
+      {view !== "past-loops" && view !== "wants" && <AppHeader />}
 
       {/* Chat gets its own full-height container with native Apple push/pop physics */}
       {view === "chat" ? (
@@ -142,7 +144,7 @@ function AppContent() {
       ) : (
         <main
           key={`view-${view}`}
-          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto pb-24 ${view === "past-loops" ? "pt-5" : ""}`}
+          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto pb-24 ${(view === "past-loops" || view === "wants") ? "pt-5" : ""}`}
         >
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}
@@ -151,6 +153,7 @@ function AppContent() {
           {view === "ride-details" && (selectedLoop ? <RideDetailsView /> : <HomeView />)}
           {view === "trusted-vehicles" && <TrustedVehiclesView />}
           {view === "past-loops" && <PastLoopsView />}
+          {view === "wants" && <RideWantsView />}
         </main>
       )}
 

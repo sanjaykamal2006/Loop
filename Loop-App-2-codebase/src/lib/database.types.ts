@@ -1,4 +1,4 @@
-﻿
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -205,6 +205,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"ride_intents": {
+                  Row: {
+                    "created_at": string,"depart_date": string,"destination_key": string,"expires_at": string,"id": string,"note": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"depart_date": string,"destination_key": string,"expires_at": string,"id"?: string,"note"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"depart_date"?: string,"destination_key"?: string,"expires_at"?: string,"id"?: string,"note"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+                      foreignKeyName: "ride_intents_user_id_fkey"
+                      columns: ["user_id"]
+                      isOneToOne: false
+                      referencedRelation: "profiles"
+                      referencedColumns: ["id"]
+                    }
+                  ]
                 },"trusted_vehicles": {
                   Row: {
                     "created_at": string | null,"driver_name": string,"expected_fare": number | null,"from_location": string | null,"id": string,"phone_number": string,"to_location": string | null,"user_id": string,"vehicle_type": string
@@ -252,6 +272,14 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "avatar_url": string | null,"created_at": string,"display_name": string | null,"expected_fare": number,"from_location": string,"id": string,"to_location": string,"user_id": string | null,"vehicle_type": string | null
 }[] },
+"get_ride_intent_board":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "destination_key": string,"depart_date": string,"intent_count": number,"has_mine": boolean
+            }[]
+                           },
+"post_ride_intent":
+{ Args: { "p_destination_key": string; "p_depart_date": string; "p_note"?: string | null }; Returns: number
+                           },
 "get_unread_loop_ids":
 { Args: Record<PropertyKey, never>; Returns: {
               "loop_id": string

@@ -118,4 +118,19 @@ describe('CreateView Component', () => {
     expect(screen.getByText(/car \(1-6\)/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /offer ride/i })).toBeInTheDocument();
   });
+
+  it('pre-fills destination and travelDate when createPrefill is provided', () => {
+    mockUseLoop.mockReturnValue({
+      ...defaultContext,
+      createPrefill: {
+        destination: 'Vijayawada Railway Station',
+        travelDate: '2028-10-25',
+      },
+    });
+
+    render(<CreateView />);
+
+    const destInput = screen.getByPlaceholderText('Where to?');
+    expect(destInput).toHaveValue('Vijayawada Railway Station');
+  });
 });

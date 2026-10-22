@@ -332,6 +332,25 @@ describe("useLoopDirectory", () => {
     expect(stableSetUnreadLoopIds).not.toHaveBeenCalled();
   });
 
+  it("adopts a Ride Wanted prefill and enters CreateView once profile is complete", async () => {
+    const stableSetCreatePrefill = vi.fn();
+    const { result } = renderDirectory({
+      profile: { ...profile, reg_no: "22BCE1" } as Profile,
+      setCreatePrefill: stableSetCreatePrefill,
+    });
+    act(() => {
+      result.current.setPendingAction({
+        type: "create",
+        prefill: { destination: "Vijayawada Railway Station", depart_date: "2026-11-01" },
+      });
+    });
+    expect(stableSetView).toHaveBeenCalledWith("create");
+    expect(stableSetCreatePrefill).toHaveBeenCalledWith({
+      destination: "Vijayawada Railway Station",
+      travelDate: "2026-11-01",
+    });
+  });
+
   it("reconciles unread with the server once memberships resolve", async () => {
     renderDirectory();
     await waitFor(() => expect(stableReconcileUnread).toHaveBeenCalled());

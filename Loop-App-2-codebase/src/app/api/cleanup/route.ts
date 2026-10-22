@@ -61,13 +61,19 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
-    const [{ error: ridesError }, { error: unconfirmedError }] = await Promise.all([
+    const intentsPromise = typeof supabase.from === 'function'
+      ? supabase.from('ride_intents').delete().lt('expires_at', new Date().toISOString())
+      : Promise.resolve({ error: null });
+
+    const [{ error: ridesError }, { error: unconfirmedError }, intentsResult] = await Promise.all([
       supabase.rpc('cleanup_old_rides'),
       supabase.rpc('cleanup_unconfirmed_users'),
+      intentsPromise,
     ]);
+    const intentsError = intentsResult?.error ?? null;
 
-    if (ridesError || unconfirmedError) {
-      const errMsg = (ridesError?.message || '') + (unconfirmedError ? ` ${unconfirmedError.message}` : '');
+    if (ridesError || unconfirmedError || intentsError) {
+      const errMsg = [ridesError?.message, unconfirmedError?.message, intentsError?.message].filter(Boolean).join(' ');
       logger.error('Cleanup error:', errMsg);
       return NextResponse.json({
         success: false,
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Old rides and unconfirmed users cleaned up successfully',
+      message: 'Old rides, unconfirmed users, and expired ride wants cleaned up successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {

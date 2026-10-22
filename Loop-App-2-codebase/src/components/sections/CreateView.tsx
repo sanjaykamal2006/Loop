@@ -67,6 +67,7 @@ export default function CreateView() {
     if (createPrefill) {
       if (createPrefill.startPoint) setStartPoint(createPrefill.startPoint);
       if (createPrefill.destination) setDest(createPrefill.destination);
+      if (createPrefill.travelDate) setTravelDate(createPrefill.travelDate);
       if (createPrefill.isReturn) setIsReturnTrip(true);
     }
   }, [createPrefill]);

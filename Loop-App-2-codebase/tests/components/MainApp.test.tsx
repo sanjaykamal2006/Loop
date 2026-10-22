@@ -148,6 +148,20 @@ describe('MainApp Component (Root Application Container)', () => {
     expect(screen.getByText('24MIC7130')).toBeInTheDocument();
   });
 
+  it('renders RideWantsView when view is set to wants', async () => {
+    mockUseLoop.mockReturnValue({
+      ...defaultContext,
+      view: 'wants',
+    });
+
+    await act(async () => {
+      render(<MainApp session={mockSession} />);
+    });
+
+    expect(await screen.findByText('Ride Wanted')).toBeInTheDocument();
+    expect(screen.getByText('Signal demand without commitment')).toBeInTheDocument();
+  });
+
   it('renders modal dialogs when respective state flags are true', async () => {
     mockUseLoop.mockReturnValue({
       ...defaultContext,

@@ -110,6 +110,8 @@ export default function BottomNav() {
           const isActive =
             v === "profile"
               ? view === "profile" || view === "trusted-vehicles" || view === "past-loops"
+              : v === "home"
+              ? view === "home" || view === "wants"
               : view === v;
 
           return (

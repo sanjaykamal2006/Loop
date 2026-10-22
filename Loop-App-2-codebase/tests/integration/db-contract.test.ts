@@ -35,6 +35,7 @@ const EXPECTED_PUBLIC_TABLES = [
   "profile_contacts",
   "profiles",
   "rate_limits",
+  "ride_intents",
   "trusted_vehicles",
 ];
 
@@ -128,6 +129,15 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
     { name: "key", type: "text", nullable: "NO" },
     { name: "reset_at", type: "timestamp with time zone", nullable: "NO" },
   ],
+  ride_intents: [
+    { name: "created_at", type: "timestamp with time zone", nullable: "NO" },
+    { name: "depart_date", type: "date", nullable: "NO" },
+    { name: "destination_key", type: "text", nullable: "NO" },
+    { name: "expires_at", type: "timestamp with time zone", nullable: "NO" },
+    { name: "id", type: "uuid", nullable: "NO" },
+    { name: "note", type: "text", nullable: "YES" },
+    { name: "user_id", type: "uuid", nullable: "NO" },
+  ],
   trusted_vehicles: [
     { name: "created_at", type: "timestamp with time zone", nullable: "YES" },
     { name: "driver_name", type: "text", nullable: "NO" },
@@ -155,6 +165,7 @@ const EXPECTED_FOREIGN_KEYS = [
   { table: "messages", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
   { table: "profile_contacts", column: "user_id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
   { table: "profiles", column: "id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "ride_intents", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
   { table: "trusted_vehicles", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
 ];
 
@@ -558,6 +569,7 @@ describe.skipIf(!hasDb)("database schema contract", () => {
 
     const expectedUniques = [
       { conname: "loop_participants_loop_id_user_id_key", table_name: "loop_participants" },
+      { conname: "ride_intents_user_dest_date_key", table_name: "ride_intents" },
     ];
 
     expect(uniques.length).toBe(expectedUniques.length);
@@ -637,6 +649,9 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { tablename: "profiles", indexname: "profiles_pkey", isUnique: true, columns: ["id"] },
       { tablename: "rate_limits", indexname: "rate_limits_pkey", isUnique: true, columns: ["key"] },
       { tablename: "rate_limits", indexname: "rate_limits_reset_at_idx", isUnique: false, columns: ["reset_at"] },
+      { tablename: "ride_intents", indexname: "idx_ride_intents_dest_date", isUnique: false, columns: ["destination_key", "depart_date"] },
+      { tablename: "ride_intents", indexname: "ride_intents_pkey", isUnique: true, columns: ["id"] },
+      { tablename: "ride_intents", indexname: "ride_intents_user_dest_date_key", isUnique: true, columns: ["user_id", "destination_key", "depart_date"] },
       { tablename: "trusted_vehicles", indexname: "idx_trusted_vehicles_user_id", isUnique: false, columns: ["user_id"] },
       { tablename: "trusted_vehicles", indexname: "trusted_vehicles_pkey", isUnique: true, columns: ["id"] },
     ];
@@ -692,6 +707,8 @@ describe.skipIf(!hasDb)("database schema contract", () => {
       { table_name: "profiles", column_name: "theme", column_default: "'dark'::text" },
       { table_name: "profiles", column_name: "updated_at", column_default: "now()" },
       { table_name: "rate_limits", column_name: "count", column_default: "0" },
+      { table_name: "ride_intents", column_name: "created_at", column_default: "now()" },
+      { table_name: "ride_intents", column_name: "id", column_default: "gen_random_uuid()" },
       { table_name: "trusted_vehicles", column_name: "created_at", column_default: "now()" },
       { table_name: "trusted_vehicles", column_name: "id", column_default: "gen_random_uuid()" },
     ];

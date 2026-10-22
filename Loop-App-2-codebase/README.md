@@ -7,8 +7,8 @@
 
 [![Live Web App](https://img.shields.io/badge/Production-loop--app.runs--on.dev-FFC554?style=for-the-badge&logoColor=black)](https://loop-app.runs-on.dev)
 [![Legacy Redirect](https://img.shields.io/badge/Legacy_Mirror-HTTP_308_Permanent-38bdf8?style=for-the-badge)](https://loop-demo-app.vercel.app)
-[![Tests Passing](https://img.shields.io/badge/Tests-401_Passed_%C2%B7_34_Contract--Skipped-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
-[![Coverage](https://img.shields.io/badge/Coverage-65%25_Statements_%2F_66.7%25_Lines-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Tests Passing](https://img.shields.io/badge/Tests-436_Passed_%C2%B7_37_Contract--Skipped-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
+[![Coverage](https://img.shields.io/badge/Coverage-66.3%25_Statements_%2F_68.0%25_Lines-emerald?style=for-the-badge)](https://github.com/sanjaykamal2006/Loop)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%200%20Any-blue?style=for-the-badge)](https://www.typescriptlang.org/)
 
 <br/>
@@ -34,7 +34,7 @@ flowchart TD
     Client["Mobile Client (PWA / Web)\nNext.js 16 + React 19 + Tailwind 4"]
     Edge["Edge & CDN (Vercel)\nHTTP 308 Permanent Redirect\nStrict CSP & HSTS"]
     API["Serverless API Routes\n/api/account/delete · /api/admin/*\nTiming-Safe Cryptographic Auth"]
-    DB[("Supabase PostgreSQL Engine\n12 Public Tables · 35 RLS Policies\nService-Role-Only Rate Limiter")]
+    DB[("Supabase PostgreSQL Engine\n13 Public Tables · 36 RLS Policies\nService-Role-Only Rate Limiter")]
     RT["Supabase Realtime Broker\nPostgres CDC WebSockets\nLive Chat & Membership Broadcast"]
     Trig["Database Engine Triggers\n• check_auth_user_email_domain (Domain Firewall)\n• trg_auto_add_creator_to_loop_members (Atomicity)"]
 
@@ -76,6 +76,7 @@ LOOP enforces Row Level Security (RLS) across all 12 public tables using subquer
 | `trusted_vehicles` | Saved trusted auto / cab drivers | Owner-only: private driver book, never visible to other users. |
 | `expected_fares` | Landmark fare reference database | Rows are owner-only; the community board is served by the `get_expected_fares()` RPC (safe display columns, authenticated only). |
 | `chat_read_state` | Server-side chat read marks | Owner-only (RLS + grants). `get_unread_loop_ids()` reconciles unread badges server-side so they survive localStorage wipes and propagate across devices; mirrors the client badge rules (member/creator loops reachable in the chat list with fresh non-own activity after `last_read_at`). |
+| `ride_intents` | Anonymous demand aggregation ("Ride Wanted" board) | Owner-only rows (RLS initplan + grants, anon denied). Students signal demand via `post_ride_intent()` (server-resolved caller, lower/trim destination slug, `UNIQUE` dedup per user+destination+date, auto-expires 2 days after the travel day). `get_ride_intent_board()` (SECURITY DEFINER, authenticated-only) returns aggregate counts ≥ 2 with a `has_mine` flag only — zero user identity ever leaves the table. Hot groups (≥ 4) get a pre-filled "Create This Ride" CTA on the board; the cleanup job purges expired intents. |
 | `profile_contacts` | Shared contact preferences | Owner-restricted update. |
 | `loop_participants` | Legacy backward-compatibility view | Synced with `loop_members`. |
 | `rate_limits` | Shared fixed-window rate-limit counters | RLS enabled with no policies; table and `check_rate_limit()` RPC are service-role-only. |
@@ -174,10 +175,10 @@ cp .env.example .env
 # Verify dependency tree integrity (guards against undeclared/phantom peer dependencies)
 npm run verify:deps
 
-# Run 401 unit, component, and hook tests (34 database contract tests skip unless TEST_DATABASE_URL is set)
+# Run 436 unit, component, and hook tests (37 database contract tests skip unless TEST_DATABASE_URL is set)
 npm run test:run
 
-# Run full code coverage suite (ratchets: 63% statements / 53% branches / 60% functions / 65% lines)
+# Run full code coverage suite (ratchets: 64% statements / 54% branches / 61% functions / 66% lines)
 npm run test:coverage
 
 # Run read-only database schema & behavioral RLS contract tests (34 tests) against a live PostgreSQL 17 instance

@@ -38,6 +38,7 @@ const createDefaultMockClient = () => ({
     insert: vi.fn(() => Promise.resolve({ error: null })),
     delete: vi.fn(() => ({
       eq: vi.fn(() => Promise.resolve({ error: null })),
+      lt: vi.fn(() => Promise.resolve({ error: null })),
     })),
   })),
   rpc: vi.fn(() => Promise.resolve({ error: null })),

@@ -51,8 +51,8 @@ export interface LoopContextValue {
   // Gender guard
   showGenderSelect: boolean;
   setShowGenderSelect: (v: boolean) => void;
-  pendingAction: { type: "create" | "join"; data?: Loop } | null;
-  setPendingAction: (a: { type: "create" | "join"; data?: Loop } | null) => void;
+  pendingAction: { type: "create" | "join"; data?: Loop; prefill?: { destination?: string; depart_date?: string } } | null;
+  setPendingAction: (a: { type: "create" | "join"; data?: Loop; prefill?: { destination?: string; depart_date?: string } } | null) => void;
 
   // Utility
   formatTime: (iso: string) => string;
@@ -65,8 +65,8 @@ export interface LoopContextValue {
   reconcileUnread: () => Promise<void>;
 
   // Return trip prefill
-  createPrefill: { startPoint?: string; destination?: string; isReturn?: boolean } | null;
-  setCreatePrefill: (p: { startPoint?: string; destination?: string; isReturn?: boolean } | null) => void;
+  createPrefill: { startPoint?: string; destination?: string; travelDate?: string; isReturn?: boolean } | null;
+  setCreatePrefill: (p: { startPoint?: string; destination?: string; travelDate?: string; isReturn?: boolean } | null) => void;
 
   // Emergency SOS & Safety
   emergencyContact: EmergencyContact | null;
@@ -124,7 +124,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     viewRef.current = view;
   }, [view]);
 
-  const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; isReturn?: boolean } | null>(null);
+  const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; travelDate?: string; isReturn?: boolean } | null>(null);
 
   // Declarative Modals & Search Controls State
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -346,6 +346,7 @@ export function LoopProvider({ session, children }: { session: Session; children
     setChatSource,
     setUnreadLoopIds,
     reconcileUnread,
+    setCreatePrefill,
   });
 
   // Emergency SOS hook

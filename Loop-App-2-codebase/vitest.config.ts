@@ -25,12 +25,13 @@ export default defineConfig({
       thresholds: {
         // Vitest 5's V8 provider reports a lower branch percentage than 2.x
         // for the same tests (41% vs 57% across this suite). Measured
-        // 2026-10-21 with the chat/read-state test wave: 65.0 / 54.8 / 61.4 /
-        // 66.7 — ratchets keep a ~1.5pt margin against regression.
-        statements: 63,
-        branches: 53,
-        functions: 60,
-        lines: 65,
+        // 2026-10-21 with the chat/read-state wave; re-measured 2026-10-22
+        // with the ride-intents wave: 66.3 / 56.0 / 62.6 / 68.0 — ratchets
+        // keep a ~1.5pt margin against regression.
+        statements: 64,
+        branches: 54,
+        functions: 61,
+        lines: 66,
       },
 
     },

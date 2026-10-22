@@ -11,6 +11,16 @@ vi.mock('@/lib/LoopContext', () => ({
   useLoop: () => mockUseLoop(),
 }));
 
+vi.mock('@/lib/rideWants', () => ({
+  fetchRideWants: vi.fn(() => Promise.resolve({
+    data: [
+      { destination_key: 'vijayawada', depart_date: '2026-10-25', intent_count: 5, has_mine: false },
+      { destination_key: 'guntur', depart_date: '2026-10-26', intent_count: 2, has_mine: false },
+    ],
+    error: null,
+  })),
+}));
+
 const sampleLoops: Loop[] = [
   {
     id: 'loop-1',
@@ -180,5 +190,30 @@ describe('HomeView Component', () => {
     fireEvent.click(clearBtn);
 
     expect(screen.getByText('Vijayawada Junction')).toBeInTheDocument();
+  });
+
+  it('navigates to wants view when "I Need a Ride" button is clicked in empty state', () => {
+    mockUseLoop.mockReturnValue({
+      ...defaultContext,
+      activeLoops: [],
+    });
+
+    render(<HomeView />);
+
+    const wantsBtn = screen.getByTestId('wants-board-empty-btn');
+    expect(wantsBtn).toBeInTheDocument();
+    fireEvent.click(wantsBtn);
+
+    expect(defaultContext.setView).toHaveBeenCalledWith('wants');
+  });
+
+  it('navigates to wants view from feed demand strip and displays hot badge', async () => {
+    render(<HomeView />);
+
+    const feedWantsBtn = screen.getByTestId('wants-board-feed-btn');
+    expect(feedWantsBtn).toBeInTheDocument();
+    fireEvent.click(feedWantsBtn);
+
+    expect(defaultContext.setView).toHaveBeenCalledWith('wants');
   });
 });

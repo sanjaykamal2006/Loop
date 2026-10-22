@@ -33,6 +33,8 @@ interface UseLoopDirectoryOptions {
   setUnreadLoopIds: React.Dispatch<React.SetStateAction<string[]>>;
   /** Adopts the server-side unread set (get_unread_loop_ids RPC) into context. */
   reconcileUnread: () => Promise<void>;
+  /** Applies a pending-action prefill (from the Ride Wanted board) into CreateView state. */
+  setCreatePrefill?: (p: { startPoint?: string; destination?: string; travelDate?: string; isReturn?: boolean } | null) => void;
 }
 
 export function useLoopDirectory({
@@ -48,6 +50,7 @@ export function useLoopDirectory({
   setChatSource,
   setUnreadLoopIds,
   reconcileUnread,
+  setCreatePrefill,
 }: UseLoopDirectoryOptions) {
   const [activeLoops, setActiveLoops] = useState<Loop[]>(() =>
     // Owner-checked cache: the feed snapshot is private per account.
@@ -56,7 +59,7 @@ export function useLoopDirectory({
 
   // Gender guard & pending actions
   const [showGenderSelect, setShowGenderSelect] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: "create" | "join"; data?: Loop; prefill?: { destination?: string; depart_date?: string } } | null>(null);
 
   const viewRef = useRef(view);
   useEffect(() => {
@@ -211,8 +214,19 @@ export function useLoopDirectory({
         joinLoop(pendingAction.data);
       }
       setPendingAction(null);
+    } else if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
+      // Ride Wanted board: adopt the saved prefill before entering CreateView,
+      // otherwise the pre-filled destination/date is lost after profile setup.
+      if (pendingAction.prefill) {
+        setCreatePrefill?.({
+          destination: pendingAction.prefill.destination,
+          travelDate: pendingAction.prefill.depart_date,
+        });
+      }
+      setView("create");
+      setPendingAction(null);
     }
-  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, joinLoop]);
+  }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, joinLoop, setView, setCreatePrefill]);
 
   // Initial data load + Realtime subscriptions
   useEffect(() => {
