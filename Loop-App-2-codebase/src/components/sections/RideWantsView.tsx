@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { useRideWants } from "@/components/sections/useRideWants";
 import { formatLocation } from "@/lib/locationFormatter";
@@ -13,7 +13,7 @@ import {
   MapPin,
   Sparkles,
   Plus,
-  Check,
+  Undo2,
   Calendar,
   Clock,
   ChevronDown,
@@ -24,6 +24,48 @@ const POPULAR_DESTINATIONS = [
   "Airport",
   "Vijayawada Bus Stand",
 ];
+
+/**
+ * Renders one line of text that shrinks-to-fit instead of truncating or
+ * wrapping: starts at baseSize and steps down until the content fits the
+ * available width, so long destinations stay fully readable on one line.
+ */
+function FitSingleLine({
+  children,
+  baseSize,
+  minSize = 11,
+  className = "",
+}: {
+  children: React.ReactNode;
+  baseSize: number;
+  minSize?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLParagraphElement | null>(null);
+  const [size, setSize] = useState(baseSize);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let s = baseSize;
+    el.style.fontSize = `${baseSize}px`;
+    while (s > minSize && el.scrollWidth > el.clientWidth + 1) {
+      s -= 1;
+      el.style.fontSize = `${s}px`;
+    }
+    setSize(s);
+  }, [baseSize, minSize, children]);
+
+  return (
+    <p
+      ref={ref}
+      style={{ fontSize: `${size}px` }}
+      className={`whitespace-nowrap overflow-hidden leading-[1.3] ${className}`}
+    >
+      {children}
+    </p>
+  );
+}
 
 export function formatDepartDateLabel(dateStr: string): string {
   if (!dateStr) return "";
@@ -60,7 +102,7 @@ export default function RideWantsView() {
   const { setView, theme, profile, setCreatePrefill, setPendingAction, setShowGenderSelect, handleSignOut } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
 
-  const { wants, loading, submitting, loadBoard, handlePost, handleMeToo } = useRideWants({
+  const { wants, loading, submitting, loadBoard, handlePost, handleMeToo, handleUndo } = useRideWants({
     // Dead auth session: sign out cleanly so the user lands on the login
     // screen instead of a board whose every action fails server-side.
     onAuthDead: handleSignOut,
@@ -400,12 +442,21 @@ export default function RideWantsView() {
 
                 {/* Destination · when · how many */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-[17px] leading-[1.25]">{displayDest}</p>
-                  <p className={`text-[13px] font-semibold mt-1 leading-snug ${mutedText}`}>
+                  <FitSingleLine
+                    baseSize={17}
+                    className="font-black"
+                  >
+                    {displayDest}
+                  </FitSingleLine>
+                  <p className={`text-[13px] font-semibold mt-1 whitespace-nowrap overflow-hidden ${mutedText}`}>
                     {dateLabel}
                     {timeLabel && `${dateLabel ? " · " : ""}${timeLabel}`}
                   </p>
-                  <p className="text-[13px] font-bold mt-0.5 text-[#FFC554]">
+                  <FitSingleLine
+                    baseSize={13}
+                    minSize={10}
+                    className="font-bold mt-0.5 text-[#FFC554]"
+                  >
                     {isSolo ? (
                       row.has_mine ? (
                         <>Just you so far — others can still join</>
@@ -414,30 +465,31 @@ export default function RideWantsView() {
                       )
                     ) : (
                       <>
-                        <span className="text-[15px]">{row.intent_count}</span> students going this way
+                        <span className="!text-[15px]">{row.intent_count}</span> students going this way
                       </>
                     )}
-                  </p>
+                  </FitSingleLine>
                 </div>
 
-                {/* Me Too Button */}
+                {/* Me Too / Undo Button */}
                 <button
-                  onClick={() => handleMeToo(row)}
-                  disabled={row.has_mine}
+                  onClick={() => (row.has_mine ? handleUndo(row) : handleMeToo(row))}
                   data-testid="me-too-btn"
-                  aria-label={row.has_mine ? "Already added" : "Join demand"}
-                  className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  aria-label={row.has_mine ? "Undo your ride want" : "Join demand"}
+                  className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 ${
                     row.has_mine
-                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 cursor-default"
+                      ? isDark
+                        ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
+                        : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200"
                       : isDark
-                      ? "bg-white/10 hover:bg-white/15 text-white active:scale-95"
-                      : "bg-black/5 hover:bg-black/10 text-zinc-900 active:scale-95"
+                      ? "bg-white/10 hover:bg-white/15 text-white"
+                      : "bg-black/5 hover:bg-black/10 text-zinc-900"
                   }`}
                 >
                   {row.has_mine ? (
                     <>
-                      <Check size={14} strokeWidth={2.5} />
-                      <span>You&apos;re in</span>
+                      <Undo2 size={14} strokeWidth={2.5} />
+                      <span>Undo</span>
                     </>
                   ) : (
                     <span>Me too!</span>

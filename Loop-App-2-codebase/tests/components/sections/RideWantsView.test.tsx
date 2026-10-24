@@ -180,10 +180,11 @@ describe("RideWantsView Component", () => {
       expect(screen.queryByText(/students going this way/)).not.toBeInTheDocument();
     });
 
-    // Own solo row: the action button reads as already-in and stays disabled
+    // Own solo row: the action button reads as an undo affordance and stays
+    // enabled — an accidental "Me too!" can always be taken back.
     const meTooBtn = screen.getByTestId("me-too-btn");
-    expect(meTooBtn).toHaveTextContent("You're in");
-    expect(meTooBtn).toBeDisabled();
+    expect(meTooBtn).toHaveTextContent("Undo");
+    expect(meTooBtn).toBeEnabled();
   });
 
   it("renders someone else's solo row as demand the viewer can join", async () => {
@@ -208,6 +209,28 @@ describe("RideWantsView Component", () => {
     // Viewer hasn't joined yet: button stays an active "Me too!" joiner
     expect(screen.getByTestId("me-too-btn")).toHaveTextContent("Me too!");
     expect(screen.getByTestId("me-too-btn")).not.toBeDisabled();
+  });
+
+  it("calls removeRideWant when Undo is tapped on the caller's own row", async () => {
+    vi.spyOn(rideWantsLib, "fetchRideWants")
+      .mockResolvedValueOnce({
+        data: [
+          { destination_key: "vijayawada", depart_date: "2028-10-25", intent_count: 1, has_mine: true, first_depart_time: null },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: [], error: null });
+    const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({ ok: true, error: null });
+
+    render(<RideWantsView />);
+
+    await waitFor(() => expect(screen.getByTestId("me-too-btn")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("me-too-btn"));
+
+    await waitFor(() => {
+      expect(undoSpy).toHaveBeenCalledWith({ destination: "vijayawada", departDate: "2028-10-25" });
+      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Removed"));
+    });
   });
 
   it("renders aggregate demand cards with 'Me too!' button", async () => {
@@ -243,8 +266,8 @@ describe("RideWantsView Component", () => {
       expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining("Your plan is added")
       );
-      expect(meTooBtn).toHaveTextContent("You're in");
-      expect(meTooBtn).toBeDisabled();
+      expect(meTooBtn).toHaveTextContent("Undo");
+      expect(meTooBtn).toBeEnabled();
     });
   });
 

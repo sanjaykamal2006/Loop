@@ -142,6 +142,41 @@ export async function fetchRideWants(): Promise<RideWantResult> {
 }
 
 /**
+ * Removes the caller's own want for a destination and date (misclick undo).
+ * Allowed directly by the `ride_intents_owner_all` RLS policy (owner-only
+ * DELETE, granted to authenticated) — no RPC needed. The destination is
+ * normalized the same way post_ride_intent stores it (trimmed + lowercase).
+ */
+export async function removeRideWant(
+  params: PostRideWantParams
+): Promise<{ ok: boolean; error: { message: string } | null }> {
+  const dest = params.destination?.trim().toLowerCase() ?? "";
+  if (!dest) {
+    return { ok: false, error: { message: "Destination is required" } };
+  }
+
+  const date = params.departDate?.trim() ?? "";
+  if (!date) {
+    return { ok: false, error: { message: "Date is required" } };
+  }
+
+  const result = await withAuthRetry<unknown[]>(() =>
+    supabase
+      .from("ride_intents")
+      .delete()
+      .eq("destination_key", dest)
+      .eq("depart_date", date)
+  );
+
+  if (result.error) {
+    logger.error("removeRideWant error:", result.error);
+    return { ok: false, error: { message: result.error.message } };
+  }
+
+  return { ok: true, error: null };
+}
+
+/**
  * Signals ride demand for a destination and date.
  * Resolves user server-side and deduplicates automatically.
  */

@@ -197,6 +197,61 @@ describe("useRideWants hook", () => {
     expect(toast.error).toHaveBeenCalledWith("Server error");
   });
 
+  it("undoes the caller's own want and resyncs the board", async () => {
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [row], error: null });
+    const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({
+      ok: true,
+      error: null,
+    });
+
+    const { result } = renderHook(() => useRideWants());
+    await act(async () => {});
+
+    await act(async () => {
+      await result.current.handleUndo(row);
+    });
+
+    expect(undoSpy).toHaveBeenCalledWith({ destination: "guntur", departDate: "2026-10-25" });
+    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Removed"));
+  });
+
+  it("ignores handleUndo for rows the caller has not joined", async () => {
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false, first_depart_time: null };
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
+      data: [row],
+      error: null,
+    });
+    const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant");
+
+    const { result } = renderHook(() => useRideWants());
+    await act(async () => {});
+
+    await act(async () => {
+      await result.current.handleUndo(row);
+    });
+
+    expect(undoSpy).not.toHaveBeenCalled();
+  });
+
+  it("toast-errors when undo fails and resyncs the board", async () => {
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [row], error: null });
+    vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({
+      ok: false,
+      error: { message: "RLS violation" },
+    });
+
+    const { result } = renderHook(() => useRideWants());
+    await act(async () => {});
+
+    await act(async () => {
+      await result.current.handleUndo(row);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("RLS violation");
+  });
+
   it("calls onAuthDead with a friendly toast when the session died during post", async () => {
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({
       data: [],

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   fetchRideWants,
   postRideWant,
+  removeRideWant,
   getQuickDayOptions,
   AUTH_REQUIRED_MESSAGE,
 } from "@/lib/rideWants";
@@ -177,6 +178,61 @@ describe("rideWants lib utility", () => {
 
       expect(result.count).toBe(0);
       expect(result.error?.message).toBe("Rate limit exceeded");
+    });
+  });
+
+  describe("removeRideWant", () => {
+    const buildFrom = (finalResult: unknown) =>
+      vi.spyOn(supabase, "from").mockImplementation(() => {
+        const values: string[] = [];
+        const firstEq = (_col: string, value: string) => {
+          values.push(value);
+          return {
+            eq: (_col2: string, value2: string) => {
+              values.push(value2);
+              return Promise.resolve(finalResult);
+            },
+          };
+        };
+        return {
+          values,
+          delete: () => ({ eq: firstEq }),
+        } as never;
+      });
+
+    it("deletes the caller's own row with a normalized destination", async () => {
+      const finalResult = { data: [], error: null };
+      const fromSpy = buildFrom(finalResult);
+
+      const result = await removeRideWant({ destination: "  Vijayawada  ", departDate: "2026-10-25" });
+
+      expect(result).toEqual({ ok: true, error: null });
+      expect(supabase.from).toHaveBeenCalledWith("ride_intents");
+      const builder = (fromSpy.mock.results[0]?.value as { values: string[] });
+      expect(builder.values[0]).toBe("vijayawada");
+      expect(builder.values[1]).toBe("2026-10-25");
+    });
+
+    it("bubbles the delete error when RLS rejects", async () => {
+      buildFrom({ data: null, error: { message: "RLS violation" } });
+
+      const result = await removeRideWant({ destination: "guntur", departDate: "2026-10-26" });
+
+      expect(result.ok).toBe(false);
+      expect(result.error?.message).toBe("RLS violation");
+    });
+
+    it("rejects empty destination or date before touching the table", async () => {
+      const fromSpy = buildFrom({ data: [], error: null });
+
+      const noDest = await removeRideWant({ destination: "   ", departDate: "2026-10-25" });
+      const noDate = await removeRideWant({ destination: "guntur", departDate: "   " });
+
+      expect(noDest.ok).toBe(false);
+      expect(noDest.error?.message).toBe("Destination is required");
+      expect(noDate.ok).toBe(false);
+      expect(noDate.error?.message).toBe("Date is required");
+      expect(fromSpy).not.toHaveBeenCalled();
     });
   });
 

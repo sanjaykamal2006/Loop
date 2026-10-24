@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   fetchRideWants,
   postRideWant,
+  removeRideWant,
   AUTH_REQUIRED_MESSAGE,
   RideWantRow,
   PostRideWantParams,
@@ -97,6 +98,32 @@ export function useRideWants(options?: UseRideWantsOptions) {
     );
   };
 
+  const handleUndo = async (row: RideWantRow) => {
+    if (!row.has_mine) return;
+    triggerHaptic(10);
+    // Optimistic: the caller's row leaves the group immediately; the board
+    // resyncs right after so the counts reflect the server's truth.
+    setWants((prev) =>
+      prev
+        .map((item) =>
+          item.destination_key === row.destination_key && item.depart_date === row.depart_date
+            ? { ...item, has_mine: false, intent_count: Math.max(item.intent_count - 1, 0) }
+            : item
+        )
+        .filter((item) => item.intent_count > 0)
+    );
+    const res = await removeRideWant({
+      destination: row.destination_key,
+      departDate: row.depart_date,
+    });
+    if (res.error) {
+      notifyError(res.error, "Failed to remove");
+    } else {
+      toast.success("Removed. Post again anytime.");
+    }
+    await loadBoard();
+  };
+
   return {
     wants,
     loading,
@@ -104,5 +131,6 @@ export function useRideWants(options?: UseRideWantsOptions) {
     loadBoard,
     handlePost,
     handleMeToo,
+    handleUndo,
   };
 }
