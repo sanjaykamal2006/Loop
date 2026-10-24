@@ -367,9 +367,8 @@ export default function RideWantsView() {
           const dateLabel = formatDepartDateLabel(row.depart_date);
           const timeLabel = formatTimeLabel(row.first_depart_time);
           const isHot = row.intent_count >= 4;
-          // Solo groups are visible only to their own member, so count === 1
-          // here always means "this row is mine and nobody joined yet".
-          const isSolo = row.intent_count === 1 && row.has_mine;
+          // Solo groups show to everyone now; ownership changes the phrasing.
+          const isSolo = row.intent_count === 1;
 
           return (
             <div
@@ -398,7 +397,11 @@ export default function RideWantsView() {
                   </div>
                   <p className="text-xs font-semibold mt-1 text-[#FFC554]">
                     {isSolo ? (
-                      <>Just you so far — others can still join</>
+                      row.has_mine ? (
+                        <>Just you so far — others can still join</>
+                      ) : (
+                        <>1 student wants this — be the 2nd!</>
+                      )
                     ) : (
                       <>
                         <span className="font-black text-sm">{row.intent_count}</span> students going this way

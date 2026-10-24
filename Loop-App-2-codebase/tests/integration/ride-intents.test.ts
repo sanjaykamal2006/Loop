@@ -8,9 +8,8 @@ import postgres from "postgres";
  *      own rows. Anonymous callers have zero table privileges.
  *   2. get_ride_intent_board() RPC:
  *      - Privacy invariant: never selects or exposes user_id.
- *      - Visibility invariant: groups with intent_count < 2 are visible only to
- *        their own member — the caller's solo row shows (intent_count = 1,
- *        has_mine = true) while strangers see nothing until a 2nd joins.
+ *      - Visibility invariant: every active group (count >= 1) is public demand
+ *        — anyone can see a solo row; has_mine marks ownership (20261030).
  *      - Aggregation: groups with >= 2 rows return correct intent_count and has_mine.
  *      - Expiry invariant: rows where expires_at < now() are excluded.
  *   3. post_ride_intent() RPC:
@@ -107,17 +106,19 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
           }
         }
 
-        // --- Invariant 2: Solo groups are visible only to their own member ---
+        // --- Invariant 2: Solo groups are public demand (20261030) ---
         // Only User A posted for 'vijayawada' on futureDate -> count = 1.
-        // A stranger's board shows nothing, but User A's own board shows the
-        // live solo row ("just you so far": intent_count = 1, has_mine = true).
+        // EVERYONE now sees the row; strangers get has_mine=false (and can
+        // tap "Me too!"), the owner gets has_mine=true.
         const boardForStrangerSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
-        expect(boardForStrangerSolo).toHaveLength(0);
+        expect(boardForStrangerSolo).toHaveLength(1);
+        expect(boardForStrangerSolo[0].destination_key).toBe("vijayawada");
+        expect(boardForStrangerSolo[0].intent_count).toBe(1);
+        expect(boardForStrangerSolo[0].has_mine).toBe(false);
 
         await impersonate(userA);
         const boardForOwnSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
         expect(boardForOwnSolo).toHaveLength(1);
-        expect(boardForOwnSolo[0].destination_key).toBe("vijayawada");
         expect(boardForOwnSolo[0].intent_count).toBe(1);
         expect(boardForOwnSolo[0].has_mine).toBe(true);
 

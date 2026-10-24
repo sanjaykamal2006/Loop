@@ -186,6 +186,30 @@ describe("RideWantsView Component", () => {
     expect(meTooBtn).toBeDisabled();
   });
 
+  it("renders someone else's solo row as demand the viewer can join", async () => {
+    const mockData = [
+      {
+        destination_key: "guntur",
+        depart_date: "2028-10-25",
+        intent_count: 1,
+        has_mine: false,
+        first_depart_time: null,
+      },
+    ];
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
+
+    render(<RideWantsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText("1 student wants this — be the 2nd!")).toBeInTheDocument();
+      expect(screen.queryByText(/students going this way/)).not.toBeInTheDocument();
+    });
+
+    // Viewer hasn't joined yet: button stays an active "Me too!" joiner
+    expect(screen.getByTestId("me-too-btn")).toHaveTextContent("Me too!");
+    expect(screen.getByTestId("me-too-btn")).not.toBeDisabled();
+  });
+
   it("renders aggregate demand cards with 'Me too!' button", async () => {
     const mockData = [
       {
