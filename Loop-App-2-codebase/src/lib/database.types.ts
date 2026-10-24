@@ -274,7 +274,7 @@ isOneToOne: false
 }[] },
 "get_ride_intent_board":
 { Args: Record<PropertyKey, never>; Returns: {
-              "destination_key": string,"depart_date": string,"intent_count": number,"has_mine": boolean,"first_depart_time": string | null
+              "destination_key": string,"depart_date": string,"intent_count": number,"has_mine": boolean,"first_depart_time": string | null,"is_creator": boolean
             }[]
                            },
 "post_ride_intent":

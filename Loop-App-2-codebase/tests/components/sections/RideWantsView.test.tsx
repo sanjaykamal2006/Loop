@@ -211,11 +211,11 @@ describe("RideWantsView Component", () => {
     expect(screen.getByTestId("me-too-btn")).not.toBeDisabled();
   });
 
-  it("calls removeRideWant when Undo is tapped on the caller's own row", async () => {
+  it("calls removeRideWant when Undo is tapped on a co-passenger's joined row", async () => {
     vi.spyOn(rideWantsLib, "fetchRideWants")
       .mockResolvedValueOnce({
         data: [
-          { destination_key: "vijayawada", depart_date: "2028-10-25", intent_count: 1, has_mine: true, first_depart_time: null },
+          { destination_key: "vijayawada", depart_date: "2028-10-25", intent_count: 2, has_mine: true, is_creator: false, first_depart_time: null },
         ],
         error: null,
       })
@@ -225,11 +225,38 @@ describe("RideWantsView Component", () => {
     render(<RideWantsView />);
 
     await waitFor(() => expect(screen.getByTestId("me-too-btn")).toBeEnabled());
-    fireEvent.click(screen.getByTestId("me-too-btn"));
+    const meTooBtn = screen.getByTestId("me-too-btn");
+    expect(meTooBtn).toHaveTextContent("Undo");
+    fireEvent.click(meTooBtn);
 
     await waitFor(() => {
       expect(undoSpy).toHaveBeenCalledWith({ destination: "vijayawada", departDate: "2028-10-25" });
-      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Removed"));
+      expect(toast.success).toHaveBeenCalledWith("Removed from co-traveller group");
+    });
+  });
+
+  it("renders 'Delete' button for the ride creator and calls removeRideWant on click", async () => {
+    vi.spyOn(rideWantsLib, "fetchRideWants")
+      .mockResolvedValueOnce({
+        data: [
+          { destination_key: "vijayawada", depart_date: "2028-10-25", intent_count: 3, has_mine: true, is_creator: true, first_depart_time: null },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: [], error: null });
+    const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({ ok: true, error: null });
+
+    render(<RideWantsView />);
+
+    await waitFor(() => expect(screen.getByTestId("me-too-btn")).toBeEnabled());
+    const meTooBtn = screen.getByTestId("me-too-btn");
+    expect(meTooBtn).toHaveTextContent("Delete");
+    expect(meTooBtn).toHaveAttribute("aria-label", "Delete your ride plan");
+    fireEvent.click(meTooBtn);
+
+    await waitFor(() => {
+      expect(undoSpy).toHaveBeenCalledWith({ destination: "vijayawada", departDate: "2028-10-25" });
+      expect(toast.success).toHaveBeenCalledWith("Ride plan deleted");
     });
   });
 
@@ -266,9 +293,9 @@ describe("RideWantsView Component", () => {
       expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining("Your plan is added")
       );
-      // Matched group (a friend joined): button is static again with undo closed
-      expect(meTooBtn).toHaveTextContent("You're in");
-      expect(meTooBtn).toBeDisabled();
+      // Joined group: button flips to "Undo" and stays enabled so the co-passenger can leave anytime
+      expect(meTooBtn).toHaveTextContent("Undo");
+      expect(meTooBtn).toBeEnabled();
     });
   });
 

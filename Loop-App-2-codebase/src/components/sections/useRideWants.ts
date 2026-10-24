@@ -99,10 +99,7 @@ export function useRideWants(options?: UseRideWantsOptions) {
   };
 
   const handleUndo = async (row: RideWantRow) => {
-    // Undo exists only while the row is still solo; once a friend joined the
-    // group the plan is matched and nobody may silently vanish it (the server
-    // raises too — see undo_ride_intent, 20261031).
-    if (!row.has_mine || row.intent_count >= 2) return;
+    if (!row.has_mine) return;
     triggerHaptic(10);
     // Optimistic: the caller's row leaves the group immediately; the board
     // resyncs right after so the counts reflect the server's truth.
@@ -110,7 +107,12 @@ export function useRideWants(options?: UseRideWantsOptions) {
       prev
         .map((item) =>
           item.destination_key === row.destination_key && item.depart_date === row.depart_date
-            ? { ...item, has_mine: false, intent_count: Math.max(item.intent_count - 1, 0) }
+            ? {
+                ...item,
+                has_mine: false,
+                is_creator: false,
+                intent_count: Math.max(item.intent_count - 1, 0),
+              }
             : item
         )
         .filter((item) => item.intent_count > 0)
@@ -122,7 +124,11 @@ export function useRideWants(options?: UseRideWantsOptions) {
     if (res.error) {
       notifyError(res.error, "Failed to remove");
     } else {
-      toast.success("Removed. Post again anytime.");
+      if (row.is_creator) {
+        toast.success("Ride plan deleted");
+      } else {
+        toast.success("Removed from co-traveller group");
+      }
     }
     await loadBoard();
   };

@@ -79,8 +79,8 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         // --- Invariant 1: Table RLS owner-isolation ---
         await impersonate(userA);
         await tx`
-          INSERT INTO public.ride_intents (user_id, destination_key, depart_date, note, expires_at)
-          VALUES (${userA}, 'vijayawada', ${futureDate}::date, 'Need to catch train', now() + interval '5 days')
+          INSERT INTO public.ride_intents (user_id, destination_key, depart_date, note, expires_at, created_at)
+          VALUES (${userA}, 'vijayawada', ${futureDate}::date, 'Need to catch train', now() + interval '5 days', now() - interval '1 hour')
         `;
         const userARows = await tx`SELECT user_id, destination_key FROM public.ride_intents`;
         expect(userARows).toHaveLength(1);
@@ -110,17 +110,19 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         // Only User A posted for 'vijayawada' on futureDate -> count = 1.
         // EVERYONE now sees the row; strangers get has_mine=false (and can
         // tap "Me too!"), the owner gets has_mine=true.
-        const boardForStrangerSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        const boardForStrangerSolo = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
         expect(boardForStrangerSolo).toHaveLength(1);
         expect(boardForStrangerSolo[0].destination_key).toBe("vijayawada");
         expect(boardForStrangerSolo[0].intent_count).toBe(1);
         expect(boardForStrangerSolo[0].has_mine).toBe(false);
+        expect(boardForStrangerSolo[0].is_creator).toBe(false);
 
         await impersonate(userA);
-        const boardForOwnSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        const boardForOwnSolo = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
         expect(boardForOwnSolo).toHaveLength(1);
         expect(boardForOwnSolo[0].intent_count).toBe(1);
         expect(boardForOwnSolo[0].has_mine).toBe(true);
+        expect(boardForOwnSolo[0].is_creator).toBe(true);
 
         // --- Invariant 3: Destination normalization + On-conflict deduplication ---
         await impersonate(userB);
@@ -137,19 +139,21 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         expect(Number(countBDup[0].c)).toBe(2);
 
         // --- Invariant 4: Board aggregation >= 2 & Privacy invariant ---
-        // User B calls board: should see 1 row with intent_count = 2, has_mine = true
-        const boardForB = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        // User B calls board: should see 1 row with intent_count = 2, has_mine = true, is_creator = false
+        const boardForB = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
         expect(boardForB).toHaveLength(1);
         expect(boardForB[0].destination_key).toBe("vijayawada");
         expect(boardForB[0].intent_count).toBe(2);
         expect(boardForB[0].has_mine).toBe(true);
+        expect(boardForB[0].is_creator).toBe(false);
         // Verify user_id is NOT a key on the returned row
         expect(boardForB[0]).not.toHaveProperty("user_id");
-        // Stranger calls board: should see the same row, but has_mine = false
+        // Stranger calls board: should see the same row, but has_mine = false, is_creator = false
         await impersonate(strangerD);
-        const boardForStranger = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        const boardForStranger = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
         expect(boardForStranger).toHaveLength(1);
         expect(boardForStranger[0].has_mine).toBe(false);
+        expect(boardForStranger[0].is_creator).toBe(false);
 
         // User C joins -> count reaches 3 (earlier time so first_depart_time = min)
         await impersonate(userC);
@@ -178,7 +182,7 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         }
         expect(invalidTimeRejected).toBe(true);
         // The board still reflects the pre-probe state (3 intents) after rollback
-        const boardAfterProbe = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        const boardAfterProbe = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
         expect(boardAfterProbe).toHaveLength(1);
         expect(boardAfterProbe[0].intent_count).toBe(3);
         // first_depart_time = earliest time mentioned in the group (18:05 vs 18:30)
@@ -206,7 +210,7 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         `;
         expect(boardWithoutExpired).toHaveLength(0);
 
-        // --- Invariant 7: undo_ride_intent (20261031) — guarded removal ---
+        // --- Invariant 7: undo_ride_intent — creator delete and co-passenger undo ---
         // Solo case: caller posts a fresh solo group and removes it cleanly.
         await impersonate(userA);
         await tx`
@@ -217,22 +221,32 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         `;
         expect(Number(undoneSolo[0].d)).toBe(1);
 
-        // Guard: a group with joined friends cannot be undone by anyone —
-        // not even its original poster. The raise must be user-readable.
-        await tx`SAVEPOINT undo_guard`;
-        let undoGuardRaised = false;
-        try {
-          await tx`
-            SELECT public.undo_ride_intent('vijayawada', ${futureDate}::date) AS d
-          `;
-          throw new Error("__undo_should_have_raised__");
-        } catch (err) {
-          const msg = String((err as Error)?.message || "");
-          undoGuardRaised = /friend already joined/i.test(msg) && !/undo_should_have_raised/.test(msg);
-        } finally {
-          await tx`ROLLBACK TO SAVEPOINT undo_guard`;
-        }
-        expect(undoGuardRaised).toBe(true);
+        // Multi-member group: co-passenger User C can undo anytime (count drops 3 -> 2)
+        await impersonate(userC);
+        const undoneJoiner = await tx`
+          SELECT public.undo_ride_intent('vijayawada', ${futureDate}::date) AS d
+        `;
+        expect(Number(undoneJoiner[0].d)).toBe(1);
+
+        const boardAfterJoinerUndo = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
+        expect(boardAfterJoinerUndo[0].intent_count).toBe(2);
+
+        // Creator User A can delete their spot (count drops 2 -> 1, remaining member stays)
+        await impersonate(userA);
+        const undoneCreator = await tx`
+          SELECT public.undo_ride_intent('vijayawada', ${futureDate}::date) AS d
+        `;
+        expect(Number(undoneCreator[0].d)).toBe(1);
+
+        const boardAfterCreatorDelete = await tx`SELECT * FROM public.get_ride_intent_board() WHERE destination_key = 'vijayawada'`;
+        expect(boardAfterCreatorDelete[0].intent_count).toBe(1);
+        expect(boardAfterCreatorDelete[0].has_mine).toBe(false);
+
+        // Calling undo when caller has no row in group returns 0
+        const undoneZero = await tx`
+          SELECT public.undo_ride_intent('vijayawada', ${futureDate}::date) AS d
+        `;
+        expect(Number(undoneZero[0].d)).toBe(0);
 
         throw new Error("__always_rollback__");
       });

@@ -15,6 +15,7 @@ import {
   Plus,
   Check,
   Undo2,
+  Trash2,
   Calendar,
   Clock,
   ChevronDown,
@@ -472,37 +473,40 @@ export default function RideWantsView() {
                   </FitSingleLine>
                 </div>
 
-                {/* Me Too / Undo Button: undo exists ONLY while the row is
-                    still solo — once a friend joined, the plan is matched and
-                    nobody can silently vanish it (server raises too). */}
+                {/* Me Too / Undo / Delete Button:
+                    - Creator: "Delete" button (removes their spot / plan)
+                    - Joined co-passenger: "Undo" button (leaves the group)
+                    - Non-joined student: "Me too!" button (joins demand)
+                */}
                 <button
                   onClick={() => (row.has_mine ? handleUndo(row) : handleMeToo(row))}
-                  disabled={row.has_mine && row.intent_count >= 2}
                   data-testid="me-too-btn"
                   aria-label={
                     row.has_mine
-                      ? row.intent_count >= 2
-                        ? "Joined"
-                        : "Undo your ride want"
+                      ? row.is_creator
+                        ? "Delete your ride plan"
+                        : "Undo your join"
                       : "Join demand"
                   }
                   className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-                    row.has_mine && row.intent_count >= 2
-                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 cursor-default"
-                      : row.has_mine
-                      ? isDark
-                        ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 cursor-pointer active:scale-95"
-                        : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200 cursor-pointer active:scale-95"
+                    row.has_mine
+                      ? row.is_creator
+                        ? isDark
+                          ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 active:scale-95 cursor-pointer"
+                          : "bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 active:scale-95 cursor-pointer"
+                        : isDark
+                        ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 active:scale-95 cursor-pointer"
+                        : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200 active:scale-95 cursor-pointer"
                       : isDark
                       ? "bg-white/10 hover:bg-white/15 text-white cursor-pointer active:scale-95"
                       : "bg-black/5 hover:bg-black/10 text-zinc-900 cursor-pointer active:scale-95"
                   }`}
                 >
                   {row.has_mine ? (
-                    row.intent_count >= 2 ? (
+                    row.is_creator ? (
                       <>
-                        <Check size={14} strokeWidth={2.5} />
-                        <span>You&apos;re in</span>
+                        <Trash2 size={14} strokeWidth={2.5} />
+                        <span>Delete</span>
                       </>
                     ) : (
                       <>

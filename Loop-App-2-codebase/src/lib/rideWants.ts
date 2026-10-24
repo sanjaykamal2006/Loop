@@ -9,6 +9,7 @@ export interface RideWantRow {
   intent_count: number;
   has_mine: boolean;
   first_depart_time: string | null;
+  is_creator?: boolean;
 }
 
 export interface PostRideWantParams {

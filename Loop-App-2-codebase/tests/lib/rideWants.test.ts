@@ -194,16 +194,16 @@ describe("rideWants lib utility", () => {
       });
     });
 
-    it("bubbles the RPC error when the server refuses (friend joined)", async () => {
+    it("bubbles any RPC error when the server refuses removal", async () => {
       vi.spyOn(supabase, "rpc").mockResolvedValueOnce({
         data: null,
-        error: { message: "A friend already joined this plan — undo is disabled" },
+        error: { message: "Database connection failed" },
       } as any);
 
       const result = await removeRideWant({ destination: "guntur", departDate: "2026-10-26" });
 
       expect(result.ok).toBe(false);
-      expect(result.error?.message).toContain("undo is disabled");
+      expect(result.error?.message).toContain("Database connection failed");
     });
 
     it("rejects empty destination or date before touching the RPC", async () => {
