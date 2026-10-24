@@ -369,19 +369,19 @@ export default function RideWantsView() {
           const isHot = row.intent_count >= 4;
           // Solo groups show to everyone now; ownership changes the phrasing.
           const isSolo = row.intent_count === 1;
-          // Premium surface treatment for the card itself (content untouched):
-          // layered glass background, inset highlight ring, deep soft shadow,
-          // softer 28px radius, and a warm gold aura for high-demand routes.
+          // Premium + minimal surface: glass gradient, hairline inner highlight,
+          // deep soft shadow. Content reduced to the essentials:
+          // destination · when · how many · Me too.
           const rowCardClass = isDark
-            ? `relative p-4 px-5 space-y-3 rounded-[28px] transition-all bg-gradient-to-b from-white/[0.06] to-white/[0.015] ring-1 ring-inset ring-white/[0.05] shadow-[0_12px_32px_-16px_rgba(0,0,0,0.65),0_1px_0_0_rgba(255,255,255,0.06)_inset] ${
+            ? `relative p-3.5 px-4 space-y-2.5 rounded-[24px] bg-gradient-to-b from-white/[0.055] to-white/[0.02] ring-1 ring-inset ring-white/[0.06] transition-all border ${
                 isHot
-                  ? "border border-[#FFC554]/35 shadow-[0_14px_40px_-16px_rgba(255,197,84,0.26),0_1px_0_0_rgba(255,255,255,0.07)_inset] hover:border-[#FFC554]/50"
-                  : "border border-white/10 hover:border-white/15"
+                  ? "border-[#FFC554]/35 shadow-[0_12px_36px_-14px_rgba(255,197,84,0.3),0_1px_0_0_rgba(255,255,255,0.06)_inset] hover:border-[#FFC554]/50"
+                  : "border-white/10 hover:border-white/15 shadow-[0_10px_28px_-14px_rgba(0,0,0,0.55),0_1px_0_0_rgba(255,255,255,0.05)_inset]"
               }`
-            : `relative p-4 px-5 space-y-3 rounded-[28px] transition-all bg-white ring-1 ring-inset ring-black/[0.03] shadow-[0_10px_28px_-14px_rgba(120,53,15,0.18)] ${
+            : `relative p-3.5 px-4 space-y-2.5 rounded-[24px] bg-white ring-1 ring-inset ring-black/[0.03] transition-all border ${
                 isHot
-                  ? "border border-[#881337]/30 shadow-[0_12px_32px_-14px_rgba(136,19,55,0.26)] hover:border-[#881337]/40"
-                  : "border border-zinc-200/80 hover:border-zinc-300"
+                  ? "border-[#881337]/30 shadow-[0_10px_28px_-12px_rgba(136,19,55,0.24)]"
+                  : "border-zinc-200/80 shadow-[0_8px_24px_-12px_rgba(120,53,15,0.16)]"
               }`;
 
           return (
@@ -390,24 +390,22 @@ export default function RideWantsView() {
               data-testid="ride-want-card"
               className={rowCardClass}
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {/* Destination marker */}
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                  isDark ? "bg-white/[0.05] border border-white/10" : "bg-black/[0.04] border border-black/10"
+                }`}>
+                  <MapPin size={18} strokeWidth={2.25} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                </div>
+
+                {/* Destination · when · how many */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-bold text-[14px] leading-snug">{displayDest}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      isDark ? "bg-white/10 text-zinc-300" : "bg-black/5 text-zinc-700"
-                    }`}>
-                      {dateLabel}
-                    </span>
-                    {timeLabel && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        isDark ? "bg-white/10 text-zinc-300" : "bg-black/5 text-zinc-700"
-                      }`}>
-                        first leave {timeLabel}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold mt-1 text-[#FFC554]">
+                  <p className="font-black text-[15px] leading-tight truncate">{displayDest}</p>
+                  <p className={`text-[11px] font-medium mt-0.5 truncate ${mutedText}`}>
+                    {dateLabel}
+                    {timeLabel && `${dateLabel ? " · " : ""}leaves ${timeLabel}`}
+                  </p>
+                  <p className="text-[11px] font-bold mt-0.5 text-[#FFC554]">
                     {isSolo ? (
                       row.has_mine ? (
                         <>Just you so far — others can still join</>
@@ -416,7 +414,7 @@ export default function RideWantsView() {
                       )
                     ) : (
                       <>
-                        <span className="font-black text-sm">{row.intent_count}</span> students going this way
+                        <span className="text-[13px]">{row.intent_count}</span> students going this way
                       </>
                     )}
                   </p>
@@ -449,21 +447,19 @@ export default function RideWantsView() {
 
               {/* Threshold >= 4: Gold "Create this ride" CTA */}
               {isHot && (
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                  <span className={`text-[11px] font-medium ${mutedText}`}>4+ students going</span>
-                  <button
-                    onClick={() => handleCreateThisRide(row)}
-                    data-testid="create-ride-btn"
-                    className={`h-8 px-3.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-transform ${
-                      isDark
-                        ? "bg-[#FFC554] text-black hover:bg-[#FFC554]/90"
-                        : "bg-[#881337] text-white hover:bg-[#881337]/90"
-                    }`}
-                  >
-                    <span>Create This Ride</span>
-                    <span>→</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleCreateThisRide(row)}
+                  data-testid="create-ride-btn"
+                  className={`w-full h-9 rounded-2xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform ${
+                    isDark
+                      ? "bg-[#FFC554]/90 text-black hover:bg-[#FFC554]"
+                      : "bg-[#881337] text-white hover:bg-[#881337]/90"
+                  }`}
+                >
+                  <Sparkles size={13} strokeWidth={2.5} />
+                  <span>Create This Ride</span>
+                  <span>→</span>
+                </button>
               )}
             </div>
           );
