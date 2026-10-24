@@ -57,10 +57,14 @@ export function formatTimeLabel(timeStr: string | null | undefined): string {
 }
 
 export default function RideWantsView() {
-  const { setView, theme, profile, setCreatePrefill, setPendingAction, setShowGenderSelect } = useLoop();
+  const { setView, theme, profile, setCreatePrefill, setPendingAction, setShowGenderSelect, handleSignOut } = useLoop();
   const { isDark, cardBg, border, mutedText } = theme;
 
-  const { wants, loading, submitting, loadBoard, handlePost, handleMeToo } = useRideWants();
+  const { wants, loading, submitting, loadBoard, handlePost, handleMeToo } = useRideWants({
+    // Dead auth session: sign out cleanly so the user lands on the login
+    // screen instead of a board whose every action fails server-side.
+    onAuthDead: handleSignOut,
+  });
 
   const quickDayOptions = useMemo(() => getQuickDayOptions(), []);
 

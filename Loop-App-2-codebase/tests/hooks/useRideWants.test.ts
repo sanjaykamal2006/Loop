@@ -196,4 +196,31 @@ describe("useRideWants hook", () => {
 
     expect(toast.error).toHaveBeenCalledWith("Server error");
   });
+
+  it("calls onAuthDead with a friendly toast when the session died during post", async () => {
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({
+      data: [],
+      error: null,
+    });
+    vi.spyOn(rideWantsLib, "postRideWant").mockResolvedValueOnce({
+      count: 0,
+      error: { message: rideWantsLib.AUTH_REQUIRED_MESSAGE },
+    });
+    const onAuthDead = vi.fn();
+
+    const { result } = renderHook(() => useRideWants({ onAuthDead }));
+    await act(async () => {});
+
+    let ok = true;
+    await act(async () => {
+      ok = await result.current.handlePost({
+        destination: "Vijayawada",
+        departDate: "2026-10-25",
+      });
+    });
+
+    expect(ok).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith(rideWantsLib.AUTH_REQUIRED_MESSAGE);
+    expect(onAuthDead).toHaveBeenCalledTimes(1);
+  });
 });

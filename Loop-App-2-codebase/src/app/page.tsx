@@ -91,6 +91,19 @@ export default function Home() {
       } else if (event === "SIGNED_OUT" && (typeof navigator === "undefined" || navigator.onLine)) {
         setSession(null);
         clearUserStorage();
+      } else if (
+        event === "INITIAL_SESSION" &&
+        !nextSession &&
+        !checkIsRecovery() &&
+        typeof navigator !== "undefined" &&
+        navigator.onLine
+      ) {
+        // Supabase itself found no session while online: the cached snapshot
+        // the UI booted with is dead, and keeping it mounted renders a
+        // "logged-in" shell whose every request fails server-side. Show the
+        // login screen instead.
+        setSession(null);
+        clearUserStorage();
       }
     });
 

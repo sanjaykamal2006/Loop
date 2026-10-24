@@ -34,6 +34,66 @@ export interface QuickDayOption {
 }
 
 /**
+ * Friendly message used whenever the caller's auth session is dead or cannot
+ * be recovered. The UI funnels this state into "log in again" instead of
+ * surfacing the raw Postgres raise ("Authentication required").
+ */
+export const AUTH_REQUIRED_MESSAGE = "Your session expired — please log in again.";
+
+const AUTH_ERROR_PATTERN =
+  /authentication required|permission denied for function (get_ride_intent_board|post_ride_intent)|invalid jwt|jwt expired/i;
+
+/** True when the server rejected the call because the JWT didn't identify a user. */
+export function isAuthError(message: string | null | undefined): boolean {
+  return Boolean(message && AUTH_ERROR_PATTERN.test(message));
+}
+
+type RpcLike<T> = () => PromiseLike<{ data: T | null; error: { message: string } | null }>;
+
+/**
+ * Guards every board call. The app UI can outlive the auth session (a PWA
+ * restored from cache while Supabase dropped the token), which used to surface
+ * as a raw "Authentication required" toast. Now: verify the live session
+ * before spending a request; on an auth-flavoured reply force one token
+ * refresh and retry once; if that fails, sign out locally so the user lands
+ * on the login screen instead of an endless raw-error loop.
+ */
+async function withAuthRetry<T>(invoke: RpcLike<T>): Promise<{ data: T | null; error: { message: string } | null }> {
+  let session: unknown = null;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    session = sessionData?.session ?? null;
+  } catch {
+    // Reading the cached session itself failed (storage trouble): treat the
+    // caller as unauthenticated rather than crashing the UI.
+  }
+  if (!session) {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // session is already gone; clearing state is best-effort
+    }
+    return { data: null, error: { message: AUTH_REQUIRED_MESSAGE } };
+  }
+
+  let result = await invoke();
+  if (result.error && isAuthError(result.error.message)) {
+    const refreshed = await supabase.auth.refreshSession().catch(() => null);
+    if (refreshed?.data?.session) {
+      result = await invoke();
+    } else {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // ignore — signOut is best-effort here
+      }
+      return { data: null, error: { message: AUTH_REQUIRED_MESSAGE } };
+    }
+  }
+  return result;
+}
+
+/**
  * Generates quick calendar date chips: Today, Tomorrow, and This Sunday.
  */
 export function getQuickDayOptions(referenceDate: Date = new Date()): QuickDayOption[] {
@@ -68,7 +128,7 @@ export function getQuickDayOptions(referenceDate: Date = new Date()): QuickDayOp
  * Invariant: Returns aggregate counts only; no user identities.
  */
 export async function fetchRideWants(): Promise<RideWantResult> {
-  const { data, error } = await supabase.rpc("get_ride_intent_board");
+  const { data, error } = await withAuthRetry(() => supabase.rpc("get_ride_intent_board"));
 
   if (error) {
     logger.error("fetchRideWants error:", error);
@@ -96,12 +156,14 @@ export async function postRideWant(params: PostRideWantParams): Promise<PostRide
     return { count: 0, error: { message: "Date is required" } };
   }
 
-  const { data, error } = await supabase.rpc("post_ride_intent", {
-    p_destination_key: dest,
-    p_depart_date: date,
-    p_note: params.note ? params.note.trim() : null,
-    p_depart_time: params.departTime ? params.departTime.trim() : null,
-  });
+  const { data, error } = await withAuthRetry(() =>
+    supabase.rpc("post_ride_intent", {
+      p_destination_key: dest,
+      p_depart_date: date,
+      p_note: params.note ? params.note.trim() : null,
+      p_depart_time: params.departTime ? params.departTime.trim() : null,
+    })
+  );
 
   if (error) {
     logger.error("postRideWant error:", error);

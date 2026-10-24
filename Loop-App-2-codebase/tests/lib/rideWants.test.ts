@@ -1,10 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchRideWants, postRideWant, getQuickDayOptions } from "@/lib/rideWants";
+import {
+  fetchRideWants,
+  postRideWant,
+  getQuickDayOptions,
+  AUTH_REQUIRED_MESSAGE,
+} from "@/lib/rideWants";
 import { supabase } from "@/lib/supabase";
+
+const mockSession = { user: { id: "u1" }, access_token: "t", refresh_token: "r" };
 
 describe("rideWants lib utility", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    // withAuthRetry consults the live session; default tests to a healthy one
+    // unless a specific test overrides it.
+    vi.restoreAllMocks();
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: { session: mockSession as never },
+      error: null,
+    } as never);
   });
 
   describe("getQuickDayOptions", () => {
@@ -164,6 +177,107 @@ describe("rideWants lib utility", () => {
 
       expect(result.count).toBe(0);
       expect(result.error?.message).toBe("Rate limit exceeded");
+    });
+  });
+
+  describe("auth handling", () => {
+    it("treats a missing live session as auth-dead without spending a request", async () => {
+      vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+        data: { session: null },
+        error: null,
+      } as never);
+      const signOutSpy = vi.spyOn(supabase.auth, "signOut").mockResolvedValue(undefined as never);
+      const rpcSpy = vi.spyOn(supabase, "rpc");
+
+      const result = await postRideWant({ destination: "Vijayawada", departDate: "2026-10-25" });
+
+      expect(rpcSpy).not.toHaveBeenCalled();
+      expect(signOutSpy).toHaveBeenCalled();
+      expect(result.count).toBe(0);
+      expect(result.error?.message).toBe(AUTH_REQUIRED_MESSAGE);
+    });
+
+    it("retries once with a refreshed token when the server says Authentication required", async () => {
+      const rpcSpy = vi
+        .spyOn(supabase, "rpc")
+        .mockResolvedValueOnce({ data: null, error: { message: "Authentication required" } } as any)
+        .mockResolvedValueOnce({ data: 3, error: null } as any);
+      vi.spyOn(supabase.auth, "refreshSession").mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      } as never);
+
+      const result = await postRideWant({
+        destination: "Vijayawada",
+        departDate: "2026-10-25",
+        departTime: "18:30",
+      });
+
+      expect(rpcSpy).toHaveBeenCalledTimes(2);
+      expect(result.count).toBe(3);
+      expect(result.error).toBeNull();
+    });
+
+    it("signs out when the token refresh fails", async () => {
+      vi.spyOn(supabase, "rpc").mockResolvedValueOnce({
+        data: null,
+        error: { message: "Authentication required" },
+      } as any);
+      const refreshSpy = vi.spyOn(supabase.auth, "refreshSession").mockResolvedValue({
+        data: { session: null },
+        error: null,
+      } as never);
+      const signOutSpy = vi.spyOn(supabase.auth, "signOut").mockResolvedValue(undefined as never);
+
+      const result = await postRideWant({ destination: "Airport", departDate: "2026-10-25" });
+
+      expect(refreshSpy).toHaveBeenCalled();
+      expect(signOutSpy).toHaveBeenCalled();
+      expect(result.error?.message).toBe(AUTH_REQUIRED_MESSAGE);
+    });
+
+    it("does not refresh or retry on non-auth errors", async () => {
+      const refreshSpy = vi.spyOn(supabase.auth, "refreshSession");
+      vi.spyOn(supabase, "rpc").mockResolvedValueOnce({
+        data: null,
+        error: { message: "Rate limit exceeded" },
+      } as any);
+
+      const result = await postRideWant({ destination: "Guntur", departDate: "2026-10-25" });
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+      expect(result.error?.message).toBe("Rate limit exceeded");
+    });
+
+    it("retries the board fetch once after an auth error", async () => {
+      const rpcSpy = vi
+        .spyOn(supabase, "rpc")
+        .mockResolvedValueOnce({
+          data: null,
+          error: { message: "permission denied for function get_ride_intent_board" },
+        } as any)
+        .mockResolvedValueOnce({
+          data: [
+            {
+              destination_key: "guntur",
+              depart_date: "2026-10-26",
+              intent_count: 2,
+              has_mine: false,
+              first_depart_time: null,
+            },
+          ],
+          error: null,
+        } as any);
+      vi.spyOn(supabase.auth, "refreshSession").mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      } as never);
+
+      const result = await fetchRideWants();
+
+      expect(rpcSpy).toHaveBeenCalledTimes(2);
+      expect(result.data).toHaveLength(1);
+      expect(result.error).toBeNull();
     });
   });
 });

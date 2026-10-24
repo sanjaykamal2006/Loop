@@ -27,6 +27,11 @@ vi.mock('@/lib/supabase', () => ({
     })),
     removeChannel: vi.fn(),
     rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-100' } }, error: null } }),
+      signOut: vi.fn().mockResolvedValue(undefined),
+      refreshSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-100' } } }, error: null }),
+    },
   },
 }));
 

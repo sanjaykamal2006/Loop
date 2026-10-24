@@ -1,25 +1,50 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchRideWants, postRideWant, RideWantRow, PostRideWantParams } from "@/lib/rideWants";
+import {
+  fetchRideWants,
+  postRideWant,
+  AUTH_REQUIRED_MESSAGE,
+  RideWantRow,
+  PostRideWantParams,
+} from "@/lib/rideWants";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 
-export function useRideWants() {
+interface UseRideWantsOptions {
+  /** Called when the caller's auth session is dead: the provider signs the
+   *  zombie state out so the user lands on the login screen. */
+  onAuthDead?: () => void | Promise<void>;
+}
+
+export function useRideWants(options?: UseRideWantsOptions) {
+  const onAuthDead = options?.onAuthDead;
   const [wants, setWants] = useState<RideWantRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const notifyError = useCallback(
+    (error: { message: string } | null, fallback: string) => {
+      if (error?.message === AUTH_REQUIRED_MESSAGE) {
+        toast.error(AUTH_REQUIRED_MESSAGE);
+        void onAuthDead?.();
+        return;
+      }
+      toast.error(error?.message || fallback);
+    },
+    [onAuthDead]
+  );
 
   const loadBoard = useCallback(async () => {
     setLoading(true);
     const { data, error } = await fetchRideWants();
     if (error) {
-      toast.error(error.message || "Failed to load ride wanted board");
+      notifyError(error, "Failed to load ride wanted board");
     } else {
       setWants(data || []);
     }
     setLoading(false);
-  }, []);
+  }, [notifyError]);
 
   useEffect(() => {
     loadBoard();
@@ -30,7 +55,7 @@ export function useRideWants() {
     try {
       const res = await postRideWant(params);
       if (res.error) {
-        toast.error(res.error.message);
+        notifyError(res.error, "Failed to post");
         return false;
       }
       triggerHaptic(10);
@@ -54,7 +79,7 @@ export function useRideWants() {
       departDate: row.depart_date,
     });
     if (res.error) {
-      toast.error(res.error.message);
+      notifyError(res.error, "Failed to join");
       return;
     }
     triggerHaptic(14);
