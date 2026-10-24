@@ -95,10 +95,15 @@ grant execute on function public.undo_ride_intent(text, date) to authenticated;
 
 notify pgrst, 'reload schema';
 
--- Enable Supabase Realtime for ride_intents so changes broadcast immediately
+-- Enable Supabase Realtime for ride_intents so changes broadcast immediately.
+-- Guarded twice: the pipeline's embedded PG17 has no supabase_realtime
+-- publication at all (no-op there); on Supabase, only add membership if the
+-- table is not already in the publication.
 do $$
 begin
-  if not exists (
+  if exists (
+    select 1 from pg_publication where pubname = 'supabase_realtime'
+  ) and not exists (
     select 1 from pg_publication_tables
     where pubname = 'supabase_realtime'
       and schemaname = 'public'
