@@ -160,6 +160,32 @@ describe("RideWantsView Component", () => {
     });
   });
 
+  it("renders a solo own-row with a 'Just you so far' label instead of a count", async () => {
+    const mockData = [
+      {
+        destination_key: "vijayawada",
+        depart_date: "2028-10-25",
+        intent_count: 1,
+        has_mine: true,
+        first_depart_time: null,
+      },
+    ];
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
+
+    render(<RideWantsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Just you so far — others can still join")).toBeInTheDocument();
+      // Solo rows must not show the multi-student count phrasing
+      expect(screen.queryByText(/students going this way/)).not.toBeInTheDocument();
+    });
+
+    // Own solo row: the action button reads as already-in and stays disabled
+    const meTooBtn = screen.getByTestId("me-too-btn");
+    expect(meTooBtn).toHaveTextContent("You're in");
+    expect(meTooBtn).toBeDisabled();
+  });
+
   it("renders aggregate demand cards with 'Me too!' button", async () => {
     const mockData = [
       {

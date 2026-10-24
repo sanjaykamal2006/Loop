@@ -75,7 +75,7 @@ describe("useRideWants hook", () => {
     expect(ok).toBe(true);
     expect(postSpy).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith(
-      expect.stringContaining("once another student joins")
+      expect.stringContaining("just you so far")
     );
   });
 

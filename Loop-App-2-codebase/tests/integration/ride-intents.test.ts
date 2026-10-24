@@ -8,7 +8,9 @@ import postgres from "postgres";
  *      own rows. Anonymous callers have zero table privileges.
  *   2. get_ride_intent_board() RPC:
  *      - Privacy invariant: never selects or exposes user_id.
- *      - Threshold invariant: groups with intent_count < 2 are omitted.
+ *      - Visibility invariant: groups with intent_count < 2 are visible only to
+ *        their own member — the caller's solo row shows (intent_count = 1,
+ *        has_mine = true) while strangers see nothing until a 2nd joins.
  *      - Aggregation: groups with >= 2 rows return correct intent_count and has_mine.
  *      - Expiry invariant: rows where expires_at < now() are excluded.
  *   3. post_ride_intent() RPC:
@@ -105,10 +107,19 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
           }
         }
 
-        // --- Invariant 2: Threshold < 2 omitted from board ---
-        // Currently only User A posted for 'vijayawada' on futureDate -> count = 1 -> should NOT appear on board
-        const boardSingle = await tx`SELECT * FROM public.get_ride_intent_board()`;
-        expect(boardSingle).toHaveLength(0);
+        // --- Invariant 2: Solo groups are visible only to their own member ---
+        // Only User A posted for 'vijayawada' on futureDate -> count = 1.
+        // A stranger's board shows nothing, but User A's own board shows the
+        // live solo row ("just you so far": intent_count = 1, has_mine = true).
+        const boardForStrangerSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        expect(boardForStrangerSolo).toHaveLength(0);
+
+        await impersonate(userA);
+        const boardForOwnSolo = await tx`SELECT * FROM public.get_ride_intent_board()`;
+        expect(boardForOwnSolo).toHaveLength(1);
+        expect(boardForOwnSolo[0].destination_key).toBe("vijayawada");
+        expect(boardForOwnSolo[0].intent_count).toBe(1);
+        expect(boardForOwnSolo[0].has_mine).toBe(true);
 
         // --- Invariant 3: Destination normalization + On-conflict deduplication ---
         await impersonate(userB);

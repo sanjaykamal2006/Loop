@@ -354,18 +354,22 @@ export default function RideWantsView() {
             <div>
               <p className="text-sm font-black tracking-tight">No co-travellers yet</p>
               <p className={`text-xs ${mutedText} mt-1 max-w-[240px] mx-auto`}>
-                Post your plan — stay anonymous until the ride forms. When 2 or more match, it shows here.
+                Post your plan — it appears on the board right away. Others join you with one tap.
               </p>
             </div>
           </div>
         )}
 
-        {/* Active Board Rows (aggregates only, >= 2 rows) */}
+        {/* Active Board Rows (aggregates only; the caller's own row also
+            appears while it is still solo) */}
         {wants.map((row) => {
           const displayDest = formatLocation(row.destination_key);
           const dateLabel = formatDepartDateLabel(row.depart_date);
           const timeLabel = formatTimeLabel(row.first_depart_time);
           const isHot = row.intent_count >= 4;
+          // Solo groups are visible only to their own member, so count === 1
+          // here always means "this row is mine and nobody joined yet".
+          const isSolo = row.intent_count === 1 && row.has_mine;
 
           return (
             <div
@@ -393,7 +397,13 @@ export default function RideWantsView() {
                     )}
                   </div>
                   <p className="text-xs font-semibold mt-1 text-[#FFC554]">
-                    <span className="font-black text-sm">{row.intent_count}</span> students going this way
+                    {isSolo ? (
+                      <>Just you so far — others can still join</>
+                    ) : (
+                      <>
+                        <span className="font-black text-sm">{row.intent_count}</span> students going this way
+                      </>
+                    )}
                   </p>
                 </div>
 

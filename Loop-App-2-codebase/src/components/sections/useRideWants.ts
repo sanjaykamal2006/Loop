@@ -62,7 +62,7 @@ export function useRideWants(options?: UseRideWantsOptions) {
       toast.success(
         res.count >= 2
           ? `You're in! ${res.count} students going this way.`
-          : "Saved! Your plan shows once another student joins."
+          : "Saved! You're on the board — just you so far."
       );
       await loadBoard();
       return true;
