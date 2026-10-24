@@ -21,9 +21,9 @@ describe.skipIf(!hasDb)("RLS visibility hardening (20261020)", () => {
   let sql: postgres.Sql;
   const DB_TIMEOUT_MS = 30_000;
 
-  const strangerA = "a1111111-1111-1111-1111-111111111111";
-  const hostB = "b2222222-2222-2222-2222-222222222222";
-  const riderC = "c3333333-3333-3333-3333-333333333333";
+  const strangerA = "a3111111-1111-1111-1111-111111111111";
+  const hostB = "b3222222-2222-2222-2222-222222222222";
+  const riderC = "c3333333-3333-3333-3333-333333333334";
   const loopId = "d4444444-4444-4444-4444-444444444444";
 
   beforeAll(() => {

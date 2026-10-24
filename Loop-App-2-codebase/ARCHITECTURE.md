@@ -29,7 +29,7 @@ All 12 public schema tables enforce Row Level Security. All policy clauses utili
 - `loop_members`: Joins gated by loop status and capacity.
 - `messages`: Insert permitted only to verified participants of active loops.
 - `profile_contacts`: Dedicated private table separating personal phone numbers from public profiles. Accessible only by co-passengers of active loops via `get_loop_contacts()` RPC.
-- `chat_read_state`: Server-side read marks (20261025). Owner-only RLS + authenticated-only `get_unread_loop_ids()` SECURITY INVOKER RPC signs the unread-badge contract: participant loops that are still chat-list-reachable (open/started/active/in_progress, departure ≤ 2h old, not expired) with ≥1 message from someone else (or a NULL-user system notice) newer than `last_read_at`. The RPC resolves the caller via `current_setting('request.jwt.claim.sub')` — never name-resolving the auth schema at call time — so it works identically in embedded PG17 pipelines and Supabase.
+- `chat_read_state`: Server-side read marks (20261025). Owner-only RLS + authenticated-only `get_unread_loop_ids()` SECURITY INVOKER RPC signs the unread-badge contract: participant loops that are still chat-list-reachable (open/started/active/in_progress, departure ≤ 2h old, not expired) with ≥1 message from someone else (or a NULL-user system notice) newer than `last_read_at`. Callable resolution goes through `auth.uid()` (20261028) — Supabase keeps it current across PostgREST GUC contracts, and the 20260901 pipeline stub supplies the same name for embedded PG17.
 
 ### 3.3 HTTP Defense-in-Depth Headers
 Configured in `next.config.ts`:

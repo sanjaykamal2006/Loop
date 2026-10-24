@@ -24,7 +24,7 @@ const hasDb = Boolean(TEST_DATABASE_URL);
 describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
   let sql: postgres.Sql;
 
-  const userA = "a1111111-1111-1111-1111-111111111111";
+  const userA = "a2111111-2111-2111-2111-211111111111";
   const userB = "b2222222-2222-2222-2222-222222222222";
   const userC = "c3333333-3333-3333-3333-333333333333";
   const strangerD = "d4444444-4444-4444-4444-444444444444";

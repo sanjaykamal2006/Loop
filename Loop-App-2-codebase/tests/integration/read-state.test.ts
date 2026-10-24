@@ -25,11 +25,11 @@ const hasDb = Boolean(TEST_DATABASE_URL);
 describe.skipIf(!hasDb)("server read state (20261025)", () => {
   let sql: postgres.Sql;
 
-  const hostB = "b2222222-2222-2222-2222-222222222222"; // creator of the live loop
-  const riderC = "c3333333-3333-3333-3333-333333333333"; // co-rider, writes messages
-  const strangerA = "a1111111-1111-1111-1111-111111111111"; // in no loops at all
-  const liveLoop = "d4444444-4444-4444-4444-444444444444";
-  const otherLoop = "e5555555-5555-5555-5555-555555555555"; // riderC's loop; host not a member
+  const hostB = "b5222222-2222-2222-2222-222222222222"; // creator of the live loop
+  const riderC = "c3333333-3333-3333-3333-333333333335"; // co-rider, writes messages
+  const strangerA = "a5111111-1111-1111-1111-111111111111"; // in no loops at all
+  const liveLoop = "d5444444-4444-4444-4444-444444444444";
+  const otherLoop = "e5555555-5555-5555-5555-555555555556"; // riderC's loop; host not a member
 
   beforeAll(() => {
     const isLocal = /localhost|127\.0\.0\.1/.test(TEST_DATABASE_URL as string);
