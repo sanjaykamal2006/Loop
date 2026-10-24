@@ -400,12 +400,12 @@ export default function RideWantsView() {
 
                 {/* Destination · when · how many */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-[15px] leading-tight truncate">{displayDest}</p>
-                  <p className={`text-[11px] font-medium mt-0.5 truncate ${mutedText}`}>
+                  <p className="font-black text-[17px] leading-tight truncate">{displayDest}</p>
+                  <p className={`text-[13px] font-semibold mt-1 truncate ${mutedText}`}>
                     {dateLabel}
-                    {timeLabel && `${dateLabel ? " · " : ""}leaves ${timeLabel}`}
+                    {timeLabel && `${dateLabel ? " · " : ""}${timeLabel}`}
                   </p>
-                  <p className="text-[11px] font-bold mt-0.5 text-[#FFC554]">
+                  <p className="text-[13px] font-bold mt-0.5 text-[#FFC554]">
                     {isSolo ? (
                       row.has_mine ? (
                         <>Just you so far — others can still join</>
@@ -414,7 +414,7 @@ export default function RideWantsView() {
                       )
                     ) : (
                       <>
-                        <span className="text-[13px]">{row.intent_count}</span> students going this way
+                        <span className="text-[15px]">{row.intent_count}</span> students going this way
                       </>
                     )}
                   </p>
