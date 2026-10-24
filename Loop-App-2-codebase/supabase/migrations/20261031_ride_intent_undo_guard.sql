@@ -94,3 +94,16 @@ revoke all on function public.undo_ride_intent(text, date) from anon;
 grant execute on function public.undo_ride_intent(text, date) to authenticated;
 
 notify pgrst, 'reload schema';
+
+-- Enable Supabase Realtime for ride_intents so changes broadcast immediately
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'ride_intents'
+  ) then
+    alter publication supabase_realtime add table public.ride_intents;
+  end if;
+end $$;

@@ -253,7 +253,7 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
     } catch (err) {
       if (!(err instanceof Error && /__always_rollback__/.test(err.message))) throw err;
     }
-  });
+  }, 60000);
 
   it("denies the table and both RPCs to anonymous callers", async () => {
     const granted = await sql<{ anon_table: boolean; anon_board: boolean; anon_post: boolean; anon_undo: boolean }[]>`

@@ -7,6 +7,7 @@ import { MapPin, Search, X, Repeat, Sparkles } from "lucide-react";
 import { fetchRideWants } from "@/lib/rideWants";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
+import { supabase } from "@/lib/supabase";
 import type { Loop } from "@/lib/types";
 
 interface LoopCardProps {
@@ -144,16 +145,32 @@ export default function HomeView() {
 
   useEffect(() => {
     let isMounted = true;
-    fetchRideWants()
-      .then(({ data }) => {
-        if (isMounted && data) {
-          const hot = data.filter((r) => r.intent_count >= 4).length;
-          setHotWantsCount(hot);
-        }
+    const refreshDemand = () => {
+      fetchRideWants()
+        .then(({ data }) => {
+          if (isMounted && data) {
+            const hot = data.filter((r) => r.intent_count >= 4).length;
+            setHotWantsCount(hot);
+          }
+        })
+        .catch(() => {});
+    };
+
+    refreshDemand();
+
+    const channel = supabase.channel("ride-wants-home-realtime");
+    channel
+      .on("broadcast", { event: "demand-updated" }, () => {
+        refreshDemand();
       })
-      .catch(() => {});
+      .on("postgres_changes", { event: "*", schema: "public", table: "ride_intents" }, () => {
+        refreshDemand();
+      })
+      .subscribe();
+
     return () => {
       isMounted = false;
+      void supabase.removeChannel(channel);
     };
   }, []);
 

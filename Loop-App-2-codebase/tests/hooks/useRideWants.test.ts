@@ -136,10 +136,13 @@ describe("useRideWants hook", () => {
       { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: false, first_depart_time: null },
       { destination_key: "airport", depart_date: "2026-10-26", intent_count: 3, has_mine: false, first_depart_time: null },
     ];
-    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
-      data: initialRows,
-      error: null,
-    });
+    const updatedRows = [
+      { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 3, has_mine: true, first_depart_time: null },
+      { destination_key: "airport", depart_date: "2026-10-26", intent_count: 3, has_mine: false, first_depart_time: null },
+    ];
+    vi.spyOn(rideWantsLib, "fetchRideWants")
+      .mockResolvedValueOnce({ data: initialRows, error: null })
+      .mockResolvedValueOnce({ data: updatedRows, error: null });
     vi.spyOn(rideWantsLib, "postRideWant").mockResolvedValueOnce({
       count: 3,
       error: null,

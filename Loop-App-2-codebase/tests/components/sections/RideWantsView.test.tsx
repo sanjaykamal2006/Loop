@@ -270,7 +270,19 @@ describe("RideWantsView Component", () => {
         first_depart_time: "18:30:00",
       },
     ];
-    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: mockData, error: null });
+    const joinedData = [
+      {
+        destination_key: "vijayawada railway station",
+        depart_date: "2028-10-25",
+        intent_count: 4,
+        has_mine: true,
+        is_creator: false,
+        first_depart_time: "18:30:00",
+      },
+    ];
+    vi.spyOn(rideWantsLib, "fetchRideWants")
+      .mockResolvedValueOnce({ data: mockData, error: null })
+      .mockResolvedValueOnce({ data: joinedData, error: null });
     const postSpy = vi.spyOn(rideWantsLib, "postRideWant").mockResolvedValue({ count: 4, error: null });
 
     render(<RideWantsView />);
