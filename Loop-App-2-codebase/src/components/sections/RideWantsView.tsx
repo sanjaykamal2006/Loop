@@ -369,14 +369,26 @@ export default function RideWantsView() {
           const isHot = row.intent_count >= 4;
           // Solo groups show to everyone now; ownership changes the phrasing.
           const isSolo = row.intent_count === 1;
+          // Premium surface treatment for the card itself (content untouched):
+          // layered glass background, inset highlight ring, deep soft shadow,
+          // softer 28px radius, and a warm gold aura for high-demand routes.
+          const rowCardClass = isDark
+            ? `relative p-4 px-5 space-y-3 rounded-[28px] transition-all bg-gradient-to-b from-white/[0.06] to-white/[0.015] ring-1 ring-inset ring-white/[0.05] shadow-[0_12px_32px_-16px_rgba(0,0,0,0.65),0_1px_0_0_rgba(255,255,255,0.06)_inset] ${
+                isHot
+                  ? "border border-[#FFC554]/35 shadow-[0_14px_40px_-16px_rgba(255,197,84,0.26),0_1px_0_0_rgba(255,255,255,0.07)_inset] hover:border-[#FFC554]/50"
+                  : "border border-white/10 hover:border-white/15"
+              }`
+            : `relative p-4 px-5 space-y-3 rounded-[28px] transition-all bg-white ring-1 ring-inset ring-black/[0.03] shadow-[0_10px_28px_-14px_rgba(120,53,15,0.18)] ${
+                isHot
+                  ? "border border-[#881337]/30 shadow-[0_12px_32px_-14px_rgba(136,19,55,0.26)] hover:border-[#881337]/40"
+                  : "border border-zinc-200/80 hover:border-zinc-300"
+              }`;
 
           return (
             <div
               key={`${row.destination_key}-${row.depart_date}`}
               data-testid="ride-want-card"
-              className={`p-3.5 px-4 ${cardBg} border ${
-                isHot ? (isDark ? "border-[#FFC554]/40" : "border-[#881337]/40") : border
-              } rounded-[24px] shadow-sm space-y-3 transition-all`}
+              className={rowCardClass}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
