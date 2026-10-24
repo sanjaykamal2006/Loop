@@ -400,8 +400,8 @@ export default function RideWantsView() {
 
                 {/* Destination · when · how many */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-[17px] leading-tight truncate">{displayDest}</p>
-                  <p className={`text-[13px] font-semibold mt-1 truncate ${mutedText}`}>
+                  <p className="font-black text-[17px] leading-[1.25]">{displayDest}</p>
+                  <p className={`text-[13px] font-semibold mt-1 leading-snug ${mutedText}`}>
                     {dateLabel}
                     {timeLabel && `${dateLabel ? " · " : ""}${timeLabel}`}
                   </p>
