@@ -266,8 +266,9 @@ describe("RideWantsView Component", () => {
       expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining("Your plan is added")
       );
-      expect(meTooBtn).toHaveTextContent("Undo");
-      expect(meTooBtn).toBeEnabled();
+      // Matched group (a friend joined): button is static again with undo closed
+      expect(meTooBtn).toHaveTextContent("You're in");
+      expect(meTooBtn).toBeDisabled();
     });
   });
 

@@ -99,7 +99,10 @@ export function useRideWants(options?: UseRideWantsOptions) {
   };
 
   const handleUndo = async (row: RideWantRow) => {
-    if (!row.has_mine) return;
+    // Undo exists only while the row is still solo; once a friend joined the
+    // group the plan is matched and nobody may silently vanish it (the server
+    // raises too — see undo_ride_intent, 20261031).
+    if (!row.has_mine || row.intent_count >= 2) return;
     triggerHaptic(10);
     // Optimistic: the caller's row leaves the group immediately; the board
     // resyncs right after so the counts reflect the server's truth.

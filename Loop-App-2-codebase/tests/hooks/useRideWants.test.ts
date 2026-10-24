@@ -197,8 +197,8 @@ describe("useRideWants hook", () => {
     expect(toast.error).toHaveBeenCalledWith("Server error");
   });
 
-  it("undoes the caller's own want and resyncs the board", async () => {
-    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
+  it("undoes the caller's own solo want and resyncs the board", async () => {
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 1, has_mine: true, first_depart_time: null };
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [row], error: null });
     const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({
       ok: true,
@@ -214,6 +214,25 @@ describe("useRideWants hook", () => {
 
     expect(undoSpy).toHaveBeenCalledWith({ destination: "guntur", departDate: "2026-10-25" });
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Removed"));
+  });
+
+  it("blocks handleUndo once a friend has joined the plan (count >= 2)", async () => {
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
+    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
+      data: [row],
+      error: null,
+    });
+    const undoSpy = vi.spyOn(rideWantsLib, "removeRideWant");
+
+    const { result } = renderHook(() => useRideWants());
+    await act(async () => {});
+
+    await act(async () => {
+      await result.current.handleUndo(row);
+    });
+
+    expect(undoSpy).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it("ignores handleUndo for rows the caller has not joined", async () => {
@@ -235,7 +254,7 @@ describe("useRideWants hook", () => {
   });
 
   it("toast-errors when undo fails and resyncs the board", async () => {
-    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 2, has_mine: true, first_depart_time: null };
+    const row = { destination_key: "guntur", depart_date: "2026-10-25", intent_count: 1, has_mine: true, first_depart_time: null };
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValue({ data: [row], error: null });
     vi.spyOn(rideWantsLib, "removeRideWant").mockResolvedValueOnce({
       ok: false,

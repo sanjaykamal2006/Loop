@@ -143,9 +143,10 @@ export async function fetchRideWants(): Promise<RideWantResult> {
 
 /**
  * Removes the caller's own want for a destination and date (misclick undo).
- * Allowed directly by the `ride_intents_owner_all` RLS policy (owner-only
- * DELETE, granted to authenticated) — no RPC needed. The destination is
- * normalized the same way post_ride_intent stores it (trimmed + lowercase).
+ * Goes through the guarded `undo_ride_intent` RPC (20261031): the server
+ * refuses removal once any friend joined the same destination+date group,
+ * so a matched plan cannot silently vanish. Returns ok=true when the delete
+ * went through (0 or 1 rows).
  */
 export async function removeRideWant(
   params: PostRideWantParams
@@ -160,20 +161,20 @@ export async function removeRideWant(
     return { ok: false, error: { message: "Date is required" } };
   }
 
-  const result = await withAuthRetry<unknown[]>(() =>
-    supabase
-      .from("ride_intents")
-      .delete()
-      .eq("destination_key", dest)
-      .eq("depart_date", date)
+  const { data, error } = await withAuthRetry<number>(() =>
+    supabase.rpc("undo_ride_intent", {
+      p_destination_key: dest,
+      p_depart_date: date,
+    })
   );
 
-  if (result.error) {
-    logger.error("removeRideWant error:", result.error);
-    return { ok: false, error: { message: result.error.message } };
+  if (error) {
+    logger.error("removeRideWant error:", error);
+    return { ok: false, error: { message: error.message } };
   }
 
-  return { ok: true, error: null };
+  // Deleted rows: 0 means there was nothing to remove — still a clean undo.
+  return { ok: typeof data === "number" ? data >= 0 : true, error: null };
 }
 
 /**

@@ -206,6 +206,34 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
         `;
         expect(boardWithoutExpired).toHaveLength(0);
 
+        // --- Invariant 7: undo_ride_intent (20261031) — guarded removal ---
+        // Solo case: caller posts a fresh solo group and removes it cleanly.
+        await impersonate(userA);
+        await tx`
+          SELECT public.post_ride_intent('kurnool', ${futureDate}::date, NULL, NULL)
+        `;
+        const undoneSolo = await tx`
+          SELECT public.undo_ride_intent('kurnool', ${futureDate}::date) AS d
+        `;
+        expect(Number(undoneSolo[0].d)).toBe(1);
+
+        // Guard: a group with joined friends cannot be undone by anyone —
+        // not even its original poster. The raise must be user-readable.
+        await tx`SAVEPOINT undo_guard`;
+        let undoGuardRaised = false;
+        try {
+          await tx`
+            SELECT public.undo_ride_intent('vijayawada', ${futureDate}::date) AS d
+          `;
+          throw new Error("__undo_should_have_raised__");
+        } catch (err) {
+          const msg = String((err as Error)?.message || "");
+          undoGuardRaised = /friend already joined/i.test(msg) && !/undo_should_have_raised/.test(msg);
+        } finally {
+          await tx`ROLLBACK TO SAVEPOINT undo_guard`;
+        }
+        expect(undoGuardRaised).toBe(true);
+
         throw new Error("__always_rollback__");
       });
     } catch (err) {
@@ -214,15 +242,17 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
   });
 
   it("denies the table and both RPCs to anonymous callers", async () => {
-    const granted = await sql<{ anon_table: boolean; anon_board: boolean; anon_post: boolean }[]>`
+    const granted = await sql<{ anon_table: boolean; anon_board: boolean; anon_post: boolean; anon_undo: boolean }[]>`
       SELECT
         has_table_privilege('anon', 'public.ride_intents', 'SELECT') AS anon_table,
         has_function_privilege('anon', 'public.get_ride_intent_board()', 'EXECUTE') AS anon_board,
-        has_function_privilege('anon', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS anon_post
+        has_function_privilege('anon', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS anon_post,
+        has_function_privilege('anon', 'public.undo_ride_intent(text, date)', 'EXECUTE') AS anon_undo
     `;
     expect(granted[0].anon_table).toBe(false);
     expect(granted[0].anon_board).toBe(false);
     expect(granted[0].anon_post).toBe(false);
+    expect(granted[0].anon_undo).toBe(false);
   });
 
   it("grants table CRUD and both RPCs to authenticated callers", async () => {
@@ -231,16 +261,19 @@ describe.skipIf(!hasDb)("ride intents demand board (20261026)", () => {
       authed_ins: boolean;
       authed_board: boolean;
       authed_post: boolean;
+      authed_undo: boolean;
     }[]>`
       SELECT
         has_table_privilege('authenticated', 'public.ride_intents', 'SELECT') AS authed_sel,
         has_table_privilege('authenticated', 'public.ride_intents', 'INSERT') AS authed_ins,
         has_function_privilege('authenticated', 'public.get_ride_intent_board()', 'EXECUTE') AS authed_board,
-        has_function_privilege('authenticated', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS authed_post
+        has_function_privilege('authenticated', 'public.post_ride_intent(text, date, text, text)', 'EXECUTE') AS authed_post,
+        has_function_privilege('authenticated', 'public.undo_ride_intent(text, date)', 'EXECUTE') AS authed_undo
     `;
     expect(granted[0].authed_sel).toBe(true);
     expect(granted[0].authed_ins).toBe(true);
     expect(granted[0].authed_board).toBe(true);
     expect(granted[0].authed_post).toBe(true);
+    expect(granted[0].authed_undo).toBe(true);
   });
 });

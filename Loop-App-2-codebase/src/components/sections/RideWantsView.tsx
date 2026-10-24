@@ -13,6 +13,7 @@ import {
   MapPin,
   Sparkles,
   Plus,
+  Check,
   Undo2,
   Calendar,
   Clock,
@@ -471,26 +472,44 @@ export default function RideWantsView() {
                   </FitSingleLine>
                 </div>
 
-                {/* Me Too / Undo Button */}
+                {/* Me Too / Undo Button: undo exists ONLY while the row is
+                    still solo — once a friend joined, the plan is matched and
+                    nobody can silently vanish it (server raises too). */}
                 <button
                   onClick={() => (row.has_mine ? handleUndo(row) : handleMeToo(row))}
+                  disabled={row.has_mine && row.intent_count >= 2}
                   data-testid="me-too-btn"
-                  aria-label={row.has_mine ? "Undo your ride want" : "Join demand"}
-                  className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 ${
+                  aria-label={
                     row.has_mine
+                      ? row.intent_count >= 2
+                        ? "Joined"
+                        : "Undo your ride want"
+                      : "Join demand"
+                  }
+                  className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                    row.has_mine && row.intent_count >= 2
+                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 cursor-default"
+                      : row.has_mine
                       ? isDark
-                        ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
-                        : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200"
+                        ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 cursor-pointer active:scale-95"
+                        : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200 cursor-pointer active:scale-95"
                       : isDark
-                      ? "bg-white/10 hover:bg-white/15 text-white"
-                      : "bg-black/5 hover:bg-black/10 text-zinc-900"
+                      ? "bg-white/10 hover:bg-white/15 text-white cursor-pointer active:scale-95"
+                      : "bg-black/5 hover:bg-black/10 text-zinc-900 cursor-pointer active:scale-95"
                   }`}
                 >
                   {row.has_mine ? (
-                    <>
-                      <Undo2 size={14} strokeWidth={2.5} />
-                      <span>Undo</span>
-                    </>
+                    row.intent_count >= 2 ? (
+                      <>
+                        <Check size={14} strokeWidth={2.5} />
+                        <span>You&apos;re in</span>
+                      </>
+                    ) : (
+                      <>
+                        <Undo2 size={14} strokeWidth={2.5} />
+                        <span>Undo</span>
+                      </>
+                    )
                   ) : (
                     <span>Me too!</span>
                   )}

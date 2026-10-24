@@ -182,48 +182,32 @@ describe("rideWants lib utility", () => {
   });
 
   describe("removeRideWant", () => {
-    const buildFrom = (finalResult: unknown) =>
-      vi.spyOn(supabase, "from").mockImplementation(() => {
-        const values: string[] = [];
-        const firstEq = (_col: string, value: string) => {
-          values.push(value);
-          return {
-            eq: (_col2: string, value2: string) => {
-              values.push(value2);
-              return Promise.resolve(finalResult);
-            },
-          };
-        };
-        return {
-          values,
-          delete: () => ({ eq: firstEq }),
-        } as never;
-      });
-
-    it("deletes the caller's own row with a normalized destination", async () => {
-      const finalResult = { data: [], error: null };
-      const fromSpy = buildFrom(finalResult);
+    it("calls the guarded undo RPC with a normalized destination", async () => {
+      const rpcSpy = vi.spyOn(supabase, "rpc").mockResolvedValueOnce({ data: 1, error: null } as any);
 
       const result = await removeRideWant({ destination: "  Vijayawada  ", departDate: "2026-10-25" });
 
       expect(result).toEqual({ ok: true, error: null });
-      expect(supabase.from).toHaveBeenCalledWith("ride_intents");
-      const builder = (fromSpy.mock.results[0]?.value as { values: string[] });
-      expect(builder.values[0]).toBe("vijayawada");
-      expect(builder.values[1]).toBe("2026-10-25");
+      expect(rpcSpy).toHaveBeenCalledWith("undo_ride_intent", {
+        p_destination_key: "vijayawada",
+        p_depart_date: "2026-10-25",
+      });
     });
 
-    it("bubbles the delete error when RLS rejects", async () => {
-      buildFrom({ data: null, error: { message: "RLS violation" } });
+    it("bubbles the RPC error when the server refuses (friend joined)", async () => {
+      vi.spyOn(supabase, "rpc").mockResolvedValueOnce({
+        data: null,
+        error: { message: "A friend already joined this plan — undo is disabled" },
+      } as any);
 
       const result = await removeRideWant({ destination: "guntur", departDate: "2026-10-26" });
 
       expect(result.ok).toBe(false);
-      expect(result.error?.message).toBe("RLS violation");
+      expect(result.error?.message).toContain("undo is disabled");
     });
 
-    it("rejects empty destination or date before touching the table", async () => {
-      const fromSpy = buildFrom({ data: [], error: null });
+    it("rejects empty destination or date before touching the RPC", async () => {
+      const rpcSpy = vi.spyOn(supabase, "rpc");
 
       const noDest = await removeRideWant({ destination: "   ", departDate: "2026-10-25" });
       const noDate = await removeRideWant({ destination: "guntur", departDate: "   " });
@@ -232,7 +216,7 @@ describe("rideWants lib utility", () => {
       expect(noDest.error?.message).toBe("Destination is required");
       expect(noDate.ok).toBe(false);
       expect(noDate.error?.message).toBe("Date is required");
-      expect(fromSpy).not.toHaveBeenCalled();
+      expect(rpcSpy).not.toHaveBeenCalled();
     });
   });
 

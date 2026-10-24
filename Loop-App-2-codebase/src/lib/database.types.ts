@@ -285,6 +285,9 @@ isOneToOne: false
               "loop_id": string
             }[]
                            },
+"undo_ride_intent":
+{ Args: { "p_destination_key": string; "p_depart_date": string }; Returns: number
+                           },
 "get_loop_contacts":
 { Args: { "target_loop_id": string }; Returns: {
               "phone_number": string,"user_id": string
