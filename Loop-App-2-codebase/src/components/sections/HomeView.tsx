@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
-import { MapPin, Search, X, Repeat, Sparkles } from "lucide-react";
+import { MapPin, Search, X, Repeat, Users } from "lucide-react";
 import { fetchRideWants } from "@/lib/rideWants";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
@@ -293,24 +293,63 @@ export default function HomeView() {
         )}
       </div>
 
+      {/* Feed Sub-Header: Mode/Count & Co-Travellers Quick Access */}
+      <div className="flex items-center justify-between px-1 pt-0.5">
+        <span className={`text-xs font-bold ${mutedText}`}>
+          {searchQuery.trim() ? "Search Results" : `Active Rides (${feedLoops.length})`}
+        </span>
+        <button
+          onClick={() => {
+            triggerHaptic(10);
+            setView("wants");
+          }}
+          data-testid="wants-board-feed-btn"
+          aria-label="Find Co-Travellers"
+          className={`h-8 px-3 rounded-full border ${border} ${cardBg} hover:border-[#FFC554]/40 flex items-center gap-1.5 active:scale-95 shadow-sm transition-all cursor-pointer`}
+        >
+          <Users size={13} strokeWidth={2} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+          <span className={`text-xs font-bold ${isDark ? "text-zinc-200" : "text-zinc-800"}`}>Co-Travellers</span>
+          {hotWantsCount > 0 && (
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none ${
+              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+            }`}>
+              {hotWantsCount}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Empty State when Search has no matches */}
       {feedLoops.length === 0 && searchQuery && (
-        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
           <div className={`w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center ${isDark ? "text-[#FFC554]/70" : "text-[#881337]/70"}`}>
             <Search size={22} strokeWidth={1.75} />
           </div>
           <div>
             <p className="text-sm font-bold tracking-tight">No loops found</p>
-            <p className={`text-xs ${mutedText} mt-1 max-w-[240px]`}>
-              No active rides match <span className={`${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-semibold`}>"{searchQuery}"</span>. Try searching another destination, pickup, or user.
+            <p className={`text-xs ${mutedText} mt-1 max-w-[260px]`}>
+              No active rides match <span className={`${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-semibold`}>"{searchQuery}"</span>.
             </p>
           </div>
-          <button
-            onClick={() => setSearchQuery("")}
-            className="h-8 px-4 rounded-full bg-white/10 hover:bg-white/15 text-xs font-bold tracking-wide active:scale-95 transition-all"
-          >
-            Clear Search
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setView("wants");
+              }}
+              data-testid="wants-board-search-empty-btn"
+              className={`h-8 px-4 rounded-full border ${border} ${cardBg} hover:border-[#FFC554]/40 flex items-center gap-1.5 text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-sm`}
+            >
+              <Users size={13} strokeWidth={2} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+              <span>Find Co-Travellers for &quot;{searchQuery}&quot; →</span>
+            </button>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="h-8 px-3 rounded-full bg-white/10 hover:bg-white/15 text-xs font-bold tracking-wide active:scale-95 transition-all cursor-pointer text-zinc-400 hover:text-white"
+            >
+              Clear Search
+            </button>
+          </div>
         </div>
       )}
 

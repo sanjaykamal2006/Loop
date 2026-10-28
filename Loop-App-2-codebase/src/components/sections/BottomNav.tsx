@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { MapPin, Plus, MessageSquare, Users } from "lucide-react";
+import { MapPin, Plus, MessageSquare, User } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import type { View } from "@/lib/types";
 
@@ -83,7 +83,7 @@ export default function BottomNav() {
       v: "profile",
       label: "Profile",
       icon: (isActive) => (
-        <Users
+        <User
           size={22}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${

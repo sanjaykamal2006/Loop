@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import AppHeader from "@/components/sections/AppHeader";
 import * as rideWantsLib from "@/lib/rideWants";
 
@@ -60,29 +60,14 @@ describe("AppHeader Component", () => {
     defaultContext.view = "home";
   });
 
-  it("renders LOOP title, refresh button, and Co-Travellers button on home view", async () => {
-    vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
-      data: [{ destination_key: "vijayawada", depart_date: "2026-10-25", intent_count: 5, has_mine: false, first_depart_time: null }],
-      error: null,
-    });
-
+  it("renders LOOP title and refresh button on home view", async () => {
     render(<AppHeader />);
 
     expect(screen.getByText("LOOP")).toBeInTheDocument();
     expect(screen.getByText("Rides go better in Loop.")).toBeInTheDocument();
 
-    const coTravellerBtn = screen.getByTestId("wants-board-header-btn");
-    expect(coTravellerBtn).toBeInTheDocument();
-    expect(coTravellerBtn).toHaveAttribute("aria-label", "Find Co-Travellers");
-
-    // Click Co-Travellers button
-    fireEvent.click(coTravellerBtn);
-    expect(mockSetView).toHaveBeenCalledWith("wants");
-
-    // Hot badge should be displayed
-    await waitFor(() => {
-      expect(screen.getByText("1")).toBeInTheDocument();
-    });
+    const refreshBtn = screen.getByLabelText("Refresh rides");
+    expect(refreshBtn).toBeInTheDocument();
   });
 
   it("triggers refresh on refresh button click", async () => {

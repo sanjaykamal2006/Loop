@@ -207,11 +207,16 @@ describe('HomeView Component', () => {
     expect(defaultContext.setView).toHaveBeenCalledWith('wants');
   });
 
-  it('renders search bar prominently at the top of the feed without feed strip obstruction', () => {
+  it('renders search bar prominently at the top and navigates to wants from co-travellers button below', () => {
     render(<HomeView />);
 
     const searchInput = screen.getByLabelText('Search loops');
     expect(searchInput).toBeInTheDocument();
-    expect(screen.queryByTestId('wants-board-feed-btn')).not.toBeInTheDocument();
+
+    const feedWantsBtn = screen.getByTestId('wants-board-feed-btn');
+    expect(feedWantsBtn).toBeInTheDocument();
+    fireEvent.click(feedWantsBtn);
+
+    expect(defaultContext.setView).toHaveBeenCalledWith('wants');
   });
 });
