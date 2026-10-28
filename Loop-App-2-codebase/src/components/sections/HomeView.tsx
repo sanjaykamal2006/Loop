@@ -260,31 +260,6 @@ export default function HomeView() {
 
   return (
     <div className="space-y-3 pt-1 pb-8">
-      {/* Ride Wanted Demand Strip */}
-      <button
-        onClick={() => {
-          triggerHaptic(10);
-          setView("wants");
-        }}
-        data-testid="wants-board-feed-btn"
-        className={`w-full px-3.5 py-2.5 rounded-2xl ${cardBg} border ${border} flex items-center justify-between text-left cursor-pointer hover:border-[#FFC554]/30 active:scale-[0.98] transition-all`}
-      >
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-          <span className="text-xs font-bold">Find Co-Travellers · Ride Wanted Board</span>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {hotWantsCount > 0 && (
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-              isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-            }`}>
-              {hotWantsCount} active
-            </span>
-          )}
-          <span className={`text-xs font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>See who&apos;s going →</span>
-        </div>
-      </button>
-
       {/* Pill Search Bar */}
       <div className={`relative w-full h-[42px] ${cardBg} border ${border} rounded-full flex items-center px-3.5 gap-2.5 shadow-sm ${
         isDark
@@ -296,6 +271,7 @@ export default function HomeView() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search destination, pickup, or tag..."
+          aria-label="Search loops"
           className="flex-1 bg-transparent text-[13px] font-medium outline-none placeholder:text-zinc-500 placeholder:text-xs placeholder:font-normal"
         />
         {searchQuery.trim() && (

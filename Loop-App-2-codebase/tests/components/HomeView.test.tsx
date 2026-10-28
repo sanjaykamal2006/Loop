@@ -207,13 +207,11 @@ describe('HomeView Component', () => {
     expect(defaultContext.setView).toHaveBeenCalledWith('wants');
   });
 
-  it('navigates to wants view from feed demand strip and displays hot badge', async () => {
+  it('renders search bar prominently at the top of the feed without feed strip obstruction', () => {
     render(<HomeView />);
 
-    const feedWantsBtn = screen.getByTestId('wants-board-feed-btn');
-    expect(feedWantsBtn).toBeInTheDocument();
-    fireEvent.click(feedWantsBtn);
-
-    expect(defaultContext.setView).toHaveBeenCalledWith('wants');
+    const searchInput = screen.getByLabelText('Search loops');
+    expect(searchInput).toBeInTheDocument();
+    expect(screen.queryByTestId('wants-board-feed-btn')).not.toBeInTheDocument();
   });
 });

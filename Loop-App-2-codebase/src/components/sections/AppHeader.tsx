@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import { triggerHaptic } from "@/lib/haptics";
+import { fetchRideWants } from "@/lib/rideWants";
+import { supabase } from "@/lib/supabase";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -35,6 +38,38 @@ export default function AppHeader() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hotWantsCount, setHotWantsCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const refreshDemand = () => {
+      fetchRideWants()
+        .then(({ data }) => {
+          if (isMounted && data) {
+            const hot = data.filter((r) => r.intent_count >= 4).length;
+            setHotWantsCount(hot);
+          }
+        })
+        .catch(() => {});
+    };
+
+    refreshDemand();
+
+    const channel = supabase.channel("ride-wants-header-realtime");
+    channel
+      .on("broadcast", { event: "demand-updated" }, () => {
+        refreshDemand();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "ride_intents" }, () => {
+        refreshDemand();
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      void supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     // Check if app is already running in standalone mode (installed)
@@ -93,7 +128,28 @@ export default function AppHeader() {
               <p className="text-xs font-medium opacity-50 mt-1">Rides go better in Loop.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Option D: Co-Travellers Header Compact Chip */}
+            <button
+              onClick={() => {
+                triggerHaptic(10);
+                setView("wants");
+              }}
+              data-testid="wants-board-header-btn"
+              aria-label="Find Co-Travellers"
+              className={`h-9 px-3 rounded-full border ${border} ${cardBg} hover:border-[#FFC554]/40 flex items-center gap-1.5 active:scale-95 shadow-sm shrink-0 transition-all cursor-pointer`}
+            >
+              <Sparkles size={13} strokeWidth={2.2} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+              <span className={`text-xs font-bold ${isDark ? "text-zinc-200" : "text-zinc-800"}`}>Co-Travellers</span>
+              {hotWantsCount > 0 && (
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none ${
+                  isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+                }`}>
+                  {hotWantsCount}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={handleRefresh}
               aria-label="Refresh rides"
