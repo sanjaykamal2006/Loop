@@ -60,7 +60,7 @@ describe("AppHeader Component", () => {
     defaultContext.view = "home";
   });
 
-  it("renders LOOP title, refresh button, and Co-Travellers chip on home view", async () => {
+  it("renders LOOP title, refresh button, and Co-Travellers button on home view", async () => {
     vi.spyOn(rideWantsLib, "fetchRideWants").mockResolvedValueOnce({
       data: [{ destination_key: "vijayawada", depart_date: "2026-10-25", intent_count: 5, has_mine: false, first_depart_time: null }],
       error: null,
@@ -73,9 +73,9 @@ describe("AppHeader Component", () => {
 
     const coTravellerBtn = screen.getByTestId("wants-board-header-btn");
     expect(coTravellerBtn).toBeInTheDocument();
-    expect(coTravellerBtn).toHaveTextContent("Co-Travellers");
+    expect(coTravellerBtn).toHaveAttribute("aria-label", "Find Co-Travellers");
 
-    // Click Co-Travellers chip
+    // Click Co-Travellers button
     fireEvent.click(coTravellerBtn);
     expect(mockSetView).toHaveBeenCalledWith("wants");
 

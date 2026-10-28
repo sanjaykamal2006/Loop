@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { 
   X, 
-  Sparkles, 
+  Code2, 
   Github, 
   Linkedin, 
   Instagram, 
@@ -88,7 +88,7 @@ export default function CreatorModal({ isOpen, onClose }: { isOpen: boolean; onC
         {/* Header */}
         <div className={`flex items-center justify-between pb-3 border-b ${isDark ? "border-[#27272A]" : "border-[#DFD9CE]"} shrink-0`}>
           <div className="flex items-center gap-2">
-            <Sparkles size={16} className={accentText} />
+            <Code2 size={16} className={accentText} />
             <h2 className={`text-xs font-black uppercase tracking-widest ${accentText}`}>
               About Creator
             </h2>

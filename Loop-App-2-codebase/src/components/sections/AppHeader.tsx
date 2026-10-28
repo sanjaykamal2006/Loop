@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Sparkles, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
+import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Users, Code2, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
 import { fetchRideWants } from "@/lib/rideWants";
@@ -129,7 +129,7 @@ export default function AppHeader() {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Option D: Co-Travellers Header Compact Chip */}
+            {/* Co-Travellers Header Compact Action */}
             <button
               onClick={() => {
                 triggerHaptic(10);
@@ -137,14 +137,15 @@ export default function AppHeader() {
               }}
               data-testid="wants-board-header-btn"
               aria-label="Find Co-Travellers"
-              className={`h-9 px-3 rounded-full border ${border} ${cardBg} hover:border-[#FFC554]/40 flex items-center gap-1.5 active:scale-95 shadow-sm shrink-0 transition-all cursor-pointer`}
+              className={`w-9 h-9 rounded-full border ${border} ${cardBg} hover:border-[#FFC554]/40 flex items-center justify-center relative active:scale-90 shadow-sm shrink-0 transition-all cursor-pointer`}
             >
-              <Sparkles size={13} strokeWidth={2.2} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-              <span className={`text-xs font-bold ${isDark ? "text-zinc-200" : "text-zinc-800"}`}>Co-Travellers</span>
+              <Users size={16} strokeWidth={2} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
               {hotWantsCount > 0 && (
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none ${
-                  isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-                }`}>
+                <span
+                  className={`absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-black flex items-center justify-center leading-none shadow-sm ${
+                    isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+                  }`}
+                >
                   {hotWantsCount}
                 </span>
               )}
@@ -293,7 +294,7 @@ export default function AppHeader() {
                   }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
                 >
-                  <Sparkles size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                  <Code2 size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                   <span>About Creator</span>
                 </button>
 
