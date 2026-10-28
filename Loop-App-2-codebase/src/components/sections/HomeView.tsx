@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
-import { formatLocation } from "@/lib/locationFormatter";
+import { formatLocation, getEstimatedTravelTime } from "@/lib/locationFormatter";
 import { MapPin, Search, X, Repeat, Users } from "lucide-react";
 import { fetchRideWants } from "@/lib/rideWants";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
@@ -36,6 +36,7 @@ const LoopCard = React.memo(function LoopCard({
   const currentSeats = loop.member_count || 1;
   const maxSeats = loop.participants_limit || 4;
   const isFull = currentSeats >= maxSeats;
+  const estTime = getEstimatedTravelTime(loop.destination);
 
   return (
     <div
@@ -71,8 +72,17 @@ const LoopCard = React.memo(function LoopCard({
         </div>
 
         {/* Badges sub-row */}
-        {(isJoined || loop.is_female_only || (loop.purpose === "return" && isHost) || isHost) && (
+        {(isJoined || loop.is_female_only || (loop.purpose === "return" && isHost) || isHost || estTime) && (
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            {/* Travel time estimate badge */}
+            {estTime && (
+              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                isDark ? "bg-white/[0.06] text-zinc-400 border border-white/10" : "bg-black/[0.05] text-stone-600 border border-black/10"
+              }`}>
+                {estTime}
+              </span>
+            )}
+
             {/* RETURN BADGE - only visible to the author (host) */}
             {loop.purpose === "return" && isHost && (
               <span className="text-[8px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/35 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-1">

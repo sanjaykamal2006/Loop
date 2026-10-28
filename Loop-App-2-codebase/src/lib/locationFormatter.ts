@@ -127,3 +127,24 @@ export function formatLocation(input: string): string {
 
   return words.join(" ").trim();
 }
+
+/**
+ * Estimated travel time from campus based on destination
+ */
+export function getEstimatedTravelTime(destination?: string | null): string | null {
+  if (!destination) return null;
+  const d = destination.toLowerCase().trim();
+  if (d.includes("airport") || d.includes("gannavaram") || d.includes("vga")) return "~1h 15m";
+  if (d.includes("hyderabad") || d.includes("rgia") || d.includes("hyd")) return "~4h 30m";
+  if (d.includes("bza") || d.includes("vijayawada railway") || d.includes("station") || d.includes("junction")) {
+    if (d.includes("guntur") || d.includes("gnt")) return "~40 min";
+    return "~45 min";
+  }
+  if (d.includes("bus stand") || d.includes("pnbs") || d.includes("bus station")) return "~50 min";
+  if (d.includes("mangalagiri")) return "~25 min";
+  if (d.includes("guntur") || d.includes("gnt")) return "~40 min";
+  if (d.includes("tenali")) return "~50 min";
+  if (d.includes("amaravati")) return "~20 min";
+  if (d.includes("vijayawada") || d.includes("vja")) return "~45 min";
+  return null;
+}

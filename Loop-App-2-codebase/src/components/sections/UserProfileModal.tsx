@@ -12,7 +12,7 @@ import {
   Copy, 
   Check, 
   GraduationCap,
-  Sparkles
+  User
 } from "lucide-react";
 import FastAvatar from "@/components/ui/FastAvatar";
 import { sanitizeIndianPhoneNumber } from "@/lib/utils";
@@ -89,7 +89,7 @@ export default function UserProfileModal({
         {/* Header */}
         <div className={`flex items-center justify-between pb-3 border-b ${isDark ? "border-[#27272A]" : "border-[#DFD9CE]"} shrink-0`}>
           <div className="flex items-center gap-2">
-            <Sparkles size={15} className={accentText} />
+            <User size={15} className={accentText} />
             <span className={`text-[11px] font-black uppercase tracking-widest ${accentText}`}>
               Student Profile
             </span>

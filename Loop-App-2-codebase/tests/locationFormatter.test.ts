@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatLocation } from "@/lib/locationFormatter";
+import { formatLocation, getEstimatedTravelTime } from "@/lib/locationFormatter";
 
 describe("locationFormatter", () => {
   it("should standardize VIT-AP campus variations", () => {
@@ -51,5 +51,30 @@ describe("locationFormatter", () => {
 
   it("should return empty string for falsy input", () => {
     expect(formatLocation("")).toBe("");
+  });
+
+  describe("getEstimatedTravelTime", () => {
+    it("should return ~1h 15m for airport routes", () => {
+      expect(getEstimatedTravelTime("Airport")).toBe("~1h 15m");
+      expect(getEstimatedTravelTime("Gannavaram")).toBe("~1h 15m");
+    });
+
+    it("should return ~45 min for Vijayawada railway station", () => {
+      expect(getEstimatedTravelTime("Vijayawada Railway Station")).toBe("~45 min");
+    });
+
+    it("should return ~40 min for Guntur railway station", () => {
+      expect(getEstimatedTravelTime("Guntur Railway Station")).toBe("~40 min");
+    });
+
+    it("should return ~50 min for bus stand", () => {
+      expect(getEstimatedTravelTime("Vijayawada Bus Stand")).toBe("~50 min");
+    });
+
+    it("should return null for unknown routes", () => {
+      expect(getEstimatedTravelTime("Secret Location")).toBeNull();
+      expect(getEstimatedTravelTime("")).toBeNull();
+      expect(getEstimatedTravelTime(null)).toBeNull();
+    });
   });
 });

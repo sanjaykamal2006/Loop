@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Users,
   MapPin,
-  Sparkles,
+  Navigation,
   Plus,
   Check,
   Undo2,
@@ -215,15 +215,15 @@ export default function RideWantsView() {
           aria-label="Refresh board"
           className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shrink-0 cursor-pointer`}
         >
-          <RefreshCw size={15} className={loading ? "animate-spin text-[#FFC554]" : "opacity-70"} />
+          <RefreshCw size={15} className={loading ? (isDark ? "animate-spin text-[#FFC554]" : "animate-spin text-[#881337]") : "opacity-70"} />
         </button>
       </div>
 
       {/* Signal Demand Form Card */}
       <div className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm space-y-3.5`}>
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-black uppercase tracking-wider text-[#FFC554] flex items-center gap-1.5">
-            <Sparkles size={13} />
+          <span className={`text-[11px] font-black uppercase tracking-wider ${isDark ? "text-[#FFC554]" : "text-[#881337]"} flex items-center gap-1.5`}>
+            <Navigation size={13} />
             Your Trip
           </span>
           <span className={`text-[10px] ${mutedText}`}>Anonymous until the ride forms</span>
@@ -256,7 +256,7 @@ export default function RideWantsView() {
           </div>
 
           {/* Destination Free Text Input */}
-          <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 focus-within:border-[#FFC554]/80 transition-all`}>
+          <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all`}>
             <MapPin size={16} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
             <input
               value={destination}
@@ -272,7 +272,7 @@ export default function RideWantsView() {
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
             <div
               onClick={() => openNativePicker(dateRef.current)}
-              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all cursor-pointer select-none`}
+              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all cursor-pointer select-none`}
             >
               <Calendar size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
@@ -304,7 +304,7 @@ export default function RideWantsView() {
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Time (optional)</label>
             <div
               onClick={() => openNativePicker(timeRef.current)}
-              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 focus-within:border-[#FFC554]/80 transition-all cursor-pointer select-none`}
+              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all cursor-pointer select-none`}
             >
               <Clock size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
@@ -337,7 +337,7 @@ export default function RideWantsView() {
             placeholder="Optional note — anything useful"
             maxLength={120}
             aria-label="Optional note"
-            className={`w-full h-11 ${cardBg} border ${border} rounded-2xl px-3.5 text-xs font-medium outline-none placeholder:text-zinc-500 focus:border-[#FFC554]/80 transition-all`}
+            className={`w-full h-11 ${cardBg} border ${border} rounded-2xl px-3.5 text-xs font-medium outline-none placeholder:text-zinc-500 ${isDark ? "focus:border-[#FFC554]/80" : "focus:border-[#881337]/80"} transition-all`}
           />
 
           {/* Submit Signal Button */}
@@ -457,7 +457,7 @@ export default function RideWantsView() {
                   <FitSingleLine
                     baseSize={13}
                     minSize={10}
-                    className="font-bold mt-0.5 text-[#FFC554]"
+                    className={`font-bold mt-0.5 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}
                   >
                     {isSolo ? (
                       row.has_mine ? (
@@ -531,7 +531,7 @@ export default function RideWantsView() {
                       : "bg-[#881337] text-white hover:bg-[#881337]/90"
                   }`}
                 >
-                  <Sparkles size={13} strokeWidth={2.5} />
+                  <Plus size={13} strokeWidth={2.5} />
                   <span>Create This Ride</span>
                   <span>→</span>
                 </button>

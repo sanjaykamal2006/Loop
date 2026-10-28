@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import { useLoop } from "@/lib/LoopContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/NativeToast";
-import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, Sparkles, ArrowLeft, Search } from "lucide-react";
+import { IndianRupee, X, Plus, MapPin, ArrowRight, Trash2, TrendingUp, ArrowLeft, Search } from "lucide-react";
 import type { ExpectedFare } from "@/lib/types";
 import { VehicleTypeIcon, AutoIcon, BikeIcon, ShareAutoIcon, CarIcon } from "@/components/ui/VehicleIcons";
 import { useModalA11y } from "@/lib/hooks/useModalA11y";
@@ -170,7 +170,7 @@ export default function ExpectedFaresModal({ isOpen, onClose }: { isOpen: boolea
             {/* Experience Prompt Banner with Middle Add Button */}
             <div className={`my-3 p-4 ${isDark ? "bg-white/5" : "bg-black/5"} border ${border} rounded-[24px] space-y-3 text-center shrink-0`}>
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold">
-                <Sparkles size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                <TrendingUp size={14} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
                 <span>Add an expected fare from <strong className={isDark ? "text-[#FFC554]" : "text-[#881337]"}>A to B</strong> based on your experience</span>
               </div>
               <button

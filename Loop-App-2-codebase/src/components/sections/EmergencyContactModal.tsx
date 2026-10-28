@@ -13,7 +13,7 @@ import {
   Send, 
   MessageSquare, 
   AlertCircle,
-  Sparkles
+  UserPlus
 } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
 import { triggerHaptic } from "@/lib/haptics";
@@ -293,7 +293,7 @@ export default function EmergencyContactModal() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-                      <Sparkles size={12} />
+                      <UserPlus size={12} />
                       <span>New Contact ({emergencyContacts.length + 1}/3)</span>
                     </span>
                     {emergencyContacts.length > 0 && (
