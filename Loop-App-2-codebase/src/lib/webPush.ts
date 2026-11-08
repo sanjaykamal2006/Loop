@@ -1,4 +1,4 @@
-import webpush from "web-push";
+import { setVapidDetails, sendNotification } from "web-push";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "./logger";
 import type { Database } from "./database.types";
@@ -36,7 +36,7 @@ export function configureWebPush(): boolean {
   }
 
   try {
-    webpush.setVapidDetails(subject, publicKey, privateKey);
+    setVapidDetails(subject, publicKey, privateKey);
     return true;
   } catch (err) {
     logger.error("Failed to configure Web Push VAPID details:", err);
@@ -107,7 +107,7 @@ export async function sendWebPushNotification({
       };
 
       try {
-        await webpush.sendNotification(pushSubscription, stringPayload);
+        await sendNotification(pushSubscription, stringPayload);
         result.sent++;
       } catch (pushErr: unknown) {
         result.failed++;
