@@ -11,6 +11,9 @@ import type { View, Loop, Profile, ThemeClasses, EmergencyContact } from "@/lib/
 import { useAuthSession } from "@/lib/hooks/useAuthSession";
 import { useEmergencySos } from "@/lib/hooks/useEmergencySos";
 import { useLoopDirectory } from "@/lib/hooks/useLoopDirectory";
+import { UIProvider, useUI } from "@/lib/UIContext";
+
+export { useUI, UIProvider };
 
 export interface LoopContextValue {
   // Session
@@ -104,7 +107,7 @@ export function useLoop() {
   return ctx;
 }
 
-export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
+function LoopProviderInner({ session, children }: { session: Session; children: React.ReactNode }) {
   const [view, setViewState] = useState<View>("home");
   const [selectedLoop, setSelectedLoopState] = useState<Loop | null>(() =>
     // Owner-checked cache: two accounts sharing a device never restore
@@ -126,21 +129,23 @@ export function LoopProvider({ session, children }: { session: Session; children
 
   const [createPrefill, setCreatePrefill] = useState<{ startPoint?: string; destination?: string; travelDate?: string; departTime?: string; isReturn?: boolean } | null>(null);
 
-  // Declarative Modals & Search Controls State
-  const [showTermsModal, setShowTermsModal] = useState(false);
-  const [showTeluguGuideModal, setShowTeluguGuideModal] = useState(false);
-  const [showCreatorModal, setShowCreatorModal] = useState(false);
-  const [showBuyCoffeeModal, setShowBuyCoffeeModal] = useState(false);
-  const [isMessageSearchOpen, setIsMessageSearchOpen] = useState(false);
-  const [isChatSearchOpen, setIsChatSearchOpen] = useState(false);
-
-  const toggleMessageSearch = useCallback(() => {
-    setIsMessageSearchOpen((prev) => !prev);
-  }, []);
-
-  const toggleChatSearch = useCallback(() => {
-    setIsChatSearchOpen((prev) => !prev);
-  }, []);
+  // Declarative Modals & Search Controls from scoped UIContext
+  const {
+    showTermsModal,
+    setShowTermsModal,
+    showTeluguGuideModal,
+    setShowTeluguGuideModal,
+    showCreatorModal,
+    setShowCreatorModal,
+    showBuyCoffeeModal,
+    setShowBuyCoffeeModal,
+    isMessageSearchOpen,
+    setIsMessageSearchOpen,
+    toggleMessageSearch,
+    isChatSearchOpen,
+    setIsChatSearchOpen,
+    toggleChatSearch,
+  } = useUI();
 
   // ---------- Server-backed chat read state ----------
   // Badges used to live only in localStorage; they now sync from
@@ -451,4 +456,12 @@ export function LoopProvider({ session, children }: { session: Session; children
   );
 
   return <LoopContext.Provider value={value}>{children}</LoopContext.Provider>;
+}
+
+export function LoopProvider({ session, children }: { session: Session; children: React.ReactNode }) {
+  return (
+    <UIProvider>
+      <LoopProviderInner session={session}>{children}</LoopProviderInner>
+    </UIProvider>
+  );
 }
