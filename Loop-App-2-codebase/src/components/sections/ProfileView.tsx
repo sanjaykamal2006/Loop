@@ -12,6 +12,7 @@ import {
   isNotificationEnabled,
   setNotificationEnabled,
   requestNotificationPermission,
+  subscribeToPushNotifications,
   sendLocalNotification,
 } from "@/lib/notifications";
 import ProfileHero from "@/components/profile/ProfileHero";
@@ -59,10 +60,13 @@ export default function ProfileView() {
     if (currentPerm === "granted") {
       setNotificationEnabled(true);
       setNotifEnabled(true);
+      if (session?.user?.id) {
+        void subscribeToPushNotifications(session.user.id);
+      }
       return;
     }
 
-    const res = await requestNotificationPermission();
+    const res = await requestNotificationPermission(session?.user?.id);
     if (res.granted) {
       setNotifPermission("granted");
       setNotificationEnabled(true);

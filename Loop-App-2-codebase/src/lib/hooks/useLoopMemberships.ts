@@ -180,6 +180,23 @@ export function useLoopMemberships({
         setView("chat");
         toast.success("Joined loop!");
 
+        // Dispatch background push alert to ride creator
+        if (loop.creator_id && loop.creator_id !== session.user.id) {
+          void fetch("/api/push/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              userIds: [loop.creator_id],
+              title: "Passenger Joined 🚗",
+              body: `${profile.display_name || "A student"} joined your ride to ${loop.destination}!`,
+              url: `/ride/${loop.id}`,
+            }),
+          }).catch(() => {});
+        }
+
         fetchLoops(true);
         fetchUserMemberships(true);
       } catch (err) {
