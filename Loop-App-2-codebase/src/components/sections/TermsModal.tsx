@@ -53,15 +53,15 @@ export default function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClo
           <section className="space-y-1">
             <h3 className="font-black text-xs uppercase tracking-wider text-[#FFC554]">2. Data Privacy & DPDP Notice</h3>
             <p className={mutedText}>
-              In compliance with India's Digital Personal Data Protection (DPDP) Act 2023, we collect only essential data:
+              In compliance with India&apos;s Digital Personal Data Protection (DPDP) Act 2023, data is collected solely for campus ride coordination:
             </p>
             <ul className={`list-disc pl-4 space-y-1 mt-1 ${mutedText}`}>
-              <li><strong>Email:</strong> Account creation and authentication</li>
-              <li><strong>Display Name:</strong> Co-passenger identification</li>
+              <li><strong>Email:</strong> Account authentication via verified student domain</li>
+              <li><strong>Display Name &amp; Reg No:</strong> Peer identification and university student verification</li>
               <li><strong>Password:</strong> Bcrypt encrypted by Supabase Auth (never stored in plaintext)</li>
-              <li><strong>Gender (Optional):</strong> Powers the "Women Only" safety filter</li>
-              <li><strong>Org / Tag (Optional):</strong> Workplace or campus verification</li>
-              <li><strong>Ride Data:</strong> Destinations, times, and temporary loop messages</li>
+              <li><strong>Gender:</strong> Powers the female-only travel safety preference</li>
+              <li><strong>Emergency Contacts &amp; GPS:</strong> Used strictly for user-dispatched SOS safety notifications</li>
+              <li><strong>Ride Data:</strong> Temporary route demand, departure times, and coordination messages</li>
             </ul>
           </section>
 

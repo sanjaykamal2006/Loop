@@ -359,6 +359,13 @@ export default function SosModal() {
             </button>
           </div>
 
+          {/* Safety & Liability Notice */}
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+            <p className="text-[10px] font-bold text-amber-300 leading-snug">
+              Convenience coordination alert for peers and emergency contacts — not an official dispatch or substitute for campus security or police emergency services (112).
+            </p>
+          </div>
+
           {/* Honest in-modal explanation note directly under buttons */}
           <p className={`text-[10px] text-center font-bold ${mutedText} pt-1 leading-snug`}>
             WhatsApp/SMS opens with your alert and live pin ready — hit send there to notify {currentContact ? currentContact.name : "your contact"}.
