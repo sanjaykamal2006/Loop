@@ -1,7 +1,8 @@
-// LOOP Service Worker: local background notifications, app shell & image caching.
-// The "push" listener below is future-proofing only — the app currently sends
-// notifications locally (SHOW_NOTIFICATION messages), so the privacy policy
-// mentions local notifications, not Web Push delivery.
+// LOOP Service Worker: Web Push background delivery, local notifications, app shell & image caching.
+// Handles incoming VAPID Web Push payloads in background tabs/closed states for:
+// - passenger joined alerts
+// - ride departure countdowns
+// - ride chat updates
 const IMAGE_CACHE_NAME = "loop-images-v2";
 const APP_SHELL_CACHE_NAME = "loop-app-shell-v2";
 const MAX_IMAGE_CACHE_ENTRIES = 80;

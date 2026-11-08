@@ -9,6 +9,9 @@ import {
   playNotificationSound,
   requestNotificationPermission,
   sendLocalNotification,
+  urlBase64ToUint8Array,
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
 } from '@/lib/notifications';
 
 describe('notifications utility', () => {
@@ -183,6 +186,32 @@ describe('notifications utility', () => {
       expect(notificationSpy).toHaveBeenCalledWith('Hello Ride', expect.objectContaining({
         body: 'Ready to go',
       }));
+    });
+  });
+
+  describe('urlBase64ToUint8Array', () => {
+    it('converts base64 url-safe string to Uint8Array', () => {
+      // "hello" in base64 is aGVsbG8=
+      const arr = urlBase64ToUint8Array('aGVsbG8');
+      expect(arr instanceof Uint8Array).toBe(true);
+      const decoded = new TextDecoder().decode(arr);
+      expect(decoded).toBe('hello');
+    });
+  });
+
+  describe('subscribeToPushNotifications & unsubscribeFromPushNotifications', () => {
+    it('returns push_unsupported when service worker or PushManager is absent', async () => {
+      const origSW = navigator.serviceWorker;
+      delete (navigator as any).serviceWorker;
+
+      const res = await subscribeToPushNotifications('user-1');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('push_unsupported');
+
+      const unsub = await unsubscribeFromPushNotifications('user-1');
+      expect(unsub.success).toBe(true);
+
+      Object.defineProperty(navigator, 'serviceWorker', { value: origSW, configurable: true });
     });
   });
 });

@@ -1,5 +1,6 @@
 import { triggerHaptic } from "./haptics";
 import { logger } from "./logger";
+import { supabase } from "./supabase";
 
 export function isIOS(): boolean {
   if (typeof window === "undefined") return false;
@@ -123,7 +124,102 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 }
 
-export async function requestNotificationPermission(): Promise<{
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export async function subscribeToPushNotifications(
+  userId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { success: false, error: "push_unsupported" };
+  }
+
+  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!vapidKey) {
+    return { success: false, error: "vapid_key_missing" };
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let subscription = await reg.pushManager.getSubscription();
+
+    if (!subscription) {
+      const convertedKey = urlBase64ToUint8Array(vapidKey);
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey as unknown as BufferSource,
+      });
+    }
+
+    const subJson = subscription.toJSON();
+    const endpoint = subJson.endpoint;
+    const p256dh = subJson.keys?.p256dh;
+    const auth = subJson.keys?.auth;
+
+    if (!endpoint || !p256dh || !auth) {
+      return { success: false, error: "invalid_subscription_payload" };
+    }
+
+    const { error: dbError } = await supabase.from("push_subscriptions").upsert(
+      {
+        user_id: userId,
+        endpoint,
+        p256dh,
+        auth,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "endpoint" }
+    );
+
+    if (dbError) {
+      logger.warn("Failed to persist push subscription:", dbError.message);
+      return { success: false, error: dbError.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn("subscribeToPushNotifications error:", message);
+    return { success: false, error: message };
+  }
+}
+
+export async function unsubscribeFromPushNotifications(
+  userId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { success: true };
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    if (subscription) {
+      const endpoint = subscription.endpoint;
+      await subscription.unsubscribe();
+      await supabase
+        .from("push_subscriptions")
+        .delete()
+        .eq("endpoint", endpoint)
+        .eq("user_id", userId);
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn("unsubscribeFromPushNotifications error:", message);
+    return { success: false, error: message };
+  }
+}
+
+export async function requestNotificationPermission(userId?: string): Promise<{
   granted: boolean;
   reason?: "ios_not_pwa" | "blocked" | "unsupported" | "denied" | "default" | "error";
 }> {
@@ -149,7 +245,10 @@ export async function requestNotificationPermission(): Promise<{
     if (result === "granted") {
       setNotificationEnabled(true);
       triggerHaptic(20);
-      registerServiceWorker();
+      await registerServiceWorker();
+      if (userId) {
+        void subscribeToPushNotifications(userId);
+      }
       return { granted: true };
     }
     return { granted: false, reason: result };

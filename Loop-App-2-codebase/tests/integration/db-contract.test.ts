@@ -34,6 +34,7 @@ const EXPECTED_PUBLIC_TABLES = [
   "messages",
   "profile_contacts",
   "profiles",
+  "push_subscriptions",
   "rate_limits",
   "ride_intents",
   "trusted_vehicles",
@@ -124,6 +125,15 @@ const EXPECTED_COLUMNS: Record<string, { name: string; type: string; nullable: s
     { name: "theme", type: "text", nullable: "YES" },
     { name: "updated_at", type: "timestamp with time zone", nullable: "NO" },
   ],
+  push_subscriptions: [
+    { name: "auth", type: "text", nullable: "NO" },
+    { name: "created_at", type: "timestamp with time zone", nullable: "NO" },
+    { name: "endpoint", type: "text", nullable: "NO" },
+    { name: "id", type: "uuid", nullable: "NO" },
+    { name: "p256dh", type: "text", nullable: "NO" },
+    { name: "updated_at", type: "timestamp with time zone", nullable: "NO" },
+    { name: "user_id", type: "uuid", nullable: "NO" },
+  ],
   rate_limits: [
     { name: "count", type: "integer", nullable: "NO" },
     { name: "key", type: "text", nullable: "NO" },
@@ -166,6 +176,7 @@ const EXPECTED_FOREIGN_KEYS = [
   { table: "messages", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "SET NULL" },
   { table: "profile_contacts", column: "user_id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
   { table: "profiles", column: "id", refSchema: "auth", refTable: "users", refColumn: "id", deleteRule: "CASCADE" },
+  { table: "push_subscriptions", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
   { table: "ride_intents", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
   { table: "trusted_vehicles", column: "user_id", refSchema: "public", refTable: "profiles", refColumn: "id", deleteRule: "CASCADE" },
 ];
