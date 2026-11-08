@@ -146,8 +146,40 @@ const LoopCard = React.memo(function LoopCard({
   );
 });
 
+interface TransitHub {
+  id: string;
+  name: string;
+  destination: string;
+  subtitle: string;
+  estTime: string;
+}
+
+const CAMPUS_TRANSIT_HUBS: TransitHub[] = [
+  {
+    id: "bza-station",
+    name: "Vijayawada Railway Station",
+    destination: "Vijayawada Railway Station",
+    subtitle: "Peak train arrivals & departures",
+    estTime: "~45 min",
+  },
+  {
+    id: "airport",
+    name: "Vijayawada Airport",
+    destination: "Airport",
+    subtitle: "Gannavaram flight sync & express autos",
+    estTime: "~1h 15m",
+  },
+  {
+    id: "bus-stand",
+    name: "Vijayawada Bus Stand",
+    destination: "Vijayawada Bus Stand",
+    subtitle: "PNBS RTC & inter-city coaches",
+    estTime: "~50 min",
+  },
+];
+
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction } = useLoop();
+  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, setCreatePrefill } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -199,6 +231,25 @@ export default function HomeView() {
     setView("create");
   };
 
+  const handleTransitQuickStart = (destination: string) => {
+    triggerHaptic(12);
+    setCreatePrefill({
+      destination,
+      startPoint: "VIT-AP Campus",
+    });
+    const isProfileComplete = Boolean(
+      profile.gender && 
+      profile.display_name?.trim() && 
+      profile.reg_no?.trim()
+    );
+    if (!isProfileComplete) {
+      setPendingAction({ type: "create" });
+      setShowGenderSelect(true);
+      return;
+    }
+    setView("create");
+  };
+
   const openLoops = activeLoops.filter(l => l.status === 'open');
 
   const feedLoops = openLoops.filter(l => {
@@ -229,20 +280,20 @@ export default function HomeView() {
 
   if (openLoops.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[55vh] text-center space-y-4">
-        <div className={`w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center ${isDark ? "text-[#FFC554]/60" : "text-[#881337]/70"}`}>
-          <MapPin size={32} strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-start min-h-[55vh] text-center space-y-4 pt-2 pb-6">
+        <div className={`w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center ${isDark ? "text-[#FFC554]/60" : "text-[#881337]/70"}`}>
+          <MapPin size={26} strokeWidth={1.5} />
         </div>
         <div>
           <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
-          <p className={`text-xs ${mutedText} mt-1 max-w-[220px]`}>Start a new loop or check back soon for active rides.</p>
+          <p className={`text-xs ${mutedText} mt-1 max-w-[240px] mx-auto`}>Start a new loop or check back soon for active rides.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-2.5">
           <button
             onClick={handleCreateClick}
             className={`h-10 px-5 rounded-full ${
               isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-            } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform`}
+            } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform cursor-pointer`}
           >
             + Create Loop
           </button>
@@ -263,6 +314,46 @@ export default function HomeView() {
               </span>
             )}
           </button>
+        </div>
+
+        {/* Popular Campus Transit Hubs (Liquidity / Cold-Start Seeding) */}
+        <div className="w-full max-w-sm pt-2 text-left">
+          <div className="flex items-center justify-between px-1 mb-2">
+            <span className={`text-[10px] font-black uppercase tracking-[0.16em] ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+              Popular Campus Routes
+            </span>
+            <span className={`text-[10px] ${mutedText}`}>One-tap prefill</span>
+          </div>
+
+          <div className="space-y-2">
+            {CAMPUS_TRANSIT_HUBS.map((hub) => (
+              <div
+                key={hub.id}
+                className={`p-3 rounded-2xl border ${border} ${cardBg} flex items-center justify-between gap-3 shadow-xs transition-all hover:border-white/20`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-xs truncate">{hub.name}</span>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                      isDark ? "bg-white/10 text-zinc-300" : "bg-black/5 text-zinc-600"
+                    }`}>
+                      {hub.estTime}
+                    </span>
+                  </div>
+                  <p className={`text-[11px] ${mutedText} truncate mt-0.5`}>{hub.subtitle}</p>
+                </div>
+                <button
+                  onClick={() => handleTransitQuickStart(hub.destination)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-transform active:scale-95 cursor-pointer ${
+                    isDark ? "bg-white/10 text-white hover:bg-white/15" : "bg-black/10 text-zinc-900 hover:bg-black/15"
+                  }`}
+                  data-testid={`transit-hub-${hub.id}-btn`}
+                >
+                  Start Ride
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

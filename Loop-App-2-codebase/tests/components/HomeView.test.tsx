@@ -83,6 +83,7 @@ const defaultContext = {
   },
   setShowGenderSelect: vi.fn(),
   setPendingAction: vi.fn(),
+  setCreatePrefill: vi.fn(),
   theme: {
     isDark: true,
     bg: 'bg-black',
@@ -218,5 +219,49 @@ describe('HomeView Component', () => {
     fireEvent.click(feedWantsBtn);
 
     expect(defaultContext.setView).toHaveBeenCalledWith('wants');
+  });
+
+  it('renders popular campus transit routes in empty state and pre-fills ride creation on click', () => {
+    mockUseLoop.mockReturnValue({
+      ...defaultContext,
+      activeLoops: [],
+    });
+
+    render(<HomeView />);
+
+    expect(screen.getByText(/Popular Campus Routes/i)).toBeInTheDocument();
+    expect(screen.getByText('Vijayawada Railway Station')).toBeInTheDocument();
+    expect(screen.getByText('Vijayawada Airport')).toBeInTheDocument();
+    expect(screen.getByText('Vijayawada Bus Stand')).toBeInTheDocument();
+
+    const startBzaBtn = screen.getByTestId('transit-hub-bza-station-btn');
+    fireEvent.click(startBzaBtn);
+
+    expect(defaultContext.setCreatePrefill).toHaveBeenCalledWith({
+      destination: 'Vijayawada Railway Station',
+      startPoint: 'VIT-AP Campus',
+    });
+    expect(defaultContext.setView).toHaveBeenCalledWith('create');
+  });
+
+  it('prompts for profile when transit quick-start is clicked with incomplete profile', () => {
+    mockUseLoop.mockReturnValue({
+      ...defaultContext,
+      activeLoops: [],
+      profile: { display_name: '', reg_no: '', gender: null },
+    });
+
+    render(<HomeView />);
+
+    const startAirportBtn = screen.getByTestId('transit-hub-airport-btn');
+    fireEvent.click(startAirportBtn);
+
+    expect(defaultContext.setCreatePrefill).toHaveBeenCalledWith({
+      destination: 'Airport',
+      startPoint: 'VIT-AP Campus',
+    });
+    expect(defaultContext.setPendingAction).toHaveBeenCalledWith({ type: 'create' });
+    expect(defaultContext.setShowGenderSelect).toHaveBeenCalledWith(true);
+    expect(defaultContext.setView).not.toHaveBeenCalledWith('create');
   });
 });
