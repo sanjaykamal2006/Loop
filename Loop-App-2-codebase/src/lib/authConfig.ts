@@ -1,3 +1,5 @@
+import { getActiveCampus } from "./campusConfig";
+
 /**
  * Institutional Domains allowed for student & faculty registrations on LOOP.
  * Substring matching is strictly prohibited to prevent spoof domains (e.g. fakevitap.com, vitapstudent.xyz).
@@ -24,7 +26,7 @@ export const EXTERNAL_EMAIL_WHITELIST: string[] = (process.env.EXTERNAL_EMAIL_WH
   .filter((e) => e.includes("@"));
 
 export const INSTITUTIONAL_ERROR_MESSAGE =
-  "LOOP is only available to VIT-AP students and faculty. Please use your institutional email.";
+  `LOOP is only available to ${getActiveCampus().shortName} students and faculty. Please use your institutional email.`;
 
 export const PLUS_ADDRESSING_ERROR_MESSAGE =
   "Plus-addressing (+) is not allowed in email addresses.";
