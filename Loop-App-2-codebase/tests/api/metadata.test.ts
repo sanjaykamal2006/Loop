@@ -3,13 +3,11 @@ import robots from '@/app/robots';
 import sitemap from '@/app/sitemap';
 
 describe('SEO metadata routes', () => {
-  it('robots.txt allows public pages, blocks the API and screenshot tool, and links the sitemap', () => {
+  it('robots.txt allows public pages, blocks the API, and links the sitemap', () => {
     const result = robots();
     const rules = Array.isArray(result.rules) ? result.rules[0] : result.rules;
 
-    expect(rules?.disallow).toEqual(
-      expect.arrayContaining(['/api/', '/screenshots-preview'])
-    );
+    expect(rules?.disallow).toEqual(['/api/']);
     expect(rules?.allow).toEqual(expect.arrayContaining(['/']));
     expect(result.sitemap).toContain('/sitemap.xml');
   });

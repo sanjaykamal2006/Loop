@@ -10,7 +10,7 @@ LOOP is a real-time, student-verified ride coordination web application built fo
 - **Runtime**: React 19, TypeScript 5
 - **Styling**: Tailwind CSS 4, Lucide React
 - **Backend & Realtime**: Supabase (PostgreSQL 15+, Auth PKCE, Realtime Engine, Storage)
-- **Rate Limiting**: Upstash Redis (Sliding-window counter) with dev fallback
+- **Rate Limiting**: Shared PostgreSQL Rate Limiter (`rate_limits` table + `check_rate_limit()` RPC) with memory fallback
 - **Hosting & Edge**: Vercel
 - **Testing**: Vitest 2.1+, React Testing Library, JSDOM
 

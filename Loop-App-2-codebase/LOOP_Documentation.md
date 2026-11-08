@@ -158,7 +158,7 @@ Loop-App-2-codebase/
 │   ├── components/
 │   │   └── sections/
 │   │       ├── MainApp.tsx         # View router & state orchestrator (911 lines)
-│   │       ├── AuthLogin.tsx       # Login / Signup / OTP flow (295 lines)
+│   │       ├── AuthLogin.tsx       # Login / Signup / OTP flow (488 lines)
 │   │       ├── AppHeader.tsx       # Top navigation bar
 │   │       ├── HomeView.tsx        # Live loop feed with search
 │   │       ├── CreateView.tsx      # Loop creation form
@@ -320,7 +320,7 @@ The theme is derived from `profile.theme` and provides CSS-ready values:
 
 ## 7. Authentication System
 
-### File: `src/components/sections/AuthLogin.tsx` (295 lines, ~10.5 KB)
+### File: `src/components/sections/AuthLogin.tsx` (488 lines)
 
 ### Auth Flow Diagram
 
@@ -682,7 +682,6 @@ expires_at = departure_time + 2 hours
 | **Triple-engine delivery** | WebSocket Broadcast + 1s Polling + PostgreSQL CDC |
 | **Emoji reactions** | 👍 ❤️ 😂 👎 — one per user per message |
 | **Message editing** | Double-tap to edit within 5-minute window |
-| **Typing indicators** | "X is typing..." with Supabase Presence |
 | **Smart scroll** | Auto-scroll only when messages overflow viewport |
 | **Profile viewing** | Tap any user's avatar to see their profile card |
 | **Anti-autofill** | `type="search"` + `autoComplete="new-password"` blocks Gboard popups |
@@ -956,28 +955,6 @@ When a user sends a message:
 2. Immediately append to local state (instant render)
 3. INSERT into Supabase messages table (async)
 4. When confirmed, replace optimistic message with real record
-```
-
-### Typing Indicators
-
-```typescript
-// Send typing state
-supabase.channel("chat-{loopId}").track({
-  user_id: session.user.id,
-  display_name: profile.display_name,
-  typing: true
-});
-
-// Auto-clear after 2 seconds of inactivity
-setTimeout(() => {
-  channel.track({ ...presence, typing: false });
-}, 2000);
-
-// Render on receiver side
-const typingUsers = presenceState
-  .filter(p => p.typing && p.user_id !== myId)
-  .map(p => p.display_name);
-// Shows: "Sanjay is typing..."
 ```
 
 ### Message Editing (5-Minute Rule)

@@ -156,7 +156,7 @@ Dependabot opens pull requests for npm and GitHub Actions updates. Security upda
 
 ## 6a. Migration Ledger
 
-Every schema change is tracked in the production ledger table `supabase_migrations.schema_migrations` (29 rows as of 2026-10-24). To inspect or extend it:
+Every schema change is tracked in the production ledger table `supabase_migrations.schema_migrations` (36 rows as of 2026-11-04). To inspect or extend it:
 
 ```bash
 # What is recorded?

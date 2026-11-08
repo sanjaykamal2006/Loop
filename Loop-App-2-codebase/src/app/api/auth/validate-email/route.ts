@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. IP Rate Limiting: 10 requests per 10 minutes per IP (Upstash Redis + fallback)
+    // 1. IP Rate Limiting: 10 requests per 10 minutes per IP (Postgres shared rate limit + memory fallback)
     const clientIp = getClientIp(request);
     const rateLimit = await checkRateLimit(`validate-email:${clientIp}`, 10, 10 * 60 * 1000);
 
