@@ -28,8 +28,6 @@ export default function ProfileView() {
     handleSignOut,
     theme,
     setView,
-    toggleTheme,
-    setTheme,
   } = useLoop();
   const { isDark, isPaper, border, cardBg, mutedText } = theme;
 
@@ -241,9 +239,6 @@ export default function ProfileView() {
         notifEnabled={notifEnabled}
         onToggleNotifications={handleToggleNotifications}
         onTestAlert={handleTestAlert}
-        toggleTheme={toggleTheme}
-        setTheme={setTheme}
-        activeTheme={profile.theme}
         cardBg={cardBg}
         border={border}
         isDark={isDark}

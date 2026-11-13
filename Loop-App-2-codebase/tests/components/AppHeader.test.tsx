@@ -23,6 +23,8 @@ const defaultContext = {
   chatSource: "home",
   userJoinedLoops: [],
   activeLoops: [],
+  setTheme: vi.fn(),
+  profile: { theme: "dark" },
   setShowEmergencyContactModal: vi.fn(),
   setShowTermsModal: vi.fn(),
   setShowTeluguGuideModal: vi.fn(),
@@ -85,5 +87,21 @@ describe("AppHeader Component", () => {
 
     expect(mockFetchLoops).toHaveBeenCalledWith(true);
     expect(mockFetchUserMemberships).toHaveBeenCalledWith(true);
+  });
+
+  it("renders compact theme slider in settings dropdown on profile view", () => {
+    defaultContext.view = "profile";
+    render(<AppHeader />);
+
+    const settingsBtn = screen.getByLabelText("Open settings menu");
+    fireEvent.click(settingsBtn);
+
+    expect(screen.getByRole("radiogroup", { name: /select app theme/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /paper theme/i })).toBeInTheDocument();
+
+    const paperRadio = screen.getByRole("radio", { name: /paper theme/i });
+    fireEvent.click(paperRadio);
+
+    expect(defaultContext.setTheme).toHaveBeenCalledWith("paper");
   });
 });

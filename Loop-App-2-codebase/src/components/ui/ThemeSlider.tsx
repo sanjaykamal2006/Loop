@@ -10,6 +10,7 @@ interface ThemeSliderProps {
   onSelectTheme: (theme: AppTheme) => void;
   isDark: boolean;
   isPaper?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export default function ThemeSlider({
   onSelectTheme,
   isDark,
   isPaper = false,
+  compact = false,
   className = "",
 }: ThemeSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,7 +109,9 @@ export default function ThemeSlider({
   let inactiveText = "text-zinc-400 hover:text-zinc-200";
 
   if (isPaper) {
-    sliderBg = "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]";
+    sliderBg = compact
+      ? "bg-[#FAF8F5] border border-[#2A2420] shadow-[1.5px_1.5px_0px_#2A2420]"
+      : "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]";
     thumbBg = "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]";
     inactiveText = "text-[#6B6660] hover:text-[#2A2420]";
   } else if (!isDark) {
@@ -127,12 +131,18 @@ export default function ThemeSlider({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`relative flex items-center p-1 rounded-2xl border select-none cursor-pointer touch-none ${sliderBg} ${className}`}
-      style={{ minWidth: "210px" }}
+      className={`relative flex items-center ${
+        compact ? "p-0.5 rounded-xl text-[10.5px]" : "p-1 rounded-2xl text-xs"
+      } border select-none cursor-pointer touch-none ${sliderBg} ${className}`}
+      style={{ minWidth: compact ? "180px" : "210px" }}
     >
       {/* Sliding Active Pill Indicator */}
       <div
-        className={`absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-xl transition-transform ${
+        className={`absolute ${
+          compact
+            ? "top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-[9px]"
+            : "top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-xl"
+        } transition-transform ${
           isDragging ? "duration-75 ease-out" : "duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
         } ${thumbBg}`}
         style={{
@@ -153,7 +163,9 @@ export default function ThemeSlider({
             aria-checked={isActive}
             aria-label={`${theme.label} theme`}
             onClick={() => handleSelect(theme.id)}
-            className={`relative z-10 flex-1 py-1.5 flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-colors duration-200 rounded-xl focus:outline-none ${
+            className={`relative z-10 flex-1 ${
+              compact ? "py-1 gap-1 text-[10.5px] rounded-[9px]" : "py-1.5 gap-1.5 text-xs rounded-xl"
+            } flex items-center justify-center font-black uppercase tracking-wider transition-colors duration-200 focus:outline-none ${
               isActive
                 ? isPaper
                   ? "text-[#2A2420] font-black"
@@ -164,7 +176,7 @@ export default function ThemeSlider({
             }`}
           >
             <Icon
-              size={13}
+              size={compact ? 11 : 13}
               strokeWidth={isActive ? 2.8 : 2}
               className={isActive && isPaper ? "text-[#2A2420]" : ""}
             />

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Code2, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import ThemeSlider from "@/components/ui/ThemeSlider";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -16,6 +17,8 @@ export default function AppHeader() {
     setView,
     selectedLoop,
     theme,
+    setTheme,
+    profile,
     fetchLoops,
     fetchUserMemberships,
     chatSource,
@@ -199,74 +202,131 @@ export default function AppHeader() {
             </button>
 
             {showSettingsMenu && (
-              <div className={`absolute right-0 top-12 w-64 p-2.5 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1.5 backdrop-blur-xl animate-fade-in`}>
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setView("past-loops");
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
-                >
-                  <History size={15} className="text-purple-400" />
-                  <span>Past Loops (History)</span>
-                </button>
+              <>
+                {/* Backdrop to dismiss settings dropdown when clicking outside */}
+                <div
+                  className="fixed inset-0 z-40 bg-transparent"
+                  onClick={() => setShowSettingsMenu(false)}
+                  aria-hidden="true"
+                />
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setShowEmergencyContactModal(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                <div
+                  className={`absolute right-0 top-12 w-68 p-2.5 ${cardBg} ${
+                    isPaper
+                      ? "border-2 border-[#2A2420] shadow-[3px_3px_0px_#2A2420]"
+                      : `border ${border} shadow-2xl backdrop-blur-xl`
+                  } rounded-2xl z-50 flex flex-col gap-1.5 animate-fade-in`}
                 >
-                  <ShieldAlert size={15} className="text-red-400" />
-                  <span>Emergency Contacts</span>
-                </button>
+                  {/* Theme Appearance 3-Way Slider (Compact) */}
+                  <div
+                    className={`p-2 rounded-xl border flex flex-col gap-1.5 ${
+                      isPaper
+                        ? "bg-[#F3EFE6] border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
+                        ? "bg-white/5 border-white/10"
+                        : "bg-black/[0.04] border-black/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between px-1">
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-wider ${
+                          isPaper ? "text-[#2A2420]" : isDark ? "text-zinc-400" : "text-zinc-600"
+                        }`}
+                      >
+                        Appearance
+                      </span>
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-wider ${
+                          isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"
+                        }`}
+                      >
+                        {profile?.theme === "paper" ? "Paper" : profile?.theme === "light" ? "Light" : "Dark"}
+                      </span>
+                    </div>
 
+                    <ThemeSlider
+                      compact={true}
+                      currentTheme={profile?.theme || (isPaper ? "paper" : isDark ? "dark" : "light")}
+                      onSelectTheme={(nextTheme) => setTheme?.(nextTheme)}
+                      isDark={isDark}
+                      isPaper={isPaper}
+                      className="w-full"
+                    />
+                  </div>
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setShowTeluguGuideModal(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
-                >
-                  <Languages size={15} className={isDark ? "text-amber-400" : "text-[#881337]"} />
-                  <span>Telugu Auto Phrases</span>
-                </button>
+                  <div
+                    className={`h-px w-full my-0.5 ${
+                      isPaper ? "bg-[#2A2420]/15" : isDark ? "bg-white/10" : "bg-black/10"
+                    }`}
+                  />
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setShowCreatorModal(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
-                >
-                  <Code2 size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-                  <span>About Creator</span>
-                </button>
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setView("past-loops");
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
+                  >
+                    <History size={15} className="text-purple-400" />
+                    <span>Past Loops (History)</span>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setShowBuyCoffeeModal(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
-                >
-                  <Coffee size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-                  <span>Buy Creator a Coffee</span>
-                </button>
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowEmergencyContactModal(true);
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                  >
+                    <ShieldAlert size={15} className="text-red-400" />
+                    <span>Emergency Contacts</span>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setShowSettingsMenu(false);
-                    setShowTermsModal(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
-                >
-                  <ShieldCheck size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
-                  <span>Terms & Privacy Policy</span>
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowTeluguGuideModal(true);
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors`}
+                  >
+                    <Languages size={15} className={isDark ? "text-amber-400" : "text-[#881337]"} />
+                    <span>Telugu Auto Phrases</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowCreatorModal(true);
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                  >
+                    <Code2 size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                    <span>About Creator</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowBuyCoffeeModal(true);
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                  >
+                    <Coffee size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                    <span>Buy Creator a Coffee</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowSettingsMenu(false);
+                      setShowTermsModal(true);
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-zinc-900"} text-xs font-bold w-full text-left transition-colors cursor-pointer`}
+                  >
+                    <ShieldCheck size={15} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                    <span>Terms & Privacy Policy</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>

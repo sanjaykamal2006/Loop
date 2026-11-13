@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { History, ShieldCheck, Bell, ChevronRight, Moon, Sun, FileText } from "lucide-react";
+import { History, ShieldCheck, Bell, ChevronRight } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
-import ThemeSlider from "@/components/ui/ThemeSlider";
 import type { AppTheme } from "@/lib/types";
 
 interface ProfileQuickActionsCardProps {
@@ -11,7 +10,7 @@ interface ProfileQuickActionsCardProps {
   notifEnabled: boolean;
   onToggleNotifications: () => Promise<void>;
   onTestAlert: (e: React.MouseEvent) => Promise<void>;
-  toggleTheme: () => void;
+  toggleTheme?: () => void;
   setTheme?: (theme: AppTheme) => void;
   activeTheme?: AppTheme;
   cardBg: string;
@@ -25,9 +24,6 @@ export default function ProfileQuickActionsCard({
   notifEnabled,
   onToggleNotifications,
   onTestAlert,
-  toggleTheme,
-  setTheme,
-  activeTheme,
   cardBg,
   border,
   isDark,
@@ -146,51 +142,6 @@ export default function ProfileQuickActionsCard({
             />
           </button>
         </div>
-      </div>
-
-      {/* Theme Appearance 3-Way Slider */}
-      <div className="w-full px-4.5 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${
-              isPaper
-                ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
-                : isDark
-                ? "bg-amber-500/15 text-[#FFC554]"
-                : "bg-rose-500/15 text-[#881337]"
-            } flex items-center justify-center shrink-0`}
-          >
-            {isPaper ? (
-              <FileText size={18} strokeWidth={2.5} />
-            ) : isDark ? (
-              <Moon size={18} strokeWidth={2.5} />
-            ) : (
-              <Sun size={18} strokeWidth={2.5} />
-            )}
-          </div>
-          <div className="flex flex-col">
-            <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
-              Appearance
-            </span>
-            <span className={`text-[11px] ${isPaper ? "text-[#6B6660]" : "text-zinc-400"}`}>
-              {isPaper ? "Paper" : isDark ? "Dark" : "Light"}
-            </span>
-          </div>
-        </div>
-
-        <ThemeSlider
-          currentTheme={activeTheme || (isPaper ? "paper" : isDark ? "dark" : "light")}
-          onSelectTheme={(selected) => {
-            if (setTheme) {
-              setTheme(selected);
-            } else {
-              toggleTheme();
-            }
-          }}
-          isDark={isDark}
-          isPaper={isPaper}
-          className="self-stretch sm:self-auto"
-        />
       </div>
     </div>
   );
