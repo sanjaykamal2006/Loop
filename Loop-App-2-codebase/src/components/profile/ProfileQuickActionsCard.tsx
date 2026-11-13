@@ -173,7 +173,7 @@ export default function ProfileQuickActionsCard({
               Appearance
             </span>
             <span className={`text-[11px] ${isPaper ? "text-[#6B6660]" : "text-zinc-400"}`}>
-              {isPaper ? "Looseleaf Paper" : isDark ? "Obsidian Dark" : "Clean Light"}
+              {isPaper ? "Paper" : isDark ? "Dark" : "Light"}
             </span>
           </div>
         </div>

@@ -102,7 +102,7 @@ export function formatTimeLabel(timeStr: string | null | undefined): string {
 
 export default function RideWantsView() {
   const { setView, theme, profile, setCreatePrefill, setPendingAction, setShowGenderSelect, handleSignOut } = useLoop();
-  const { isDark, cardBg, border, mutedText } = theme;
+  const { isDark, isPaper, cardBg, border, mutedText } = theme;
 
   const { wants, loading, submitting, loadBoard, handlePost, handleMeToo, handleUndo } = useRideWants({
     // Dead auth session: sign out cleanly so the user lands on the login
@@ -213,16 +213,24 @@ export default function RideWantsView() {
           }}
           disabled={loading}
           aria-label="Refresh board"
-          className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 transition-transform shrink-0 cursor-pointer`}
+          className={`w-10 h-10 rounded-full ${
+            isPaper
+              ? "border border-[#2A2420] bg-[#FAF8F5] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+              : `border ${border} ${cardBg}`
+          } flex items-center justify-center active:scale-90 transition-transform shrink-0 cursor-pointer`}
         >
-          <RefreshCw size={15} className={loading ? (isDark ? "animate-spin text-[#FFC554]" : "animate-spin text-[#881337]") : "opacity-70"} />
+          <RefreshCw size={15} className={loading ? (isPaper ? "animate-spin text-[#2A2420]" : isDark ? "animate-spin text-[#FFC554]" : "animate-spin text-[#881337]") : "opacity-70"} />
         </button>
       </div>
 
       {/* Signal Demand Form Card */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] shadow-sm space-y-3.5`}>
+      <div className={`p-4 ${cardBg} ${
+        isPaper ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]" : `border ${border} shadow-sm`
+      } rounded-[28px] space-y-3.5`}>
         <div className="flex items-center justify-between">
-          <span className={`text-[11px] font-black uppercase tracking-wider ${isDark ? "text-[#FFC554]" : "text-[#881337]"} flex items-center gap-1.5`}>
+          <span className={`text-[11px] font-black uppercase tracking-wider ${
+            isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"
+          } flex items-center gap-1.5`}>
             <Navigation size={13} />
             Your Trip
           </span>
@@ -241,9 +249,13 @@ export default function RideWantsView() {
                   onClick={() => handleDestinationChip(preset)}
                   className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                     isSelected
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
                         ? "bg-[#FFC554] text-black"
                         : "bg-[#881337] text-white"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                       : isDark
                       ? "bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300"
                       : "bg-black/5 border border-black/10 hover:border-black/20 text-zinc-700"
@@ -256,8 +268,12 @@ export default function RideWantsView() {
           </div>
 
           {/* Destination Free Text Input */}
-          <div className={`w-full h-11 ${cardBg} border ${border} rounded-2xl flex items-center px-3.5 gap-2.5 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all`}>
-            <MapPin size={16} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+          <div className={`w-full h-11 ${cardBg} ${
+            isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+          } rounded-2xl flex items-center px-3.5 gap-2.5 ${
+            isPaper ? "focus-within:ring-1 focus-within:ring-[#FFC554]" : isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"
+          } transition-all`}>
+            <MapPin size={16} className={isPaper ? "text-[#2A2420] shrink-0" : isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
             <input
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
@@ -272,9 +288,13 @@ export default function RideWantsView() {
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Date</label>
             <div
               onClick={() => openNativePicker(dateRef.current)}
-              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all cursor-pointer select-none`}
+              className={`relative w-full h-14 ${cardBg} ${
+                isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+              } rounded-2xl flex items-center px-4 gap-3 ${
+                isPaper ? "focus-within:ring-1 focus-within:ring-[#FFC554]" : isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"
+              } transition-all cursor-pointer select-none`}
             >
-              <Calendar size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <Calendar size={18} className={isPaper ? "text-[#2A2420] shrink-0" : isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedDate ? formatDepartDateLabel(selectedDate) || selectedDate : "Pick a date"}
               </span>
@@ -304,9 +324,13 @@ export default function RideWantsView() {
             <label className={`text-[10px] font-bold uppercase tracking-wider ${mutedText}`}>Travel Time (optional)</label>
             <div
               onClick={() => openNativePicker(timeRef.current)}
-              className={`relative w-full h-14 ${cardBg} border ${border} rounded-2xl flex items-center px-4 gap-3 ${isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"} transition-all cursor-pointer select-none`}
+              className={`relative w-full h-14 ${cardBg} ${
+                isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+              } rounded-2xl flex items-center px-4 gap-3 ${
+                isPaper ? "focus-within:ring-1 focus-within:ring-[#FFC554]" : isDark ? "focus-within:border-[#FFC554]/80" : "focus-within:border-[#881337]/80"
+              } transition-all cursor-pointer select-none`}
             >
-              <Clock size={18} className={isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
+              <Clock size={18} className={isPaper ? "text-[#2A2420] shrink-0" : isDark ? "text-[#FFC554] shrink-0" : "text-[#881337] shrink-0"} />
               <span className="flex-1 text-sm font-bold pointer-events-none" aria-hidden="true">
                 {selectedTime ? formatTimeLabel(selectedTime) || selectedTime : "Pick a time"}
               </span>
@@ -337,7 +361,11 @@ export default function RideWantsView() {
             placeholder="Optional note — anything useful"
             maxLength={120}
             aria-label="Optional note"
-            className={`w-full h-11 ${cardBg} border ${border} rounded-2xl px-3.5 text-xs font-medium outline-none placeholder:text-zinc-500 ${isDark ? "focus:border-[#FFC554]/80" : "focus:border-[#881337]/80"} transition-all`}
+            className={`w-full h-11 ${cardBg} ${
+              isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+            } rounded-2xl px-3.5 text-xs font-medium outline-none placeholder:text-zinc-500 ${
+              isPaper ? "focus:ring-1 focus:ring-[#FFC554]" : isDark ? "focus:border-[#FFC554]/80" : "focus:border-[#881337]/80"
+            } transition-all`}
           />
 
           {/* Submit Signal Button */}
@@ -348,6 +376,8 @@ export default function RideWantsView() {
             className={`w-full h-12 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
               submitting || !destination.trim() || !selectedDate
                 ? "opacity-40 cursor-not-allowed bg-zinc-800 text-zinc-500"
+                : isPaper
+                ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] hover:brightness-105 active:scale-[0.99]"
                 : isDark
                 ? "bg-[#FFC554] text-black hover:bg-[#FFC554]/90 active:scale-[0.99]"
                 : "bg-[#881337] text-white hover:bg-[#881337]/90 active:scale-[0.99]"
@@ -416,7 +446,9 @@ export default function RideWantsView() {
           // Premium + minimal surface: glass gradient, hairline inner highlight,
           // deep soft shadow. Content reduced to the essentials:
           // destination · when · how many · Me too.
-          const rowCardClass = isDark
+          const rowCardClass = isPaper
+            ? `relative p-3.5 px-4 space-y-2.5 rounded-[24px] bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] transition-all`
+            : isDark
             ? `relative p-3.5 px-4 space-y-2.5 rounded-[24px] bg-gradient-to-b from-white/[0.055] to-white/[0.02] ring-1 ring-inset ring-white/[0.06] transition-all border ${
                 isHot
                   ? "border-[#FFC554]/35 shadow-[0_12px_36px_-14px_rgba(255,197,84,0.3),0_1px_0_0_rgba(255,255,255,0.06)_inset] hover:border-[#FFC554]/50"
@@ -437,9 +469,13 @@ export default function RideWantsView() {
               <div className="flex items-center gap-3">
                 {/* Destination marker */}
                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                  isDark ? "bg-white/[0.05] border border-white/10" : "bg-black/[0.04] border border-black/10"
+                  isPaper
+                    ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420]"
+                    : isDark
+                    ? "bg-white/[0.05] border border-white/10 text-[#FFC554]"
+                    : "bg-black/[0.04] border border-black/10 text-[#881337]"
                 }`}>
-                  <MapPin size={18} strokeWidth={2.25} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} />
+                  <MapPin size={18} strokeWidth={2.25} />
                 </div>
 
                 {/* Destination · when · how many */}
@@ -457,7 +493,7 @@ export default function RideWantsView() {
                   <FitSingleLine
                     baseSize={13}
                     minSize={10}
-                    className={`font-bold mt-0.5 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}
+                    className={`font-bold mt-0.5 ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}`}
                   >
                     {isSolo ? (
                       row.has_mine ? (
@@ -491,12 +527,18 @@ export default function RideWantsView() {
                   className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
                     row.has_mine
                       ? row.is_creator
-                        ? isDark
+                        ? isPaper
+                          ? "bg-red-50 border border-red-300 text-red-700 active:scale-95 cursor-pointer"
+                          : isDark
                           ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 active:scale-95 cursor-pointer"
                           : "bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 active:scale-95 cursor-pointer"
+                        : isPaper
+                        ? "bg-[#FAF8F5] border border-[#2A2420] text-[#2A2420] active:scale-95 cursor-pointer"
                         : isDark
                         ? "bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 active:scale-95 cursor-pointer"
                         : "bg-amber-100 border border-amber-200 text-amber-800 hover:bg-amber-200 active:scale-95 cursor-pointer"
+                      : isPaper
+                      ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420] font-black shadow-[1px_1px_0px_#2A2420] cursor-pointer active:scale-95"
                       : isDark
                       ? "bg-white/10 hover:bg-white/15 text-white cursor-pointer active:scale-95"
                       : "bg-black/5 hover:bg-black/10 text-zinc-900 cursor-pointer active:scale-95"
@@ -526,7 +568,9 @@ export default function RideWantsView() {
                   onClick={() => handleCreateThisRide(row)}
                   data-testid="create-ride-btn"
                   className={`w-full h-9 rounded-2xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] transition-transform ${
-                    isDark
+                    isPaper
+                      ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                      : isDark
                       ? "bg-[#FFC554]/90 text-black hover:bg-[#FFC554]"
                       : "bg-[#881337] text-white hover:bg-[#881337]/90"
                   }`}

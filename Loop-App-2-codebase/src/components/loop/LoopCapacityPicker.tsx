@@ -14,6 +14,7 @@ interface LoopCapacityPickerProps {
   currentMemberCount: number;
   theme: {
     isDark: boolean;
+    isPaper?: boolean;
     bg: string;
     border: string;
     mutedText: string;
@@ -31,7 +32,7 @@ export function LoopCapacityPicker({
   currentMemberCount,
   theme,
 }: LoopCapacityPickerProps) {
-  const { isDark, bg, border, mutedText } = theme;
+  const { isDark, isPaper, bg, border, mutedText } = theme;
 
   return (
     <div className="space-y-3">
@@ -64,9 +65,13 @@ export function LoopCapacityPicker({
                   }}
                   className={`flex-1 h-8 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs cursor-pointer ${
                     isSelected
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] font-black shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black font-black shadow-sm"
                         : "bg-[#881337] border-[#881337] text-white font-black shadow-sm"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420] font-bold"
                       : `${bg} ${border} ${mutedText} font-bold`
                   }`}
                 >
@@ -75,9 +80,13 @@ export function LoopCapacityPicker({
                     strokeWidth={2.2}
                     className={
                       isSelected
-                        ? isDark
+                        ? isPaper
+                          ? "text-[#2A2420]"
+                          : isDark
                           ? "text-black"
                           : "text-white"
+                        : isPaper
+                        ? "text-[#2A2420]"
                         : isDark
                         ? "text-[#FFC554]"
                         : "text-[#881337]"
@@ -98,7 +107,7 @@ export function LoopCapacityPicker({
             <label className={`text-[10px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
               Passenger Seats to Offer
             </label>
-            <span className={`text-[10px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+            <span className={`text-[10px] font-bold ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
             </span>
           </div>
@@ -115,11 +124,17 @@ export function LoopCapacityPicker({
                     onClick={() => setLimit(n)}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
-                        ? isDark
+                        ? isPaper
+                          ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                          : isDark
                           ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                           : "bg-[#881337] border-[#881337] text-white shadow-sm"
                         : isDisabled
-                        ? "opacity-25 cursor-not-allowed border-white/5"
+                        ? isPaper
+                          ? "opacity-25 cursor-not-allowed border-[#2A2420]/15"
+                          : "opacity-25 cursor-not-allowed border-white/5"
+                        : isPaper
+                        ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                         : `${border} ${bg} ${mutedText}`
                     }`}
                   >
@@ -131,14 +146,18 @@ export function LoopCapacityPicker({
           </div>
         </div>
       ) : isDriverOffering && (vehicleType === "bike" || vehicleType === "scooter") ? (
-        <div className={`p-3 ${bg} border ${border} rounded-[18px] flex items-center justify-between`}>
+        <div className={`p-3 ${bg} ${
+          isPaper ? "border-2 border-[#2A2420] shadow-[1px_1px_0px_#2A2420]" : `border ${border}`
+        } rounded-[18px] flex items-center justify-between`}>
           <div>
             <p className={`text-[10px] uppercase font-black ${mutedText} tracking-wider`}>Capacity</p>
             <p className="text-xs font-black">1 Passenger Seat (Pillion)</p>
           </div>
           <span
             className={`text-[10px] font-bold ${
-              isDark
+              isPaper
+                ? "text-[#2A2420] bg-[#FAF8F5] border border-[#2A2420]"
+                : isDark
                 ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20"
                 : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"
             } px-2.5 py-1 rounded-full`}
@@ -153,7 +172,7 @@ export function LoopCapacityPicker({
               Total Group Size / Limit
             </label>
             {currentMemberCount > 1 && (
-              <span className={`text-[9px] ${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-bold`}>
+              <span className={`text-[9px] ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"} font-bold`}>
                 Min {minAllowedSeats} (Joined: {currentMemberCount})
               </span>
             )}
@@ -171,11 +190,17 @@ export function LoopCapacityPicker({
                     onClick={() => setLimit(n)}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
-                        ? isDark
+                        ? isPaper
+                          ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                          : isDark
                           ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                           : "bg-[#881337] border-[#881337] text-white shadow-sm"
                         : isDisabled
-                        ? "opacity-25 cursor-not-allowed border-white/5"
+                        ? isPaper
+                          ? "opacity-25 cursor-not-allowed border-[#2A2420]/15"
+                          : "opacity-25 cursor-not-allowed border-white/5"
+                        : isPaper
+                        ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                         : `${border} ${bg} ${mutedText}`
                     }`}
                   >
@@ -196,11 +221,17 @@ export function LoopCapacityPicker({
                     onClick={() => setLimit(n)}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
-                        ? isDark
+                        ? isPaper
+                          ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                          : isDark
                           ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                           : "bg-[#881337] border-[#881337] text-white shadow-sm"
                         : isDisabled
-                        ? "opacity-25 cursor-not-allowed border-white/5"
+                        ? isPaper
+                          ? "opacity-25 cursor-not-allowed border-[#2A2420]/15"
+                          : "opacity-25 cursor-not-allowed border-white/5"
+                        : isPaper
+                        ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                         : `${border} ${bg} ${mutedText}`
                     }`}
                   >

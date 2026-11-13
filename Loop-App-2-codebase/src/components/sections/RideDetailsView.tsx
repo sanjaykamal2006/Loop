@@ -41,7 +41,7 @@ export default function RideDetailsView() {
     emergencyContacts = [],
     setShowTermsModal,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, isPaper, border, cardBg, mutedText } = theme;
 
   const getOfflineFallbackMembers = useCallback((loopId?: string): LoopMember[] => {
     if (!loopId) return [];
@@ -337,8 +337,16 @@ export default function RideDetailsView() {
       )}
 
       {/* Destination Card */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
-        <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
+      <div className={`p-4 ${cardBg} ${
+        isPaper ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]" : `border ${border}`
+      } rounded-[28px] flex items-center gap-4`}>
+        <div className={`w-9 h-9 rounded-xl ${
+          isPaper
+            ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420]"
+            : isDark
+            ? "bg-[#FFC554]/10 text-[#FFC554]"
+            : "bg-[#881337]/10 text-[#881337]"
+        } flex items-center justify-center shrink-0`}>
           <MapPin size={18} strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
@@ -356,13 +364,23 @@ export default function RideDetailsView() {
       </div>
 
       {/* Starting Time / Schedule Card */}
-      <div className={`p-4 ${cardBg} border ${border} rounded-[28px] flex items-center gap-4`}>
-        <div className={`w-9 h-9 rounded-xl ${isDark ? "bg-[#FFC554]/10 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"} flex items-center justify-center`}>
+      <div className={`p-4 ${cardBg} ${
+        isPaper ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]" : `border ${border}`
+      } rounded-[28px] flex items-center gap-4`}>
+        <div className={`w-9 h-9 rounded-xl ${
+          isPaper
+            ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420]"
+            : isDark
+            ? "bg-[#FFC554]/10 text-[#FFC554]"
+            : "bg-[#881337]/10 text-[#881337]"
+        } flex items-center justify-center shrink-0`}>
           <Clock size={18} strokeWidth={2.5} />
         </div>
         <div>
           <p className={`text-[10px] font-black ${mutedText} uppercase tracking-wider`}>Schedule</p>
-          <h3 className={`font-black text-base sm:text-lg ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+          <h3 className={`font-black text-base sm:text-lg ${
+            isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"
+          }`}>
             {formatDepartureFull(selectedLoop.departure_time)}
           </h3>
         </div>

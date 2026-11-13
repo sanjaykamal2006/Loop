@@ -3,8 +3,8 @@
 // - passenger joined alerts
 // - ride departure countdowns
 // - ride chat updates
-const IMAGE_CACHE_NAME = "loop-images-v2";
-const APP_SHELL_CACHE_NAME = "loop-app-shell-v2";
+const IMAGE_CACHE_NAME = "loop-images-v3";
+const APP_SHELL_CACHE_NAME = "loop-app-shell-v3";
 const MAX_IMAGE_CACHE_ENTRIES = 80;
 
 async function trimImageCache() {
@@ -54,7 +54,8 @@ self.addEventListener("activate", (event) => {
             .filter(
               (k) =>
                 (k.startsWith("loop-app-shell-") && k !== APP_SHELL_CACHE_NAME) ||
-                k === "loop-images-v1"
+                k === "loop-images-v1" ||
+                k === "loop-images-v2"
             )
             .map((k) => caches.delete(k))
         )

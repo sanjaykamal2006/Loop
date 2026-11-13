@@ -124,13 +124,25 @@ const LoopCard = React.memo(function LoopCard({
             )}
 
             {isHost && (
-              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#881337]/10 text-[#881337] border border-[#881337]/30"}`}>
+              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${
+                isPaper
+                  ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420]"
+                  : isDark
+                  ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25"
+                  : "bg-[#881337]/10 text-[#881337] border border-[#881337]/30"
+              }`}>
                 Host
               </span>
             )}
 
             {isJoined && !isHost && (
-              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${isDark ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25" : "bg-[#881337]/10 text-[#881337] border border-[#881337]/30"}`}>
+              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${
+                isPaper
+                  ? "bg-[#FAF8F5] text-[#2A2420] border border-[#2A2420]"
+                  : isDark
+                  ? "bg-[#FFC554]/15 text-[#FFC554] border border-[#FFC554]/25"
+                  : "bg-[#881337]/10 text-[#881337] border border-[#881337]/30"
+              }`}>
                 Joined
               </span>
             )}
@@ -230,7 +242,7 @@ export default function HomeView() {
   if (openLoops.length === 0) {
     return (
       <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center justify-center min-h-[55vh] text-center space-y-4 px-2 py-4">
-        <div className={`w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center ${isDark ? "text-[#FFC554]/60" : "text-[#881337]/70"}`}>
+        <div className={`w-14 h-14 rounded-full ${isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420]" : isDark ? "bg-white/5 border border-white/10 text-[#FFC554]/60" : "bg-black/5 border border-black/10 text-[#881337]/70"} flex items-center justify-center`}>
           <MapPin size={32} strokeWidth={1.5} />
         </div>
         <div>
@@ -253,7 +265,11 @@ export default function HomeView() {
           <button
             data-testid="wants-board-empty-btn"
             onClick={() => setView("wants")}
-            className={`h-10 px-4 rounded-full border ${border} ${cardBg} font-black text-xs uppercase tracking-wider active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5`}
+            className={`h-10 px-4 rounded-full ${
+              isPaper
+                ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                : `border ${border} ${cardBg}`
+            } font-black text-xs uppercase tracking-wider active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5`}
           >
             I Need a Ride
           </button>
@@ -262,7 +278,7 @@ export default function HomeView() {
         {/* Popular Campus Routes Quick-Start (No timings, full destination names) */}
         <div className="w-full pt-4 text-left">
           <div className="flex items-center justify-between mb-2">
-            <p className={`text-[11px] font-black uppercase tracking-wider ${isPaper ? "text-[#881337]" : mutedText}`}>
+            <p className={`text-[11px] font-black uppercase tracking-wider ${isPaper ? "text-[#2A2420]" : mutedText}`}>
               Popular Campus Routes
             </p>
             <span className={`text-[10px] ${mutedText}`}>One-tap prefill</span>
@@ -381,13 +397,13 @@ export default function HomeView() {
       {/* Empty State when Search has no matches */}
       {feedLoops.length === 0 && searchQuery && (
         <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-          <div className={`w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center ${isDark ? "text-[#FFC554]/70" : "text-[#881337]/70"}`}>
+          <div className={`w-12 h-12 rounded-full ${isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420]" : isDark ? "bg-white/5 border border-white/10 text-[#FFC554]/70" : "bg-black/5 border border-black/10 text-[#881337]/70"} flex items-center justify-center`}>
             <Search size={22} strokeWidth={1.75} />
           </div>
           <div>
             <p className="text-sm font-bold tracking-tight">No loops found</p>
             <p className={`text-xs ${mutedText} mt-1 max-w-[240px]`}>
-              No active rides match <span className={`${isDark ? "text-[#FFC554]" : "text-[#881337]"} font-semibold`}>"{searchQuery}"</span>. Try searching another destination, pickup, or user.
+              No active rides match <span className={`${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"} font-semibold`}>&quot;{searchQuery}&quot;</span>. Try searching another destination, pickup, or user.
             </p>
           </div>
           <button

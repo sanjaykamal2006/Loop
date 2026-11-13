@@ -17,6 +17,7 @@ interface VehiclePreferencesCardProps {
   border: string;
   mutedText: string;
   isDark: boolean;
+  isPaper?: boolean;
 }
 
 export default function VehiclePreferencesCard({
@@ -32,13 +33,18 @@ export default function VehiclePreferencesCard({
   border,
   mutedText,
   isDark,
+  isPaper = false,
 }: VehiclePreferencesCardProps) {
   return (
     <>
       {/* Offering a Ride Toggle Card with Compact Vehicle Pills */}
       <div
-        className={`p-4 sm:p-4.5 px-4.5 ${cardBg} border ${border} rounded-[24px] space-y-2.5 transition-all ${
-          isDriver ? (isDark ? "border-[#FFC554]/50 shadow-sm" : "border-[#881337]/40 shadow-sm") : ""
+        className={`p-4 sm:p-4.5 px-4.5 ${cardBg} ${
+          isPaper
+            ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+            : `border ${border}`
+        } rounded-[24px] space-y-2.5 transition-all ${
+          isDriver ? (isPaper ? "" : isDark ? "border-[#FFC554]/50 shadow-sm" : "border-[#881337]/40 shadow-sm") : ""
         }`}
       >
         <div className="flex items-center justify-between">
@@ -46,9 +52,13 @@ export default function VehiclePreferencesCard({
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
                 isDriver
-                  ? isDark
+                  ? isPaper
+                    ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                    : isDark
                     ? "bg-[#FFC554] text-black shadow-sm"
                     : "bg-[#881337] text-white shadow-sm"
+                  : isPaper
+                  ? "bg-[#FAF8F5] text-[#2A2420]/40 border border-[#2A2420]/30"
                   : isDark
                   ? "bg-white/5 text-white/40"
                   : "bg-black/5 text-black/40"
@@ -79,9 +89,13 @@ export default function VehiclePreferencesCard({
             }}
             className={`w-12 h-7 rounded-full p-0.5 transition-colors duration-200 shrink-0 cursor-pointer ${
               isDriver
-                ? isDark
+                ? isPaper
+                  ? "bg-[#FFC554] border border-[#2A2420]"
+                  : isDark
                   ? "bg-[#FFC554]"
                   : "bg-[#881337]"
+                : isPaper
+                ? "bg-[#EFE8D8] border border-[#2A2420]/30"
                 : isDark
                 ? "bg-zinc-800"
                 : "bg-zinc-300"
@@ -91,7 +105,13 @@ export default function VehiclePreferencesCard({
             aria-label="Offering a ride"
           >
             <div
-              className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${
+              className={`w-6 h-6 rounded-full shadow-md transition-transform duration-200 ${
+                isPaper
+                  ? isDriver
+                    ? "bg-[#2A2420]"
+                    : "bg-[#8E887F]"
+                  : "bg-white"
+              } ${
                 isDriver ? "translate-x-5" : "translate-x-0"
               }`}
             />
@@ -100,7 +120,7 @@ export default function VehiclePreferencesCard({
 
         {/* Compact 1-Row Vehicle Selection Pills */}
         {isDriver && (
-          <div className="pt-2 border-t border-white/5 flex gap-2 animate-fade-in">
+          <div className={`pt-2 border-t ${isPaper ? "border-[#2A2420]/15" : "border-white/5"} flex gap-2 animate-fade-in`}>
             {(
               [
                 { type: "scooter", label: "Scooter (1)", Icon: ScooterIcon },
@@ -123,9 +143,13 @@ export default function VehiclePreferencesCard({
                   }}
                   className={`flex-1 h-9 sm:h-10 rounded-xl border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-xs cursor-pointer ${
                     isSelected
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420] font-black"
+                        : isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm font-black"
                         : "bg-[#881337] border-[#881337] text-white shadow-sm font-black"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420] font-bold"
                       : `${cardBg} ${border} ${isDark ? "text-zinc-300" : "text-stone-700"} font-bold`
                   }`}
                 >
@@ -134,9 +158,13 @@ export default function VehiclePreferencesCard({
                     strokeWidth={2.2}
                     className={
                       isSelected
-                        ? isDark
+                        ? isPaper
+                          ? "text-[#2A2420]"
+                          : isDark
                           ? "text-black"
                           : "text-white"
+                        : isPaper
+                        ? "text-[#2A2420]"
                         : isDark
                         ? "text-[#FFC554]"
                         : "text-[#881337]"
@@ -157,7 +185,7 @@ export default function VehiclePreferencesCard({
             <label className={`text-[10px] sm:text-[11px] uppercase font-black ${mutedText} tracking-[0.15em]`}>
               Passenger Seats to Offer
             </label>
-            <span className={`text-[11px] font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
+            <span className={`text-[11px] font-bold ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>
               {limit} {limit === 1 ? "passenger" : "passengers"} (+ driver)
             </span>
           </div>
@@ -169,9 +197,13 @@ export default function VehiclePreferencesCard({
                 onClick={() => setLimit(n)}
                 className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                   limit === n
-                    ? isDark
+                    ? isPaper
+                      ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                      : isDark
                       ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                       : "bg-[#881337] border-[#881337] text-white shadow-sm"
+                    : isPaper
+                    ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                     : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                 }`}
               >
@@ -181,11 +213,19 @@ export default function VehiclePreferencesCard({
           </div>
         </div>
       ) : isDriver && (vehicleType === "bike" || vehicleType === "scooter") ? (
-        <div className={`p-3.5 ${cardBg} border ${border} rounded-[20px] flex items-center justify-between`}>
+        <div className={`p-3.5 ${cardBg} ${
+          isPaper
+            ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+            : `border ${border}`
+        } rounded-[20px] flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <div
               className={`w-8 h-8 rounded-xl ${
-                isDark ? "bg-[#FFC554]/15 text-[#FFC554]" : "bg-[#881337]/10 text-[#881337]"
+                isPaper
+                  ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420]"
+                  : isDark
+                  ? "bg-[#FFC554]/15 text-[#FFC554]"
+                  : "bg-[#881337]/10 text-[#881337]"
               } flex items-center justify-center shrink-0`}
             >
               <Users size={16} />
@@ -197,7 +237,9 @@ export default function VehiclePreferencesCard({
           </div>
           <span
             className={`text-[10px] sm:text-[11px] font-bold ${
-              isDark
+              isPaper
+                ? "text-[#2A2420] bg-[#FAF8F5] border border-[#2A2420]"
+                : isDark
                 ? "text-[#FFC554] bg-[#FFC554]/10 border border-[#FFC554]/20"
                 : "text-[#881337] bg-[#881337]/10 border border-[#881337]/25"
             } px-3 py-1 rounded-full`}>
@@ -218,9 +260,13 @@ export default function VehiclePreferencesCard({
                   onClick={() => setLimit(n)}
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                         : "bg-[#881337] border-[#881337] text-white shadow-sm"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                       : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
@@ -236,9 +282,13 @@ export default function VehiclePreferencesCard({
                   onClick={() => setLimit(n)}
                   className={`flex-1 h-11 sm:h-12 rounded-2xl border font-black text-sm sm:text-base active:scale-95 transition-all cursor-pointer ${
                     limit === n
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black shadow-sm"
                         : "bg-[#881337] border-[#881337] text-white shadow-sm"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                       : `${border} ${cardBg} ${isDark ? "text-zinc-300" : "text-stone-700"}`
                   }`}
                 >
@@ -253,8 +303,12 @@ export default function VehiclePreferencesCard({
       {/* Female Only Option */}
       <div
         onClick={onToggleFemaleOnly}
-        className={`flex items-center justify-between p-3.5 px-4 ${cardBg} border ${border} rounded-[22px] cursor-pointer active:scale-[0.99] transition-all ${
-          isFemaleOnly ? "border-pink-500/50" : ""
+        className={`flex items-center justify-between p-3.5 px-4 ${cardBg} ${
+          isPaper
+            ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+            : `border ${border}`
+        } rounded-[22px] cursor-pointer active:scale-[0.99] transition-all ${
+          isFemaleOnly ? (isPaper ? "border-pink-500" : "border-pink-500/50") : ""
         }`}
       >
         <div className="flex items-center gap-3">

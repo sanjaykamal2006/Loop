@@ -47,7 +47,7 @@ export function RideActionButtons({
   onBackToHistory,
   theme,
 }: RideActionButtonsProps) {
-  const { isDark, border, cardBg } = theme;
+  const { isDark, isPaper, border, cardBg } = theme;
 
   if (isPast) {
     return (
@@ -55,7 +55,9 @@ export function RideActionButtons({
         <button
           type="button"
           onClick={onBackToHistory}
-          className={`w-full py-3.5 ${cardBg} border ${border} rounded-[22px] text-xs font-black uppercase tracking-wider active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-sm cursor-pointer`}
+          className={`w-full py-3.5 ${cardBg} ${
+            isPaper ? "border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]" : `border ${border}`
+          } rounded-[22px] text-xs font-black uppercase tracking-wider active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-sm cursor-pointer`}
         >
           <ArrowLeft size={16} />
           Back to Ride History
@@ -78,8 +80,12 @@ export function RideActionButtons({
         onClick={isJoined ? onEnterChat : onJoin}
         disabled={isJoining}
         className={`w-full h-12 ${
-          isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
-        } font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer`}
+          isPaper
+            ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] hover:brightness-105"
+            : isDark
+            ? "bg-[#FFC554] text-black shadow-lg shadow-[#FFC554]/15"
+            : "bg-[#881337] text-white shadow-lg shadow-[#881337]/20"
+        } font-black rounded-[22px] text-[11px] uppercase tracking-[0.2em] disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer`}
       >
         {isJoining ? "Joining..." : isJoined ? "Open Chat" : "Join Loop"}
       </button>
@@ -88,7 +94,11 @@ export function RideActionButtons({
       <button
         type="button"
         onClick={onShareLoop}
-        className="w-full py-3 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-black text-[10px] uppercase tracking-[0.2em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+        className={`w-full py-3 ${
+          isPaper
+            ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+            : "bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366]"
+        } font-black text-[10px] uppercase tracking-[0.2em] rounded-[20px] active:scale-[0.98] flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer`}
       >
         <Share2 size={13} strokeWidth={2.5} />
         Share Loop (WhatsApp / Friends)
@@ -100,7 +110,9 @@ export function RideActionButtons({
           type="button"
           onClick={onOpenEditModal}
           className={`w-full py-3 ${cardBg} ${
-            isDark
+            isPaper
+              ? "border-2 border-[#2A2420] text-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+              : isDark
               ? "border border-[#FFC554]/30 hover:border-[#FFC554]/60 text-[#FFC554]"
               : "border border-[#881337]/30 hover:border-[#881337]/60 text-[#881337]"
           } rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98] flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer`}

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Code2, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
-import ThemeSlider from "@/components/ui/ThemeSlider";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -29,7 +28,6 @@ export default function AppHeader() {
     setShowBuyCoffeeModal,
     toggleMessageSearch,
     toggleChatSearch,
-    setTheme,
   } = useLoop();
   const { isDark, isPaper, border, cardBg } = theme;
 
@@ -101,14 +99,18 @@ export default function AppHeader() {
               aria-label="Refresh rides"
               className={`w-9 h-9 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm shrink-0`}
             >
-              <RotateCw size={15} className={isRefreshing ? `animate-spin ${isDark ? "text-[#FFC554]" : "text-[#881337]"}` : "opacity-80"} />
+              <RotateCw size={15} className={isRefreshing ? `animate-spin ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}` : "opacity-80"} />
             </button>
             {!isInstalled && (
               <button
                 onClick={handleInstallClick}
                 aria-label="Install LOOP App"
                 className={`h-9 px-3.5 rounded-full ${
-                  isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"
+                  isPaper
+                    ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                    : isDark
+                    ? "bg-[#FFC554] text-black"
+                    : "bg-[#881337] text-white"
                 } font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-md shrink-0`}
               >
                 <Download size={13} strokeWidth={2.5} />
@@ -165,7 +167,7 @@ export default function AppHeader() {
           <div>
             <h1 className="text-3xl font-black tracking-tight">Chats</h1>
             <p className="text-xs font-medium opacity-60 mt-0.5">
-              Stay in the <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>loop</span>
+              Stay in the <span className={`font-bold ${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>loop</span>
             </p>
           </div>
           <button
@@ -193,22 +195,11 @@ export default function AppHeader() {
               aria-label="Open settings menu"
               className={`w-10 h-10 rounded-full border ${border} ${cardBg} flex items-center justify-center active:scale-90 shadow-sm`}
             >
-              <Settings size={18} className={`transition-transform duration-300 ${showSettingsMenu ? (isDark ? "text-[#FFC554] rotate-90" : "text-[#881337] rotate-90") : ""}`} />
+              <Settings size={18} className={`transition-transform duration-300 ${showSettingsMenu ? `${isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"} rotate-90` : ""}`} />
             </button>
 
             {showSettingsMenu && (
               <div className={`absolute right-0 top-12 w-64 p-2.5 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1.5 backdrop-blur-xl animate-fade-in`}>
-                <div className="px-1 py-1">
-                  <div className="text-[10px] font-black uppercase tracking-wider opacity-50 mb-1.5">Appearance</div>
-                  <ThemeSlider
-                    currentTheme={theme.activeTheme || (isPaper ? "paper" : isDark ? "dark" : "light")}
-                    onSelectTheme={(t) => setTheme(t)}
-                    isDark={isDark}
-                    isPaper={isPaper}
-                  />
-                </div>
-                <div className={`h-px w-full my-0.5 ${isDark ? "bg-white/10" : "bg-black/10"}`} />
-
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);

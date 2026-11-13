@@ -172,11 +172,10 @@ export default function ProfileView() {
         profile={profile}
         email={session.user.email}
         activeAvatar={activeAvatar}
-        isUploading={isUploading}
-        onAvatarUpload={handleAvatarUpload}
         isEditingProfile={isEditingProfile}
         onStartEdit={() => setIsEditingProfile(true)}
         isDark={isDark}
+        isPaper={isPaper}
         mutedText={mutedText}
       />
 
@@ -194,11 +193,15 @@ export default function ProfileView() {
           setTempBio={setTempBio}
           onCancel={() => setIsEditingProfile(false)}
           onSave={handleSaveProfile}
+          onAvatarUpload={handleAvatarUpload}
+          isUploading={isUploading}
+          activeAvatar={activeAvatar}
           email={session.user.email}
           cardBg={cardBg}
           border={border}
           mutedText={mutedText}
           isDark={isDark}
+          isPaper={isPaper}
         />
       )}
 

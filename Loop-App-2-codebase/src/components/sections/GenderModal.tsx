@@ -8,7 +8,7 @@ import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function GenderModal() {
   const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop, setView } = useLoop();
-  const { border, cardBg, mutedText, isDark } = theme;
+  const { border, cardBg, mutedText, isDark, isPaper } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
   const [regNo, setRegNo] = useState(profile.reg_no || "");
@@ -54,17 +54,29 @@ export default function GenderModal() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Complete profile" className={`w-full max-w-sm max-h-[85vh] ${isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"} border ${border} rounded-[32px] p-6 space-y-4 shadow-2xl relative overflow-y-auto scrollbar-hide`}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Complete profile"
+        className={`w-full max-w-sm max-h-[85vh] ${
+          isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[3px_3px_0px_#2A2420]" : isDark ? "bg-[#121214] border " + border : "bg-[#FFFFFF] border " + border
+        } rounded-[32px] p-6 space-y-4 shadow-2xl relative overflow-y-auto scrollbar-hide`}
+      >
         <div className="space-y-1.5 text-center">
           <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center mx-auto mb-1 border shadow-md ${
-            isDark ? "bg-[#FFC554]/10 text-[#FFC554] border-[#FFC554]/20" : "bg-[#881337]/10 text-[#881337] border-[#881337]/25"
+            isPaper
+              ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+              : isDark
+              ? "bg-[#FFC554]/10 text-[#FFC554] border-[#FFC554]/20"
+              : "bg-[#881337]/10 text-[#881337] border-[#881337]/25"
           }`}>
             <Users size={24} strokeWidth={2.5} />
           </div>
           <h2 className="text-lg font-black tracking-tight uppercase">Complete Profile</h2>
           <p className={`text-[10px] font-bold ${mutedText} uppercase tracking-[0.2em]`}>Required to continue</p>
           <p className="text-xs opacity-60 text-center max-w-[260px] mx-auto leading-relaxed">
-            Gender is used solely for the 'Girls Only' ride safety filter.
+            Gender is used solely for the &apos;Girls Only&apos; ride safety filter.
           </p>
         </div>
 
@@ -76,8 +88,10 @@ export default function GenderModal() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none ${
-                isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+              className={`w-full h-11 ${cardBg} ${
+                isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+              } rounded-[18px] px-4 text-xs font-bold outline-none ${
+                isPaper ? "focus:border-[#2A2420] focus:ring-1 focus:ring-[#FFC554]" : isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
               } transition-colors placeholder:opacity-40`}
             />
           </div>
@@ -89,8 +103,10 @@ export default function GenderModal() {
               value={regNo}
               onChange={(e) => setRegNo(e.target.value)}
               placeholder="e.g. Google, VIT-AP, Designer"
-              className={`w-full h-11 ${cardBg} border ${border} rounded-[18px] px-4 text-xs font-bold outline-none ${
-                isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
+              className={`w-full h-11 ${cardBg} ${
+                isPaper ? "border-2 border-[#2A2420] text-[#2A2420]" : `border ${border}`
+              } rounded-[18px] px-4 text-xs font-bold outline-none ${
+                isPaper ? "focus:border-[#2A2420] focus:ring-1 focus:ring-[#FFC554]" : isDark ? "focus:border-[#FFC554]" : "focus:border-[#881337]"
               } transition-colors placeholder:opacity-40`}
             />
           </div>
@@ -104,9 +120,13 @@ export default function GenderModal() {
                   onClick={() => setGender(g as "male" | "female")}
                   className={`w-full h-12 rounded-[20px] border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer ${
                     gender === g
-                      ? isDark
+                      ? isPaper
+                        ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                        : isDark
                         ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
                         : "bg-[#881337] border-[#881337] text-white shadow-md"
+                      : isPaper
+                      ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                       : `${border} ${cardBg} ${mutedText}`
                   }`}
                 >
@@ -119,9 +139,13 @@ export default function GenderModal() {
               onClick={() => setGender("unspecified")}
               className={`w-full h-12 mt-2 rounded-[20px] border font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer ${
                 gender === "unspecified"
-                  ? isDark
+                  ? isPaper
+                    ? "bg-[#FFC554] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                    : isDark
                     ? "bg-[#FFC554] border-[#FFC554] text-black shadow-md"
                     : "bg-[#881337] border-[#881337] text-white shadow-md"
+                  : isPaper
+                  ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                   : `${border} ${cardBg} ${mutedText}`
               }`}
             >
@@ -140,7 +164,9 @@ export default function GenderModal() {
           onClick={handleSave}
           disabled={isSubmitting}
           className={`w-full h-12 ${
-            isDark
+            isPaper
+              ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] hover:brightness-105"
+              : isDark
               ? "bg-[#FFC554] text-black shadow-[#FFC554]/20"
               : "bg-[#881337] text-white shadow-[#881337]/20"
           } rounded-[20px] font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform flex items-center justify-center shadow-lg cursor-pointer ${isSubmitting ? 'opacity-50' : ''}`}

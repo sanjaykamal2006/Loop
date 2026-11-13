@@ -19,6 +19,7 @@ interface LoopDateTimePickerProps {
   setAmpm: (val: "AM" | "PM") => void;
   theme: {
     isDark: boolean;
+    isPaper?: boolean;
     bg: string;
     border: string;
     mutedText: string;
@@ -37,7 +38,7 @@ export function LoopDateTimePicker({
   setAmpm,
   theme,
 }: LoopDateTimePickerProps) {
-  const { isDark, bg, border, mutedText } = theme;
+  const { isDark, isPaper = false, bg, border, mutedText } = theme;
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
 
@@ -128,9 +129,13 @@ export function LoopDateTimePicker({
           <span
             className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
               travelDate
-                ? isDark
+                ? isPaper
+                  ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                  : isDark
                   ? "bg-[#FFC554] text-black shadow-sm"
                   : "bg-[#881337] text-white shadow-sm"
+                : isPaper
+                ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                 : isDark
                 ? "bg-white/10 text-zinc-400"
                 : "bg-black/5 text-zinc-500"
@@ -164,33 +169,37 @@ export function LoopDateTimePicker({
         >
           <Clock
             size={11}
-            className={isDark ? "text-[#FFC554]" : "text-[#881337]"}
+            className={isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]"}
           />{" "}
           Time of Travel
         </label>
         <div
           onClick={handleOpenTimePicker}
-          className={`w-full h-11 ${bg} border ${
-            hasTime ? (isDark ? "border-[#FFC554]" : "border-[#881337]") : border
+          className={`w-full h-11 ${bg} ${
+            isPaper
+              ? hasTime ? "border-2 border-[#2A2420]" : "border border-[#2A2420]/30"
+              : `border ${hasTime ? (isDark ? "border-[#FFC554]" : "border-[#881337]") : border}`
           } rounded-[18px] px-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <Clock
               size={15}
-              className={hasTime ? (isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText}
+              className={hasTime ? (isPaper ? "text-[#2A2420]" : isDark ? "text-[#FFC554]" : "text-[#881337]") : mutedText}
             />
             {hasTime ? (
               <div className="flex items-center gap-2">
                 <span
                   className={`text-xs font-black tracking-tight ${
-                    isDark ? "text-white" : "text-black"
+                    isPaper ? "text-[#2A2420]" : isDark ? "text-white" : "text-black"
                   }`}
                 >
                   {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
                 </span>
                 <span
                   className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                    isDark
+                    isPaper
+                      ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420]"
+                      : isDark
                       ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
                       : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
                   }`}
@@ -207,9 +216,13 @@ export function LoopDateTimePicker({
           <span
             className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${
               hasTime
-                ? isDark
+                ? isPaper
+                  ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                  : isDark
                   ? "bg-[#FFC554] text-black shadow-sm"
                   : "bg-[#881337] text-white shadow-sm"
+                : isPaper
+                ? "bg-[#FAF8F5] border border-[#2A2420]/30 text-[#2A2420]"
                 : isDark
                 ? "bg-white/10 text-zinc-400"
                 : "bg-black/5 text-zinc-500"

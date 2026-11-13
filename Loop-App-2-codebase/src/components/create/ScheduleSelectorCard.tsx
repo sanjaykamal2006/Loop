@@ -1,16 +1,15 @@
 "use client";
 
-import { logger } from "@/lib/logger";
-
 import React, { useRef } from "react";
 import { Calendar, Clock } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
+import { logger } from "@/lib/logger";
 
 interface ScheduleSelectorCardProps {
   travelDate: string;
-  setTravelDate: (val: string) => void;
+  setTravelDate: (date: string) => void;
   todayStr: string;
-  formatJourneyDate: (dateStr: string) => string;
+  formatJourneyDate: (d: string) => string;
   hasTime: boolean;
   hour: string;
   minute: string;
@@ -20,6 +19,7 @@ interface ScheduleSelectorCardProps {
   cardBg: string;
   border: string;
   isDark: boolean;
+  isPaper?: boolean;
 }
 
 export default function ScheduleSelectorCard({
@@ -36,6 +36,7 @@ export default function ScheduleSelectorCard({
   cardBg,
   border,
   isDark,
+  isPaper = false,
 }: ScheduleSelectorCardProps) {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +50,8 @@ export default function ScheduleSelectorCard({
         } else {
           dateInputRef.current.focus();
         }
-      } catch {
+      } catch (err) {
+        logger.error("src/components/create/ScheduleSelectorCard.tsx: swallowed non-fatal error", err);
         dateInputRef.current.focus();
       }
     }
@@ -64,7 +66,8 @@ export default function ScheduleSelectorCard({
         } else {
           timeInputRef.current.focus();
         }
-      } catch {
+      } catch (err) {
+        logger.error("src/components/create/ScheduleSelectorCard.tsx: swallowed non-fatal error", err);
         timeInputRef.current.focus();
       }
     }
@@ -72,7 +75,17 @@ export default function ScheduleSelectorCard({
 
   return (
     <div
-      className={`relative ${cardBg} border ${border} rounded-[22px] shadow-sm overflow-hidden grid grid-cols-2 divide-x divide-black/[0.06] dark:divide-white/[0.08]`}
+      className={`relative ${cardBg} ${
+        isPaper
+          ? "border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+          : `border ${border} shadow-sm`
+      } rounded-[22px] overflow-hidden grid grid-cols-2 ${
+        isPaper
+          ? "divide-x-2 divide-[#2A2420]"
+          : isDark
+          ? "divide-x divide-white/15"
+          : "divide-x divide-black/15"
+      }`}
     >
       {/* Date Column */}
       <div
@@ -85,9 +98,13 @@ export default function ScheduleSelectorCard({
             strokeWidth={2.2}
             className={
               travelDate
-                ? isDark
+                ? isPaper
+                  ? "text-[#2A2420]"
+                  : isDark
                   ? "text-[#FFC554]"
                   : "text-[#881337]"
+                : isPaper
+                ? "text-[#6B6660]"
                 : isDark
                 ? "text-zinc-400"
                 : "text-stone-500"
@@ -95,7 +112,7 @@ export default function ScheduleSelectorCard({
           />
           <span
             className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider ${
-              isDark ? "text-zinc-400" : "text-stone-600"
+              isPaper ? "text-[#6B6660]" : isDark ? "text-zinc-400" : "text-stone-600"
             }`}
           >
             Date
@@ -105,9 +122,13 @@ export default function ScheduleSelectorCard({
           <p
             className={`text-sm sm:text-[15px] font-bold truncate ${
               travelDate
-                ? isDark
+                ? isPaper
+                  ? "text-[#2A2420] font-black"
+                  : isDark
                   ? "text-white font-black"
                   : "text-zinc-950 font-black"
+                : isPaper
+                ? "text-[#6B6660]"
                 : isDark
                 ? "text-zinc-200"
                 : "text-stone-800"
@@ -146,9 +167,13 @@ export default function ScheduleSelectorCard({
             strokeWidth={2.2}
             className={
               hasTime
-                ? isDark
+                ? isPaper
+                  ? "text-[#2A2420]"
+                  : isDark
                   ? "text-[#FFC554]"
                   : "text-[#881337]"
+                : isPaper
+                ? "text-[#6B6660]"
                 : isDark
                 ? "text-zinc-400"
                 : "text-stone-500"
@@ -156,7 +181,7 @@ export default function ScheduleSelectorCard({
           />
           <span
             className={`text-[10px] sm:text-[11px] uppercase font-bold tracking-wider ${
-              isDark ? "text-zinc-400" : "text-stone-600"
+              isPaper ? "text-[#6B6660]" : isDark ? "text-zinc-400" : "text-stone-600"
             }`}
           >
             Time
@@ -165,12 +190,16 @@ export default function ScheduleSelectorCard({
         <div className="mt-1.5 flex items-center gap-1.5">
           {hasTime ? (
             <>
-              <span className={`text-sm sm:text-[15px] font-black ${isDark ? "text-white" : "text-zinc-950"}`}>
+              <span className={`text-sm sm:text-[15px] font-black ${
+                isPaper ? "text-[#2A2420]" : isDark ? "text-white" : "text-zinc-950"
+              }`}>
                 {hour.padStart(2, "0")}:{minute.padStart(2, "0")}
               </span>
               <span
                 className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                  isDark
+                  isPaper
+                    ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                    : isDark
                     ? "bg-[#FFC554]/20 text-[#FFC554] border border-[#FFC554]/40"
                     : "bg-[#881337]/10 text-[#881337] border border-[#881337]/25"
                 }`}
@@ -179,7 +208,9 @@ export default function ScheduleSelectorCard({
               </span>
             </>
           ) : (
-            <p className={`text-sm sm:text-[15px] font-bold ${isDark ? "text-zinc-200" : "text-stone-800"}`}>
+            <p className={`text-sm sm:text-[15px] font-bold ${
+              isPaper ? "text-[#6B6660]" : isDark ? "text-zinc-200" : "text-stone-800"
+            }`}>
               Select Time
             </p>
           )}
@@ -194,7 +225,7 @@ export default function ScheduleSelectorCard({
             e.stopPropagation();
             try {
               if ("showPicker" in HTMLInputElement.prototype) {
-                timeInputRef.current?.showPicker();
+                e.currentTarget.showPicker();
               }
             } catch (err) { logger.error("src/components/create/ScheduleSelectorCard.tsx: swallowed non-fatal error", err); }
           }}

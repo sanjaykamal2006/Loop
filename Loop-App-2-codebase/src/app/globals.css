@@ -298,7 +298,7 @@ body.theme-paper,
   font-family: 'Kevin Sans', 'Kevin Sans Hand', 'Kevin Sans Script', cursive, sans-serif !important;
 }
 
-/* Notebook College-Ruled & Margin Background */
+/* Notebook College-Ruled Harmonious Paper Background */
 .paper-ruled-bg {
   position: fixed;
   inset: 0;
@@ -306,10 +306,9 @@ body.theme-paper,
   z-index: 0;
   background-color: #F8F5EE;
   background-image: 
-    linear-gradient(to right, transparent 38px, rgba(217, 119, 106, 0.45) 38px, rgba(217, 119, 106, 0.45) 40px, transparent 40px),
-    linear-gradient(to bottom, rgba(143, 176, 212, 0.38) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 28px;
-  background-position: 0 0, 0 14px;
+    linear-gradient(to bottom, rgba(90, 125, 170, 0.14) 1px, transparent 1px);
+  background-size: 100% 28px;
+  background-position: 0 14px;
   opacity: 1;
   transition: opacity 0.35s ease-in-out;
 }

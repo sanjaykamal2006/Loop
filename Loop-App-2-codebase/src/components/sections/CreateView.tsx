@@ -30,7 +30,7 @@ export default function CreateView() {
     createPrefill,
     setCreatePrefill,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, isPaper, border, cardBg, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState("");
   const [dest, setDest] = useState("");
@@ -296,6 +296,7 @@ export default function CreateView() {
         cardBg={cardBg}
         border={border}
         isDark={isDark}
+        isPaper={isPaper}
       />
 
       {/* Schedule Card (Date & Time Side-by-Side) */}
@@ -313,6 +314,7 @@ export default function CreateView() {
         cardBg={cardBg}
         border={border}
         isDark={isDark}
+        isPaper={isPaper}
       />
 
       {/* Offering a Ride Toggle Card, Vehicle Pills, Capacity & Female Only */}
@@ -329,6 +331,7 @@ export default function CreateView() {
         border={border}
         mutedText={mutedText}
         isDark={isDark}
+        isPaper={isPaper}
       />
 
       {/* Submit Button */}
@@ -336,10 +339,12 @@ export default function CreateView() {
         onClick={createLoop}
         disabled={isCreatingLoop}
         className={`w-full h-13 sm:h-14 ${
-          isDark
-            ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black"
-            : "bg-[#881337] hover:bg-[#700f2b] text-white"
-        } font-black rounded-[22px] text-xs sm:text-[13px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer`}
+          isPaper
+            ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] hover:brightness-105"
+            : isDark
+            ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black shadow-lg shadow-[#FFC554]/15"
+            : "bg-[#881337] hover:bg-[#700f2b] text-white shadow-lg shadow-[#881337]/20"
+        } font-black rounded-[22px] text-xs sm:text-[13px] uppercase tracking-[0.2em] active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer`}
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>

@@ -30,7 +30,7 @@ export default function EditLoopModal({
   onUpdated,
 }: EditLoopModalProps) {
   const { theme, profile } = useLoop();
-  const { isDark, bg, border, mutedText } = theme;
+  const { isDark, isPaper, bg, border, mutedText } = theme;
 
   const [startPoint, setStartPoint] = useState(loop.start_point || "");
   const [dest, setDest] = useState(loop.destination || "");
@@ -188,17 +188,17 @@ export default function EditLoopModal({
         aria-modal="true"
         aria-label="Edit loop"
         className={`w-full max-w-sm max-h-[90vh] ${
-          isDark ? "bg-[#121214]" : "bg-[#FFFFFF]"
-        } border ${border} rounded-[32px] p-5 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide space-y-4`}
+          isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[3px_3px_0px_#2A2420]" : isDark ? "bg-[#121214] border " + border : "bg-[#FFFFFF] border " + border
+        } rounded-[32px] p-5 flex flex-col relative shadow-2xl overflow-y-auto scrollbar-hide space-y-4`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+        <div className={`flex items-center justify-between pb-3 border-b ${isPaper ? "border-[#2A2420]/15" : "border-white/10"} shrink-0`}>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#FFC554]/15 border border-[#FFC554]/30 flex items-center justify-center text-[#FFC554]">
+            <div className={`w-8 h-8 rounded-full ${isPaper ? "bg-[#FFC554] border border-[#2A2420] text-[#2A2420]" : "bg-[#FFC554]/15 border border-[#FFC554]/30 text-[#FFC554]"} flex items-center justify-center`}>
               <Edit3 size={15} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-xs font-black uppercase tracking-widest text-[#FFC554]">
+              <h2 className={`text-xs font-black uppercase tracking-widest ${isPaper ? "text-[#2A2420]" : "text-[#FFC554]"}`}>
                 Edit Ride Details
               </h2>
               <p className={`text-[10px] ${mutedText} font-medium`}>
@@ -323,7 +323,9 @@ export default function EditLoopModal({
             onClick={handleSave}
             disabled={isSaving}
             className={`w-full h-12 ${
-              isDark 
+              isPaper
+                ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420] hover:brightness-105"
+                : isDark 
                 ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black shadow-[#FFC554]/20" 
                 : "bg-[#881337] hover:bg-[#700f2b] text-white shadow-[#881337]/20"
             } font-black rounded-[22px] text-xs uppercase tracking-[0.18em] shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer`}
