@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/NativeToast";
 import { readOwnedCache, writeOwnedCache } from "@/lib/storage";
-import type { View, Loop, Profile, ThemeClasses, EmergencyContact } from "@/lib/types";
+import type { View, Loop, Profile, ThemeClasses, EmergencyContact, AppTheme } from "@/lib/types";
 import { useAuthSession } from "@/lib/hooks/useAuthSession";
 import { useEmergencySos } from "@/lib/hooks/useEmergencySos";
 import { useLoopDirectory } from "@/lib/hooks/useLoopDirectory";
@@ -29,6 +29,7 @@ export interface LoopContextValue {
   theme: ThemeClasses;
   themeTransition: { active: boolean; nextTheme: "dark" | "light" } | null;
   toggleTheme: () => void;
+  setTheme: (t: AppTheme) => void;
 
   // Profile
   profile: Profile;
@@ -230,6 +231,7 @@ function LoopProviderInner({ session, children }: { session: Session; children: 
     theme,
     themeTransition,
     toggleTheme,
+    setTheme,
     handleSignOut,
   } = useAuthSession({ session });
 
@@ -395,6 +397,7 @@ function LoopProviderInner({ session, children }: { session: Session; children: 
     theme,
     themeTransition,
     toggleTheme,
+    setTheme,
     profile,
     isProfileLoaded,
     updateProfile,
@@ -447,7 +450,7 @@ function LoopProviderInner({ session, children }: { session: Session; children: 
     toggleChatSearch,
   }),
     [
-      session, view, setView, selectedLoop, setSelectedLoop, theme, themeTransition, toggleTheme,
+      session, view, setView, selectedLoop, setSelectedLoop, theme, themeTransition, toggleTheme, setTheme,
       profile, isProfileLoaded, updateProfile, handleSignOut, activeLoops, fetchLoops,
       userJoinedLoops, userLoops, fetchUserMemberships, registerCreatedLoop, joinLoop, deleteLoop,
       leaveLoop, isJoining, isDeleting, showGenderSelect, setShowGenderSelect, pendingAction,

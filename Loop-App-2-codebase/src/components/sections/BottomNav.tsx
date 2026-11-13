@@ -8,9 +8,11 @@ import type { View } from "@/lib/types";
 
 export default function BottomNav() {
   const { view, setView, theme, profile, setShowGenderSelect, setPendingAction, unreadLoopIds } = useLoop();
-  const { isDark } = theme;
+  const { isDark, isPaper } = theme;
 
   if (view === "chat" || view === "ride-details") return null;
+
+  const activeColorClass = isDark ? "text-[#FFC554]" : isPaper ? "text-[#B45309]" : "text-[#881337]";
 
   const handleNavClick = (v: View) => {
     triggerHaptic(14);
@@ -43,7 +45,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              ? activeColorClass
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -58,7 +60,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 3 : 2.1}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              ? activeColorClass
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -73,7 +75,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              ? activeColorClass
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -88,7 +90,7 @@ export default function BottomNav() {
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
             isActive
-              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              ? activeColorClass
               : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
@@ -128,6 +130,8 @@ export default function BottomNav() {
                   isActive
                     ? isDark
                       ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
+                      : isPaper
+                      ? "bg-[#FEF08A]/90 border border-[#1C1917] shadow-[1px_1.5px_0px_#1C1917] animate-tab-settle"
                       : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
                     : "group-hover:bg-white/5"
                 }`}
@@ -159,6 +163,8 @@ export default function BottomNav() {
                   isActive
                     ? isDark
                       ? "text-white font-black"
+                      : isPaper
+                      ? "text-[#1C1917] font-black"
                       : "text-zinc-950 font-black"
                     : isDark
                     ? "text-zinc-500 font-medium"

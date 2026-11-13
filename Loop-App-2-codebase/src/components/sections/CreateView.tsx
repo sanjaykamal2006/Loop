@@ -30,7 +30,7 @@ export default function CreateView() {
     createPrefill,
     setCreatePrefill,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, border, cardBg, mutedText, primaryBtn } = theme;
 
   const [startPoint, setStartPoint] = useState("");
   const [dest, setDest] = useState("");
@@ -335,11 +335,7 @@ export default function CreateView() {
       <button
         onClick={createLoop}
         disabled={isCreatingLoop}
-        className={`w-full h-13 sm:h-14 ${
-          isDark
-            ? "bg-[#FFC554] hover:bg-[#FFC554]/90 text-black"
-            : "bg-[#881337] hover:bg-[#700f2b] text-white"
-        } font-black rounded-[22px] text-xs sm:text-[13px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer`}
+        className={`w-full h-13 sm:h-14 ${primaryBtn} font-black rounded-[22px] text-xs sm:text-[13px] uppercase tracking-[0.2em] shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer`}
       >
         {isCreatingLoop ? "Creating..." : isDriver ? "Offer Ride" : "Create Loop"}
       </button>

@@ -29,7 +29,7 @@ export default function AppHeader() {
     toggleMessageSearch,
     toggleChatSearch,
   } = useLoop();
-  const { isDark, border, cardBg } = theme;
+  const { isDark, border, cardBg, accentText } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -163,7 +163,7 @@ export default function AppHeader() {
           <div>
             <h1 className="text-3xl font-black tracking-tight">Chats</h1>
             <p className="text-xs font-medium opacity-60 mt-0.5">
-              Stay in the <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>loop</span>
+              Stay in the <span className={`font-bold ${accentText}`}>loop</span>
             </p>
           </div>
           <button

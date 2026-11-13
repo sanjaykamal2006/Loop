@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { History, ShieldCheck, Bell, ChevronRight, Moon, Sun } from "lucide-react";
+import { History, ShieldCheck, Bell, ChevronRight, Moon, Sun, FileText } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 
 interface ProfileQuickActionsCardProps {
@@ -13,6 +13,7 @@ interface ProfileQuickActionsCardProps {
   cardBg: string;
   border: string;
   isDark: boolean;
+  isPaper?: boolean;
 }
 
 export default function ProfileQuickActionsCard({
@@ -24,6 +25,7 @@ export default function ProfileQuickActionsCard({
   cardBg,
   border,
   isDark,
+  isPaper,
 }: ProfileQuickActionsCardProps) {
   return (
     <div
@@ -125,14 +127,29 @@ export default function ProfileQuickActionsCard({
         <div className="flex items-center gap-3">
           <div
             className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${
-              isDark ? "bg-amber-500/15 text-[#FFC554]" : "bg-rose-500/15 text-[#881337]"
+              isDark
+                ? "bg-amber-500/15 text-[#FFC554]"
+                : isPaper
+                ? "bg-amber-400/20 text-[#B45309]"
+                : "bg-rose-500/15 text-[#881337]"
             } flex items-center justify-center shrink-0`}
           >
-            {isDark ? <Moon size={18} strokeWidth={2.5} /> : <Sun size={18} strokeWidth={2.5} />}
+            {isDark ? (
+              <Moon size={18} strokeWidth={2.5} />
+            ) : isPaper ? (
+              <FileText size={18} strokeWidth={2.5} />
+            ) : (
+              <Sun size={18} strokeWidth={2.5} />
+            )}
           </div>
-          <span className={`text-[13px] sm:text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
-            Appearance
-          </span>
+          <div>
+            <span className={`text-[13px] sm:text-sm font-bold block ${isDark ? "text-white" : "text-zinc-900"}`}>
+              Appearance
+            </span>
+            <span className="text-[10px] font-medium block text-zinc-500">
+              {isDark ? "Dark theme" : isPaper ? "Looseleaf paper" : "Light theme"}
+            </span>
+          </div>
         </div>
 
         <button
@@ -143,6 +160,11 @@ export default function ProfileQuickActionsCard({
             <>
               <Moon size={13} className="text-[#FFC554]" />
               <span>Dark</span>
+            </>
+          ) : isPaper ? (
+            <>
+              <FileText size={13} className="text-[#B45309]" />
+              <span className="text-[#B45309]">Paper</span>
             </>
           ) : (
             <>

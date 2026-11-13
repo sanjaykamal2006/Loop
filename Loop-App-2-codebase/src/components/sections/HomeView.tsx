@@ -20,6 +20,7 @@ interface LoopCardProps {
   timeFormatted: string;
   index: number;
   onSelect: () => void;
+  accentText?: string;
 }
 
 const LoopCard = React.memo(function LoopCard({
@@ -32,6 +33,7 @@ const LoopCard = React.memo(function LoopCard({
   timeFormatted,
   index,
   onSelect,
+  accentText,
 }: LoopCardProps) {
   const currentSeats = loop.member_count || 1;
   const maxSeats = loop.participants_limit || 4;
@@ -56,7 +58,7 @@ const LoopCard = React.memo(function LoopCard({
       <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 ${
         isDark ? "bg-white/[0.04] border border-white/10" : "bg-black/[0.04] border border-black/10"
       }`}>
-        <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={isDark ? "text-[#FFC554]" : "text-[#881337]"} strokeWidth={2} />
+        <VehicleTypeIcon vehicleType={loop.vehicle_type} size={22} className={accentText || (isDark ? "text-[#FFC554]" : "text-[#881337]")} strokeWidth={2} />
       </div>
 
       {/* Route & Info Block */}
@@ -65,7 +67,7 @@ const LoopCard = React.memo(function LoopCard({
           <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
             {loop.start_point || "Campus"}
           </span>
-          <span className={`font-bold text-xs shrink-0 mx-0.5 ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>→</span>
+          <span className={`font-bold text-xs shrink-0 mx-0.5 ${accentText || (isDark ? "text-[#FFC554]" : "text-[#881337]")}`}>→</span>
           <span className={`font-bold text-[13px] sm:text-[14px] ${isDark ? "text-white" : "text-zinc-900"} leading-snug break-words`}>
             {loop.destination}
           </span>
@@ -180,7 +182,7 @@ const CAMPUS_TRANSIT_HUBS: TransitHub[] = [
 
 export default function HomeView() {
   const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, setCreatePrefill } = useLoop();
-  const { border, cardBg, mutedText, isDark } = theme;
+  const { border, cardBg, mutedText, isDark, accentText } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [hotWantsCount, setHotWantsCount] = useState<number>(0);
@@ -464,6 +466,7 @@ export default function HomeView() {
           isDark={isDark}
           cardBg={cardBg}
           border={border}
+          accentText={accentText}
           timeFormatted={formatTime(loop.departure_time)}
           onSelect={() => {
             triggerHaptic(10);

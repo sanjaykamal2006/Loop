@@ -126,12 +126,20 @@ function AppContent() {
   }
 
   React.useEffect(() => {
-    document.body.style.backgroundColor = isDark ? "#000000" : "#F2EFE9";
-  }, [isDark]);
+    document.body.style.backgroundColor = isDark ? "#000000" : theme.isPaper ? "#FBF8EF" : "#F2EFE9";
+  }, [isDark, theme.isPaper]);
 
   return (
-    <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
-      <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
+    <div
+      className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans ${
+        theme.isPaper ? "theme-paper" : ""
+      }`}
+    >
+      {theme.isPaper ? (
+        <div className="paper-ruled-bg" />
+      ) : (
+        <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
+      )}
 
       {/* When in past-loops or wants, the view manages its own top bar / back button */}
       {view !== "past-loops" && view !== "wants" && <AppHeader />}

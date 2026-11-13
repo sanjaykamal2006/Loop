@@ -40,9 +40,11 @@ export interface EmergencyContact {
   created_at?: string | null;
 }
 
+export type AppTheme = "dark" | "light" | "paper";
+
 export interface Profile {
   display_name: string;
-  theme: "dark" | "light";
+  theme: AppTheme;
   gender?: string | null;
   reg_no?: string | null;
   avatar_url?: string | null;
@@ -100,7 +102,9 @@ export interface LoopParticipant {
 }
 
 export interface ThemeClasses {
+  name?: AppTheme;
   isDark: boolean;
+  isPaper?: boolean;
   bg: string;
   text: string;
   border: string;

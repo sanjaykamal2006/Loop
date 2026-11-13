@@ -279,4 +279,89 @@ html {
   text-size-adjust: 100%;
 }
 
+/* =========================================================
+   LOOSELEAF / PAPER HAND-DRAWN THEME SYSTEM
+   ========================================================= */
+
+.paper-ruled-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-color: #FBF8EF;
+  background-image: 
+    linear-gradient(to right, rgba(239, 68, 68, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 28px;
+  background-position: 36px 0, 0 0;
+}
+
+/* Organic hand-drawn card contours & hard pencil drop-shadow */
+.theme-paper .animate-card-enter,
+.theme-paper div[role="button"].rounded-\[24px\],
+.theme-paper .rounded-\[24px\].border {
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px !important;
+  border-color: rgba(28, 25, 23, 0.75) !important;
+  box-shadow: 2px 2.5px 0px 0px rgba(28, 25, 23, 0.85) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out !important;
+}
+
+.theme-paper .animate-card-enter:active,
+.theme-paper div[role="button"].rounded-\[24px\]:active {
+  transform: translate(1.5px, 1.5px) scale(0.985) !important;
+  box-shadow: 0.5px 0.5px 0px 0px rgba(28, 25, 23, 0.85) !important;
+}
+
+/* Primary buttons: Hand-stamped marker button with ink outline & press sink */
+.theme-paper button.bg-\[\#FFC554\],
+.theme-paper button.bg-\[\#FDE047\],
+.theme-paper button[type="submit"].bg-\[\#FFC554\] {
+  background-color: #FDE047 !important;
+  color: #1C1917 !important;
+  border: 1.5px solid #1C1917 !important;
+  border-radius: 255px 255px 240px 240px/20px 20px 20px 20px !important;
+  box-shadow: 2px 3px 0px 0px #1C1917 !important;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out !important;
+}
+
+.theme-paper button.bg-\[\#FFC554\]:active,
+.theme-paper button.bg-\[\#FDE047\]:active,
+.theme-paper button[type="submit"].bg-\[\#FFC554\]:active {
+  transform: translate(1.5px, 1.5px) !important;
+  box-shadow: 0px 0px 0px 0px #1C1917 !important;
+}
+
+/* Secondary outline buttons */
+.theme-paper button.border {
+  border-color: rgba(28, 25, 23, 0.5) !important;
+}
+
+/* Highlighter effect for ride badges (Host, Female-only, Return, Joined) */
+.theme-paper span.rounded-full.bg-pink-500\/15,
+.theme-paper span.rounded-full.bg-\[\#FFC554\]\/15,
+.theme-paper span.rounded-full.bg-\[\#881337\]\/10,
+.theme-paper span.rounded-full.bg-indigo-500\/20 {
+  background: linear-gradient(104deg, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.9) 95%) !important;
+  color: #1C1917 !important;
+  border: 1px dashed rgba(28, 25, 23, 0.35) !important;
+  font-weight: 900 !important;
+  box-shadow: 1px 1px 0px 0px rgba(28, 25, 23, 0.15) !important;
+}
+
+/* BottomNav paper binder strip */
+.theme-paper nav {
+  border-top: 1.5px solid rgba(28, 25, 23, 0.18) !important;
+  background-color: #FBF8EF !important;
+}
+
+/* Text inputs on paper */
+.theme-paper input {
+  border-color: rgba(28, 25, 23, 0.3) !important;
+  color: #1C1917 !important;
+}
+.theme-paper input:focus {
+  border-color: #CA8A04 !important;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35) !important;
+}
+
 

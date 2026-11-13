@@ -233,6 +233,7 @@ export default function ProfileView() {
         cardBg={cardBg}
         border={border}
         isDark={isDark}
+        isPaper={Boolean(theme.isPaper)}
       />
 
       {/* 5. Account Actions (Anchored at the Bottom) */}
