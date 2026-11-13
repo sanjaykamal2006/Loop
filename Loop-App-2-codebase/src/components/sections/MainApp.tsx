@@ -126,7 +126,7 @@ function AppContent() {
   }
 
   React.useEffect(() => {
-    document.body.style.backgroundColor = isDark ? "#000000" : theme.isPaper ? "#FBF8EF" : "#F2EFE9";
+    document.body.style.backgroundColor = isDark ? "#000000" : theme.isPaper ? "#F8F5EE" : "#F2EFE9";
   }, [isDark, theme.isPaper]);
 
   return (

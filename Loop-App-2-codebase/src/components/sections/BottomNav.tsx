@@ -12,7 +12,8 @@ export default function BottomNav() {
 
   if (view === "chat" || view === "ride-details") return null;
 
-  const activeColorClass = isDark ? "text-[#FFC554]" : isPaper ? "text-[#B45309]" : "text-[#881337]";
+  const activeColorClass = isDark ? "text-[#FFC554]" : isPaper ? "text-[#2C4F9E]" : "text-[#881337]";
+  const inactiveColorClass = isDark ? "text-zinc-500" : isPaper ? "text-[#6B6660]" : "text-zinc-400";
 
   const handleNavClick = (v: View) => {
     triggerHaptic(14);
@@ -44,9 +45,7 @@ export default function BottomNav() {
           size={22}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
-            isActive
-              ? activeColorClass
-              : isDark ? "text-zinc-500" : "text-zinc-400"
+            isActive ? activeColorClass : inactiveColorClass
           }`}
         />
       ),
@@ -59,9 +58,7 @@ export default function BottomNav() {
           size={23}
           strokeWidth={isActive ? 3 : 2.1}
           className={`transition-colors duration-200 ${
-            isActive
-              ? activeColorClass
-              : isDark ? "text-zinc-500" : "text-zinc-400"
+            isActive ? activeColorClass : inactiveColorClass
           }`}
         />
       ),
@@ -74,9 +71,7 @@ export default function BottomNav() {
           size={21}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
-            isActive
-              ? activeColorClass
-              : isDark ? "text-zinc-500" : "text-zinc-400"
+            isActive ? activeColorClass : inactiveColorClass
           }`}
         />
       ),
@@ -89,9 +84,7 @@ export default function BottomNav() {
           size={22}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
-            isActive
-              ? activeColorClass
-              : isDark ? "text-zinc-500" : "text-zinc-400"
+            isActive ? activeColorClass : inactiveColorClass
           }`}
         />
       ),
@@ -131,7 +124,7 @@ export default function BottomNav() {
                     ? isDark
                       ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
                       : isPaper
-                      ? "bg-[#FEF08A]/90 border border-[#1C1917] shadow-[1px_1.5px_0px_#1C1917] animate-tab-settle"
+                      ? "bg-[#F8DC4C] border-[1.5px] border-[#2A2420] shadow-[1.5px_2px_0px_#2A2420] animate-tab-settle"
                       : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
                     : "group-hover:bg-white/5"
                 }`}
@@ -164,10 +157,12 @@ export default function BottomNav() {
                     ? isDark
                       ? "text-white font-black"
                       : isPaper
-                      ? "text-[#1C1917] font-black"
+                      ? "text-[#2A2420] font-black"
                       : "text-zinc-950 font-black"
                     : isDark
                     ? "text-zinc-500 font-medium"
+                    : isPaper
+                    ? "text-[#6B6660] font-medium"
                     : "text-zinc-400 font-medium"
                 }`}
               >

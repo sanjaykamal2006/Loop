@@ -15,6 +15,7 @@ interface LoopCardProps {
   isJoined: boolean;
   isHost: boolean;
   isDark: boolean;
+  isPaper?: boolean;
   cardBg: string;
   border: string;
   timeFormatted: string;
@@ -28,6 +29,7 @@ const LoopCard = React.memo(function LoopCard({
   isJoined,
   isHost,
   isDark,
+  isPaper,
   cardBg,
   border,
   timeFormatted,
@@ -136,8 +138,8 @@ const LoopCard = React.memo(function LoopCard({
                 key={i}
                 className={`w-1.5 h-1.5 rounded-full transition-colors ${
                   i < currentSeats
-                    ? isDark ? "bg-[#FFC554]" : "bg-[#881337]"
-                    : isDark ? "bg-white/20" : "bg-black/15"
+                    ? isDark ? "bg-[#FFC554]" : isPaper ? "bg-[#2C4F9E]" : "bg-[#881337]"
+                    : isDark ? "bg-white/20" : isPaper ? "bg-[#8E887F]/30" : "bg-black/15"
                 }`}
               />
             ))}
@@ -464,6 +466,7 @@ export default function HomeView() {
           isJoined={userJoinedLoops.includes(loop.id)}
           isHost={userLoops.includes(loop.id)}
           isDark={isDark}
+          isPaper={Boolean(theme.isPaper)}
           cardBg={cardBg}
           border={border}
           accentText={accentText}

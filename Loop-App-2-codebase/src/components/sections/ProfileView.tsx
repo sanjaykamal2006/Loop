@@ -21,6 +21,7 @@ import ProfileEditCard from "@/components/profile/ProfileEditCard";
 import ProfileDetailsCard from "@/components/profile/ProfileDetailsCard";
 import ProfileQuickActionsCard from "@/components/profile/ProfileQuickActionsCard";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
+import type { AppTheme } from "@/lib/types";
 
 export default function ProfileView() {
   const {
@@ -31,6 +32,7 @@ export default function ProfileView() {
     theme,
     setView,
     toggleTheme,
+    setTheme,
   } = useLoop();
   const { isDark, border, cardBg, mutedText } = theme;
 
@@ -230,6 +232,8 @@ export default function ProfileView() {
         onToggleNotifications={handleToggleNotifications}
         onTestAlert={handleTestAlert}
         toggleTheme={toggleTheme}
+        setTheme={setTheme}
+        currentTheme={theme.name || (profile.theme as AppTheme) || "dark"}
         cardBg={cardBg}
         border={border}
         isDark={isDark}

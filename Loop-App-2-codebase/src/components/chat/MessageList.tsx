@@ -211,10 +211,10 @@ export function MessageList({ room }: MessageListProps) {
                           <div
                             className={`px-4 py-3 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
                               isMe
-                                ? `${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[20px] rounded-tr-[4px] ${
+                                ? `chat-outgoing-bubble ${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[20px] rounded-tr-[4px] ${
                                     isOptimistic ? "opacity-60" : ""
                                   }`
-                                : `${cardBg} border ${border} ${text} rounded-[20px] rounded-tl-[4px]`
+                                : `chat-incoming-bubble ${cardBg} border ${border} ${text} rounded-[20px] rounded-tl-[4px]`
                             }`}
                           >
                             <p className="font-semibold leading-relaxed">{returnInfo.displayText}</p>
@@ -245,10 +245,10 @@ export function MessageList({ room }: MessageListProps) {
                         <div
                           className={`px-4 py-2.5 text-[13px] font-medium shadow-sm break-words whitespace-pre-wrap ${
                             isMe
-                              ? `${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[18px] rounded-tr-[4px] ${
+                              ? `chat-outgoing-bubble ${isDark ? "bg-[#FFC554] text-black" : "bg-[#881337] text-white"} rounded-[18px] rounded-tr-[4px] ${
                                   isOptimistic ? "opacity-60" : ""
                                 }`
-                              : `${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
+                              : `chat-incoming-bubble ${cardBg} border ${border} ${text} rounded-[18px] rounded-tl-[4px]`
                           }`}
                         >
                           {msg.content}

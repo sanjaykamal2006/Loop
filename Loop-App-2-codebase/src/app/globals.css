@@ -280,88 +280,266 @@ html {
 }
 
 /* =========================================================
-   LOOSELEAF / PAPER HAND-DRAWN THEME SYSTEM
+   LOOSELEAF / PAPER HAND-DRAWN THEME SYSTEM (OFFICIAL)
    ========================================================= */
 
+@font-face {
+  font-family: 'Kevin Sans';
+  src: url('/fonts/KevinSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kevin Sans';
+  src: url('/fonts/KevinSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Background: College-ruled notebook paper with red margin and blue rule lines */
 .paper-ruled-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-color: #FBF8EF;
+  background-color: #F8F5EE;
   background-image: 
-    linear-gradient(to right, rgba(239, 68, 68, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+    linear-gradient(to right, transparent 38px, rgba(217, 119, 106, 0.28) 38px, rgba(217, 119, 106, 0.28) 40px, transparent 40px),
+    linear-gradient(to bottom, transparent 27px, rgba(143, 176, 212, 0.32) 27px, rgba(143, 176, 212, 0.32) 28px);
   background-size: 100% 100%, 100% 28px;
-  background-position: 36px 0, 0 0;
 }
 
-/* Organic hand-drawn card contours & hard pencil drop-shadow */
+/* 1. Global Looseleaf Typography across all paper elements */
+.theme-paper,
+.theme-paper button,
+.theme-paper input,
+.theme-paper textarea,
+.theme-paper select,
+.theme-paper span,
+.theme-paper p,
+.theme-paper h1,
+.theme-paper h2,
+.theme-paper h3,
+.theme-paper h4,
+.theme-paper div {
+  font-family: 'Kevin Sans', 'Bradley Hand', 'Comic Sans MS', cursive, sans-serif !important;
+}
+
+/* 2. Authentic Looseleaf Index Cards & Containers */
 .theme-paper .animate-card-enter,
 .theme-paper div[role="button"].rounded-\[24px\],
-.theme-paper .rounded-\[24px\].border {
-  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px !important;
-  border-color: rgba(28, 25, 23, 0.75) !important;
-  box-shadow: 2px 2.5px 0px 0px rgba(28, 25, 23, 0.85) !important;
+.theme-paper .rounded-\[24px\].border,
+.theme-paper .rounded-\[28px\],
+.theme-paper .rounded-\[20px\].border,
+.theme-paper div[role="button"].rounded-\[20px\] {
+  background-color: #FFFDF6 !important;
+  border-radius: 4px 10px 5px 9px / 9px 4px 10px 5px !important;
+  border: 1.5px solid #2A2420 !important;
+  box-shadow: 2.5px 3.5px 0px 0px #2A2420, 0 6px 14px -3px rgba(42, 36, 32, 0.12) !important;
   transition: transform 0.1s ease-out, box-shadow 0.1s ease-out !important;
+  color: #2A2420 !important;
 }
 
+/* Tactile press sink physics */
 .theme-paper .animate-card-enter:active,
-.theme-paper div[role="button"].rounded-\[24px\]:active {
-  transform: translate(1.5px, 1.5px) scale(0.985) !important;
-  box-shadow: 0.5px 0.5px 0px 0px rgba(28, 25, 23, 0.85) !important;
+.theme-paper div[role="button"].rounded-\[24px\]:active,
+.theme-paper div[role="button"].rounded-\[20px\]:active {
+  transform: translate(1.5px, 2px) scale(0.99) !important;
+  box-shadow: 0.5px 1px 0px 0px #2A2420 !important;
 }
 
-/* Primary buttons: Hand-stamped marker button with ink outline & press sink */
+/* 3. Primary Buttons: Felt-tip Terracotta Marker with ink outline & press sink */
 .theme-paper button.bg-\[\#FFC554\],
 .theme-paper button.bg-\[\#FDE047\],
-.theme-paper button[type="submit"].bg-\[\#FFC554\] {
-  background-color: #FDE047 !important;
-  color: #1C1917 !important;
-  border: 1.5px solid #1C1917 !important;
+.theme-paper button.bg-\[\#DF6B3C\],
+.theme-paper button.bg-\[\#881337\],
+.theme-paper button[type="submit"] {
+  background-color: #DF6B3C !important;
+  color: #FFFDF6 !important;
+  border: 1.5px solid #2A2420 !important;
   border-radius: 255px 255px 240px 240px/20px 20px 20px 20px !important;
-  box-shadow: 2px 3px 0px 0px #1C1917 !important;
+  box-shadow: 2.5px 3.5px 0px 0px #2A2420 !important;
+  font-weight: 700 !important;
   transition: transform 0.08s ease-out, box-shadow 0.08s ease-out !important;
 }
 
 .theme-paper button.bg-\[\#FFC554\]:active,
 .theme-paper button.bg-\[\#FDE047\]:active,
-.theme-paper button[type="submit"].bg-\[\#FFC554\]:active {
-  transform: translate(1.5px, 1.5px) !important;
-  box-shadow: 0px 0px 0px 0px #1C1917 !important;
+.theme-paper button.bg-\[\#DF6B3C\]:active,
+.theme-paper button.bg-\[\#881337\]:active,
+.theme-paper button[type="submit"]:active {
+  transform: translate(1.5px, 2px) !important;
+  box-shadow: 0px 0.5px 0px 0px #2A2420 !important;
 }
 
-/* Secondary outline buttons */
+/* Switch in Paper mode */
+.theme-paper button[role="switch"] {
+  border: 1.5px solid #2A2420 !important;
+  box-shadow: 1px 1.5px 0px 0px #2A2420 !important;
+}
+.theme-paper button[role="switch"][aria-checked="true"] {
+  background-color: #DF6B3C !important;
+}
+.theme-paper button[role="switch"][aria-checked="false"] {
+  background-color: #EFE8D8 !important;
+}
+.theme-paper button[role="switch"] > div {
+  border: 1px solid #2A2420 !important;
+}
+
+/* 4. Secondary & Outline Buttons */
 .theme-paper button.border {
-  border-color: rgba(28, 25, 23, 0.5) !important;
+  border: 1.5px solid #2A2420 !important;
+  background-color: #FFFDF6 !important;
+  color: #2A2420 !important;
+  box-shadow: 1.5px 2px 0px 0px #2A2420 !important;
 }
 
-/* Highlighter effect for ride badges (Host, Female-only, Return, Joined) */
-.theme-paper span.rounded-full.bg-pink-500\/15,
+.theme-paper button.border:active {
+  transform: translate(1px, 1.5px) !important;
+  box-shadow: 0px 0.5px 0px 0px #2A2420 !important;
+}
+
+/* 5. Authentic Looseleaf Highlighter Pens & Stamp Badges */
+/* Host & General highlight badges (Lemon highlighter) */
 .theme-paper span.rounded-full.bg-\[\#FFC554\]\/15,
 .theme-paper span.rounded-full.bg-\[\#881337\]\/10,
-.theme-paper span.rounded-full.bg-indigo-500\/20 {
-  background: linear-gradient(104deg, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.9) 95%) !important;
-  color: #1C1917 !important;
-  border: 1px dashed rgba(28, 25, 23, 0.35) !important;
-  font-weight: 900 !important;
-  box-shadow: 1px 1px 0px 0px rgba(28, 25, 23, 0.15) !important;
+.theme-paper span.rounded-full.bg-amber-500\/15 {
+  background: linear-gradient(104deg, rgba(248, 220, 76, 0.95) 0%, rgba(254, 240, 138, 0.9) 95%) !important;
+  color: #2A2420 !important;
+  border: 1.2px dashed #2A2420 !important;
+  font-weight: 700 !important;
+  box-shadow: 1px 1.5px 0px 0px #2A2420 !important;
 }
 
-/* BottomNav paper binder strip */
+/* Female-only badge (Pink sticky note tone) */
+.theme-paper span.rounded-full.bg-pink-500\/15 {
+  background-color: #F6B8B0 !important;
+  color: #2A2420 !important;
+  border: 1.2px dashed #2A2420 !important;
+  font-weight: 700 !important;
+  box-shadow: 1px 1.5px 0px 0px #2A2420 !important;
+}
+
+/* Return trip / Co-traveller badge (Indigo/Blue ballpoint ink wash) */
+.theme-paper span.rounded-full.bg-indigo-500\/20,
+.theme-paper span.rounded-full.bg-purple-500\/15 {
+  background-color: #BCD8F0 !important;
+  color: #2C4F9E !important;
+  border: 1.2px dashed #2C4F9E !important;
+  font-weight: 700 !important;
+  box-shadow: 1px 1.5px 0px 0px #2C4F9E !important;
+}
+
+/* Available seats badge (Mint green check) */
+.theme-paper span.rounded-full.bg-emerald-500\/15,
+.theme-paper span.rounded-full.bg-green-500\/15 {
+  background-color: #CFE6A8 !important;
+  color: #2F6B45 !important;
+  border: 1.2px solid #2F6B45 !important;
+  font-weight: 700 !important;
+  box-shadow: 1px 1.5px 0px 0px #2F6B45 !important;
+}
+
+/* 6. Inputs & Search bar: Ruled Paper Field with Ballpoint Blue Ink */
+.theme-paper input,
+.theme-paper textarea {
+  color: #2C4F9E !important;
+  caret-color: #2C4F9E !important;
+}
+
+.theme-paper input:not(.bg-transparent),
+.theme-paper textarea:not(.bg-transparent) {
+  background-color: #FFFDF6 !important;
+  border: 1.5px solid #2A2420 !important;
+  border-radius: 12px !important;
+  box-shadow: 1px 1.5px 0px 0px rgba(42, 36, 32, 0.4) !important;
+}
+
+.theme-paper input.bg-transparent,
+.theme-paper textarea.bg-transparent {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Home pill search bar */
+.theme-paper div:has(> input[aria-label="Search loops"]) {
+  background-color: #FFFDF6 !important;
+  border: 1.5px solid #2A2420 !important;
+  box-shadow: 2px 2.5px 0px 0px #2A2420 !important;
+}
+
+.theme-paper input::placeholder,
+.theme-paper textarea::placeholder {
+  color: #6B6660 !important;
+  opacity: 0.8 !important;
+}
+
+.theme-paper input:focus,
+.theme-paper textarea:focus {
+  border-color: #2C4F9E !important;
+  box-shadow: 0 0 0 2px rgba(44, 79, 158, 0.35) !important;
+}
+
+/* 7. BottomNav Notebook Binder Strip */
 .theme-paper nav {
-  border-top: 1.5px solid rgba(28, 25, 23, 0.18) !important;
-  background-color: #FBF8EF !important;
+  border-top: 2px solid #2A2420 !important;
+  background-color: #F8F5EE !important;
+  box-shadow: 0 -2px 10px rgba(42, 36, 32, 0.08) !important;
 }
 
-/* Text inputs on paper */
-.theme-paper input {
-  border-color: rgba(28, 25, 23, 0.3) !important;
-  color: #1C1917 !important;
+/* 8. Chat Bubbles in Looseleaf Style */
+/* Outgoing messages: Yellow Sticky Note with pencil shadow */
+.theme-paper .chat-outgoing-bubble {
+  background-color: #FEF3C7 !important;
+  color: #2A2420 !important;
+  border: 1.5px solid #2A2420 !important;
+  border-radius: 18px 4px 18px 18px !important;
+  box-shadow: 2px 2.5px 0px 0px #2A2420 !important;
 }
-.theme-paper input:focus {
-  border-color: #CA8A04 !important;
-  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35) !important;
+
+/* Incoming messages: Crisp Index Paper Slip */
+.theme-paper .chat-incoming-bubble {
+  background-color: #FFFDF6 !important;
+  color: #2A2420 !important;
+  border: 1.5px solid #2A2420 !important;
+  border-radius: 4px 18px 18px 18px !important;
+  box-shadow: 2px 2.5px 0px 0px #2A2420 !important;
+}
+
+/* 9. Modals & Dialogs in Looseleaf Paper mode */
+.theme-paper [role="dialog"],
+.theme-paper .fixed.inset-0 .bg-\[\#121212\],
+.theme-paper .fixed.inset-0 .bg-\[\#FAF8F5\] {
+  background-color: #FFFDF6 !important;
+  border: 2px solid #2A2420 !important;
+  border-radius: 20px !important;
+  box-shadow: 3px 5px 0px 0px #2A2420, 0 16px 32px -4px rgba(42, 36, 32, 0.25) !important;
+  color: #2A2420 !important;
+}
+
+/* 10. Washi Tape Decoration Utility */
+.theme-paper .ll-tape {
+  position: relative;
+}
+.theme-paper .ll-tape::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 56px;
+  height: 16px;
+  background-color: rgba(246, 244, 236, 0.85);
+  border-left: 1px dashed rgba(140, 135, 120, 0.5);
+  border-right: 1px dashed rgba(140, 135, 120, 0.5);
+  box-shadow: 0 1px 2px rgba(42, 36, 32, 0.15);
+  z-index: 10;
+  pointer-events: none;
 }
 
 

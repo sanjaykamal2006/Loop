@@ -47,22 +47,22 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
     name: themeName,
     isDark,
     isPaper,
-    bg: isDark ? "bg-[#000000]" : isPaper ? "bg-[#FBF8EF]" : "bg-[#F2EFE9]",
-    text: isDark ? "text-white" : "text-[#1C1917]",
-    border: isDark ? "border-[#27272A]" : isPaper ? "border-[#1C1917]/25" : "border-[#DFD9CE]",
-    cardBg: isDark ? "bg-[#121212]" : isPaper ? "bg-[#FFFFFF]" : "bg-[#FAF8F5]",
-    mutedText: isDark ? "text-[#A1A1AA]" : isPaper ? "text-[#57534E]" : "text-[#57534E]",
-    accentText: isDark ? "text-[#FFC554]" : isPaper ? "text-[#B45309]" : "text-[#881337]",
-    accentBg: isDark ? "bg-[#FFC554]" : isPaper ? "bg-[#FDE047]" : "bg-[#881337]",
-    accentBgSubtle: isDark ? "bg-[#FFC554]/15" : isPaper ? "bg-[#FEF08A]/75" : "bg-[#881337]/10",
-    accentBorder: isDark ? "border-[#FFC554]" : isPaper ? "border-[#CA8A04]" : "border-[#881337]",
-    accentBorderSubtle: isDark ? "border-[#FFC554]/30" : isPaper ? "border-[#FACC15]/60" : "border-[#881337]/30",
+    bg: isDark ? "bg-[#000000]" : isPaper ? "bg-[#F8F5EE]" : "bg-[#F2EFE9]",
+    text: isDark ? "text-white" : isPaper ? "text-[#2A2420]" : "text-[#1C1917]",
+    border: isDark ? "border-[#27272A]" : isPaper ? "border-[#2A2420]/30" : "border-[#DFD9CE]",
+    cardBg: isDark ? "bg-[#121212]" : isPaper ? "bg-[#FFFDF6]" : "bg-[#FAF8F5]",
+    mutedText: isDark ? "text-[#A1A1AA]" : isPaper ? "text-[#6B6660]" : "text-[#57534E]",
+    accentText: isDark ? "text-[#FFC554]" : isPaper ? "text-[#2C4F9E]" : "text-[#881337]",
+    accentBg: isDark ? "bg-[#FFC554]" : isPaper ? "bg-[#DF6B3C]" : "bg-[#881337]",
+    accentBgSubtle: isDark ? "bg-[#FFC554]/15" : isPaper ? "bg-[#F8DC4C]/35" : "bg-[#881337]/10",
+    accentBorder: isDark ? "border-[#FFC554]" : isPaper ? "border-[#2A2420]" : "border-[#881337]",
+    accentBorderSubtle: isDark ? "border-[#FFC554]/30" : isPaper ? "border-[#2A2420]/30" : "border-[#881337]/30",
     primaryBtn: isDark
       ? "bg-[#FFC554] text-black"
       : isPaper
-        ? "bg-[#FDE047] text-[#1C1917] border border-[#1C1917]"
+        ? "bg-[#DF6B3C] text-[#FFFDF6] border-[1.5px] border-[#2A2420]"
         : "bg-[#881337] text-white",
-    accentColor: isDark ? "#FFC554" : isPaper ? "#FDE047" : "#881337",
+    accentColor: isDark ? "#FFC554" : isPaper ? "#DF6B3C" : "#881337",
   };
 
   const [themeTransition, setThemeTransition] = useState<{ active: boolean; nextTheme: "dark" | "light" } | null>(null);
@@ -70,7 +70,7 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
   // Synchronize mobile notification/status bar theme-color
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const targetColor = isDark ? "#000000" : isPaper ? "#FBF8EF" : "#ffffff";
+    const targetColor = isDark ? "#000000" : isPaper ? "#F8F5EE" : "#ffffff";
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {
       meta = document.createElement("meta");
