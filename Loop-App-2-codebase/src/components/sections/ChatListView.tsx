@@ -124,7 +124,7 @@ export default function ChatListView() {
     markLoopAsRead,
     isChatSearchOpen,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, isPaper, border, cardBg, mutedText } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
   // Per-user cache key: recent messages must never be readable by a different
@@ -361,8 +361,12 @@ export default function ChatListView() {
   if (joinedLoops.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[58vh] text-center px-6 animate-fade-in">
-        <div className={`w-16 h-16 rounded-3xl ${cardBg} border ${border} flex items-center justify-center mb-4 shadow-sm`}>
-          <MessageSquare size={28} className={mutedText} strokeWidth={1.8} />
+        <div className={`w-16 h-16 rounded-3xl ${
+          isPaper
+            ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+            : `${cardBg} border ${border} shadow-sm`
+        } flex items-center justify-center mb-4`}>
+          <MessageSquare size={28} className={isPaper ? "text-[#2A2420]" : mutedText} strokeWidth={1.8} />
         </div>
         <p className="text-sm font-black uppercase tracking-wider">No Active Chats</p>
         <p className={`text-xs ${mutedText} mt-1.5 max-w-[260px] leading-relaxed`}>
@@ -371,7 +375,9 @@ export default function ChatListView() {
         <button
           onClick={() => setView("home")}
           className={`mt-6 px-6 py-2.5 rounded-full ${
-            isDark
+            isPaper
+              ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+              : isDark
               ? "bg-[#FFC554] text-black shadow-lg shadow-[#FFC554]/15"
               : "bg-[#881337] text-white shadow-lg shadow-[#881337]/20"
           } font-black text-xs uppercase tracking-wider active:scale-95 hover:brightness-105 transition-all cursor-pointer`}
@@ -453,11 +459,13 @@ export default function ChatListView() {
                 setView("chat");
               }
             }}
-            className={`p-3 px-3.5 rounded-[20px] border transition-all duration-150 cursor-pointer active:scale-[0.965] animate-card-enter ${
-              isDark
-                ? "bg-[#121214] border-white/10 hover:border-white/20"
-                : "bg-white border-black/[0.08] shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
-            } ${isUnread ? (isDark ? "ring-1 ring-[#FFC554]/60" : "ring-1 ring-[#881337]/60") : ""}`}
+            className={`p-3 px-3.5 rounded-[20px] transition-all duration-150 cursor-pointer active:scale-[0.965] animate-card-enter ${
+              isPaper
+                ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                : isDark
+                ? "bg-[#121214] border border-white/10 hover:border-white/20"
+                : "bg-white border border-black/[0.08] shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
+            } ${isUnread ? (isPaper ? "ring-2 ring-[#FFC554]" : isDark ? "ring-1 ring-[#FFC554]/60" : "ring-1 ring-[#881337]/60") : ""}`}
           >
             {/* Top Row: Icon + Destination + Time + Chevron */}
             <div className="flex items-center justify-between">

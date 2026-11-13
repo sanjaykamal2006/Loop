@@ -12,8 +12,6 @@ import {
   isNotificationEnabled,
   setNotificationEnabled,
   requestNotificationPermission,
-  subscribeToPushNotifications,
-  unsubscribeFromPushNotifications,
   sendLocalNotification,
 } from "@/lib/notifications";
 import ProfileHero from "@/components/profile/ProfileHero";
@@ -21,7 +19,6 @@ import ProfileEditCard from "@/components/profile/ProfileEditCard";
 import ProfileDetailsCard from "@/components/profile/ProfileDetailsCard";
 import ProfileQuickActionsCard from "@/components/profile/ProfileQuickActionsCard";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
-import type { AppTheme } from "@/lib/types";
 
 export default function ProfileView() {
   const {
@@ -34,7 +31,7 @@ export default function ProfileView() {
     toggleTheme,
     setTheme,
   } = useLoop();
-  const { isDark, border, cardBg, mutedText } = theme;
+  const { isDark, isPaper, border, cardBg, mutedText } = theme;
 
   const [tempName, setTempName] = useState(profile.display_name);
   const [tempRegNo, setTempRegNo] = useState(profile.reg_no || "");
@@ -56,9 +53,6 @@ export default function ProfileView() {
     if (notifEnabled) {
       setNotificationEnabled(false);
       setNotifEnabled(false);
-      if (session?.user?.id) {
-        void unsubscribeFromPushNotifications(session.user.id);
-      }
       return;
     }
 
@@ -66,20 +60,14 @@ export default function ProfileView() {
     if (currentPerm === "granted") {
       setNotificationEnabled(true);
       setNotifEnabled(true);
-      if (session?.user?.id) {
-        void subscribeToPushNotifications(session.user.id);
-      }
       return;
     }
 
-    const res = await requestNotificationPermission(session?.user?.id);
+    const res = await requestNotificationPermission();
     if (res.granted) {
       setNotifPermission("granted");
       setNotificationEnabled(true);
       setNotifEnabled(true);
-      if (session?.user?.id) {
-        void subscribeToPushNotifications(session.user.id);
-      }
     } else if (res.reason === "ios_not_pwa") {
       toast.info("On iPhone, notifications require adding LOOP to your Home Screen: Tap Share -> 'Add to Home Screen'.");
     } else if (res.reason === "blocked") {
@@ -223,6 +211,7 @@ export default function ProfileView() {
         border={border}
         mutedText={mutedText}
         isDark={isDark}
+        isPaper={isPaper}
       />
 
       {/* 4. Quick Actions & Preferences Card */}
@@ -233,11 +222,11 @@ export default function ProfileView() {
         onTestAlert={handleTestAlert}
         toggleTheme={toggleTheme}
         setTheme={setTheme}
-        currentTheme={theme.name || (profile.theme as AppTheme) || "dark"}
+        activeTheme={profile.theme}
         cardBg={cardBg}
         border={border}
         isDark={isDark}
-        isPaper={Boolean(theme.isPaper)}
+        isPaper={isPaper}
       />
 
       {/* 5. Account Actions (Anchored at the Bottom) */}

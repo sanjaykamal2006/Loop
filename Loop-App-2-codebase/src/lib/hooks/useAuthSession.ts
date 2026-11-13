@@ -39,38 +39,38 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
   }, [profile]);
 
   // Theme calculations
-  const themeName = (profile.theme as AppTheme) || "dark";
-  const isDark = themeName === "dark";
-  const isPaper = themeName === "paper";
+  const isPaper = profile.theme === "paper";
+  const isDark = profile.theme === "dark";
+  const activeTheme: AppTheme = profile.theme || "dark";
 
   const theme: ThemeClasses = {
-    name: themeName,
     isDark,
     isPaper,
-    bg: isDark ? "bg-[#000000]" : isPaper ? "bg-[#F8F5EE]" : "bg-[#F2EFE9]",
-    text: isDark ? "text-white" : isPaper ? "text-[#2A2420]" : "text-[#1C1917]",
-    border: isDark ? "border-[#27272A]" : isPaper ? "border-[#2A2420]/30" : "border-[#DFD9CE]",
-    cardBg: isDark ? "bg-[#121212]" : isPaper ? "bg-[#FFFDF6]" : "bg-[#FAF8F5]",
-    mutedText: isDark ? "text-[#A1A1AA]" : isPaper ? "text-[#6B6660]" : "text-[#57534E]",
-    accentText: isDark ? "text-[#FFC554]" : isPaper ? "text-[#2C4F9E]" : "text-[#881337]",
-    accentBg: isDark ? "bg-[#FFC554]" : isPaper ? "bg-[#DF6B3C]" : "bg-[#881337]",
-    accentBgSubtle: isDark ? "bg-[#FFC554]/15" : isPaper ? "bg-[#F8DC4C]/35" : "bg-[#881337]/10",
-    accentBorder: isDark ? "border-[#FFC554]" : isPaper ? "border-[#2A2420]" : "border-[#881337]",
-    accentBorderSubtle: isDark ? "border-[#FFC554]/30" : isPaper ? "border-[#2A2420]/30" : "border-[#881337]/30",
-    primaryBtn: isDark
+    activeTheme,
+    bg: isPaper ? "bg-[#F8F5EE]" : isDark ? "bg-[#000000]" : "bg-[#F2EFE9]",
+    text: isPaper ? "text-[#2A2420]" : isDark ? "text-white" : "text-[#1C1917]",
+    border: isPaper ? "border-[#8E887F]/40" : isDark ? "border-[#27272A]" : "border-[#DFD9CE]",
+    cardBg: isPaper ? "bg-[#FBF6E9]" : isDark ? "bg-[#121212]" : "bg-[#FAF8F5]",
+    mutedText: isPaper ? "text-[#6B6660]" : isDark ? "text-[#A1A1AA]" : "text-[#57534E]",
+    accentText: isPaper ? "text-[#B48208]" : isDark ? "text-[#FFC554]" : "text-[#881337]",
+    accentBg: isPaper ? "bg-[#FFC554]" : isDark ? "bg-[#FFC554]" : "bg-[#881337]",
+    accentBgSubtle: isPaper ? "bg-[#F8DC4C]/35" : isDark ? "bg-[#FFC554]/15" : "bg-[#881337]/10",
+    accentBorder: isPaper ? "border-[#2A2420]" : isDark ? "border-[#FFC554]" : "border-[#881337]",
+    accentBorderSubtle: isPaper ? "border-[#8E887F]/50" : isDark ? "border-[#FFC554]/30" : "border-[#881337]/30",
+    primaryBtn: isPaper
+      ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+      : isDark
       ? "bg-[#FFC554] text-black"
-      : isPaper
-        ? "bg-[#DF6B3C] text-[#FFFDF6] border-[1.5px] border-[#2A2420]"
-        : "bg-[#881337] text-white",
-    accentColor: isDark ? "#FFC554" : isPaper ? "#DF6B3C" : "#881337",
+      : "bg-[#881337] text-white",
+    accentColor: isPaper ? "#FFC554" : isDark ? "#FFC554" : "#881337",
   };
 
-  const [themeTransition, setThemeTransition] = useState<{ active: boolean; nextTheme: "dark" | "light" } | null>(null);
+  const [themeTransition, setThemeTransition] = useState<{ active: boolean; nextTheme: "dark" | "light" | "paper" } | null>(null);
 
-  // Synchronize mobile notification/status bar theme-color
+  // Synchronize mobile notification/status bar theme-color & html/body class
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const targetColor = isDark ? "#000000" : isPaper ? "#F8F5EE" : "#ffffff";
+    const targetColor = isPaper ? "#F8F5EE" : isDark ? "#000000" : "#ffffff";
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -78,7 +78,12 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
       document.head.appendChild(meta);
     }
     meta.setAttribute("content", targetColor);
-  }, [isDark, isPaper]);
+
+    document.documentElement.classList.remove("theme-dark", "theme-light", "theme-paper");
+    document.body.classList.remove("theme-dark", "theme-light", "theme-paper");
+    document.documentElement.classList.add(`theme-${activeTheme}`);
+    document.body.classList.add(`theme-${activeTheme}`);
+  }, [activeTheme, isDark, isPaper]);
 
   // Fetch profile
   const fetchProfile = useCallback(async () => {
@@ -261,17 +266,14 @@ export function useAuthSession({ session }: UseAuthSessionOptions) {
   );
 
   const toggleTheme = useCallback(() => {
-    const current = (profileRef.current.theme as AppTheme) || "dark";
+    const current = profileRef.current.theme;
     const nextTheme: AppTheme = current === "dark" ? "light" : current === "light" ? "paper" : "dark";
     updateProfile({ theme: nextTheme });
   }, [updateProfile]);
 
-  const setTheme = useCallback(
-    (nextTheme: AppTheme) => {
-      updateProfile({ theme: nextTheme });
-    },
-    [updateProfile]
-  );
+  const setTheme = useCallback((nextTheme: AppTheme) => {
+    updateProfile({ theme: nextTheme });
+  }, [updateProfile]);
 
   const handleSignOut = useCallback(async () => {
     // Remove every app-owned cache (profile, messages, members, emergency

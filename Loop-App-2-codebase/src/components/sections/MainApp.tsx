@@ -87,7 +87,7 @@ function AppContent() {
     showBuyCoffeeModal,
     setShowBuyCoffeeModal,
   } = useLoop();
-  const { isDark, bg, text } = theme;
+  const { isDark, isPaper, bg, text } = theme;
 
   // Apple iOS Directional Navigation State Controller
   const [navState, setNavState] = React.useState<{
@@ -126,16 +126,12 @@ function AppContent() {
   }
 
   React.useEffect(() => {
-    document.body.style.backgroundColor = isDark ? "#000000" : theme.isPaper ? "#F8F5EE" : "#F2EFE9";
-  }, [isDark, theme.isPaper]);
+    document.body.style.backgroundColor = isPaper ? "#F8F5EE" : isDark ? "#000000" : "#F2EFE9";
+  }, [isDark, isPaper]);
 
   return (
-    <div
-      className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans ${
-        theme.isPaper ? "theme-paper" : ""
-      }`}
-    >
-      {theme.isPaper ? (
+    <div className={`flex flex-col h-[100dvh] max-w-md mx-auto ${bg} ${text} relative overflow-hidden font-sans`}>
+      {isPaper ? (
         <div className="paper-ruled-bg" />
       ) : (
         <div className={`dot-matrix-bg transition-colors duration-1000 ${isDark ? "text-white" : "text-black"}`} />
@@ -152,7 +148,7 @@ function AppContent() {
       ) : (
         <main
           key={`view-${view}`}
-          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto pb-24 ${(view === "past-loops" || view === "wants") ? "pt-5" : ""}`}
+          className={`flex-1 relative z-0 px-4 sm:px-5 scrollbar-hide flex flex-col ${navState.animClass} overflow-y-auto overflow-x-hidden w-full max-w-full pb-24 ${(view === "past-loops" || view === "wants") ? "pt-5" : ""}`}
         >
           {view === "home" && <HomeView />}
           {view === "create" && <CreateView />}

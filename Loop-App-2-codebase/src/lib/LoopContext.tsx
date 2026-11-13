@@ -27,9 +27,9 @@ export interface LoopContextValue {
 
   // Theme
   theme: ThemeClasses;
-  themeTransition: { active: boolean; nextTheme: "dark" | "light" } | null;
+  themeTransition: { active: boolean; nextTheme: "dark" | "light" | "paper" } | null;
   toggleTheme: () => void;
-  setTheme: (t: AppTheme) => void;
+  setTheme: (theme: AppTheme) => void;
 
   // Profile
   profile: Profile;
@@ -235,17 +235,10 @@ function LoopProviderInner({ session, children }: { session: Session; children: 
     handleSignOut,
   } = useAuthSession({ session });
 
-  // Browser navigation & Deep link handler: detail views push to stack; root tabs replace
+  // Browser navigation & Deep link handler
   const setView = useCallback((v: View) => {
     setViewState(v);
-    if (typeof window !== "undefined") {
-      const isDetail = ["ride-details", "chat", "trusted-vehicles", "past-loops", "wants"].includes(v);
-      if (isDetail) {
-        window.history.pushState({ view: v }, "", "");
-      } else {
-        window.history.replaceState({ view: v }, "", "");
-      }
-    }
+    window.history.pushState({ view: v }, "", "");
   }, []);
 
   const selectedLoopRef = useRef(selectedLoop);

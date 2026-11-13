@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/NativeToast";
 import { useModalA11y } from "@/lib/hooks/useModalA11y";
 
 export default function GenderModal() {
-  const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop, setView, setCreatePrefill } = useLoop();
+  const { showGenderSelect, setShowGenderSelect, profile, updateProfile, theme, pendingAction, setPendingAction, joinLoop, setView } = useLoop();
   const { border, cardBg, mutedText, isDark } = theme;
 
   const [name, setName] = useState(profile.display_name || "");
@@ -46,13 +46,6 @@ export default function GenderModal() {
         setPendingAction(null);
         joinLoop(targetLoop, updates);
       } else if (pendingAction?.type === "create") {
-        if (pendingAction.prefill) {
-          setCreatePrefill?.({
-            destination: pendingAction.prefill.destination,
-            travelDate: pendingAction.prefill.depart_date,
-            ...(pendingAction.prefill.depart_time ? { departTime: pendingAction.prefill.depart_time } : {}),
-          });
-        }
         setPendingAction(null);
         setView("create");
       }

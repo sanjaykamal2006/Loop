@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { ChevronLeft, Plus, Download, Settings, History, ShieldCheck, Code2, RotateCw, Languages, Search, Coffee, ShieldAlert } from "lucide-react";
 import { toast } from "@/components/ui/NativeToast";
+import ThemeSlider from "@/components/ui/ThemeSlider";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -28,8 +29,9 @@ export default function AppHeader() {
     setShowBuyCoffeeModal,
     toggleMessageSearch,
     toggleChatSearch,
+    setTheme,
   } = useLoop();
-  const { isDark, border, cardBg, accentText } = theme;
+  const { isDark, isPaper, border, cardBg } = theme;
 
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -163,7 +165,7 @@ export default function AppHeader() {
           <div>
             <h1 className="text-3xl font-black tracking-tight">Chats</h1>
             <p className="text-xs font-medium opacity-60 mt-0.5">
-              Stay in the <span className={`font-bold ${accentText}`}>loop</span>
+              Stay in the <span className={`font-bold ${isDark ? "text-[#FFC554]" : "text-[#881337]"}`}>loop</span>
             </p>
           </div>
           <button
@@ -195,7 +197,18 @@ export default function AppHeader() {
             </button>
 
             {showSettingsMenu && (
-              <div className={`absolute right-0 top-12 w-56 p-2 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in`}>
+              <div className={`absolute right-0 top-12 w-64 p-2.5 ${cardBg} border ${border} rounded-2xl shadow-2xl z-50 flex flex-col gap-1.5 backdrop-blur-xl animate-fade-in`}>
+                <div className="px-1 py-1">
+                  <div className="text-[10px] font-black uppercase tracking-wider opacity-50 mb-1.5">Appearance</div>
+                  <ThemeSlider
+                    currentTheme={theme.activeTheme || (isPaper ? "paper" : isDark ? "dark" : "light")}
+                    onSelectTheme={(t) => setTheme(t)}
+                    isDark={isDark}
+                    isPaper={isPaper}
+                  />
+                </div>
+                <div className={`h-px w-full my-0.5 ${isDark ? "bg-white/10" : "bg-black/10"}`} />
+
                 <button
                   onClick={() => {
                     setShowSettingsMenu(false);

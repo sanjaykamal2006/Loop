@@ -61,23 +61,18 @@ export function Toaster() {
     >
       <div
         key={activeToast.id}
-        className="pointer-events-auto max-w-[85vw] bg-[#18181b]/95 backdrop-blur-xl border border-white/15 text-white rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 animate-fade-in transition-all"
-        style={{
-          boxShadow: activeToast.type === 'error' 
-            ? '0 20px 40px rgba(0,0,0,0.85), 0 0 20px rgba(239, 68, 68, 0.15)' 
-            : '0 20px 40px rgba(0,0,0,0.85), 0 0 20px rgba(255, 197, 84, 0.12)'
-        }}
+        className="loop-toast pointer-events-auto max-w-[85vw] rounded-2xl px-5 py-3.5 flex items-center gap-3 animate-fade-in transition-all"
       >
         {activeToast.type === "success" && (
-          <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
+          <CheckCircle2 size={20} className="toast-icon-success text-emerald-400 shrink-0" />
         )}
         {activeToast.type === "error" && (
-          <AlertCircle size={20} className="text-red-400 shrink-0" />
+          <AlertCircle size={20} className="toast-icon-error text-red-400 shrink-0" />
         )}
         {activeToast.type === "info" && (
-          <Info size={20} className="text-sky-400 shrink-0" />
+          <Info size={20} className="toast-icon-info text-[#FFC554] shrink-0" />
         )}
-        <span className="text-sm font-bold text-white tracking-wide text-center">
+        <span className="toast-text text-sm font-bold tracking-wide text-center">
           {activeToast.message}
         </span>
       </div>

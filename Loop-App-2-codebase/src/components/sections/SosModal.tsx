@@ -44,9 +44,8 @@ export default function SosModal() {
   // never a leak from a previous session. */
   const { location, isLocating, locError } = useSosLocation(showSosModal);
 
-  // Active targeted emergency contact (bounds-checked)
-  const validIdx = Math.min(selectedContactIdx, Math.max(0, emergencyContacts.length - 1));
-  const currentContact = emergencyContacts[validIdx] || null;
+  // Active targeted emergency contact
+  const currentContact = emergencyContacts[selectedContactIdx] || emergencyContacts[0] || null;
   const hasValidContact = Boolean(
     currentContact?.phone && /^[6-9]\d{9}$/.test(sanitizeIndianPhoneNumber(currentContact.phone))
   );
@@ -106,12 +105,8 @@ export default function SosModal() {
     if (location) {
       text += `My Live GPS Pin: https://maps.google.com/?q=${location.lat},${location.lng}\n`;
       text += `GPS Accuracy: ~${location.accuracy}m\n`;
-    } else if (isLocating) {
-      text += `Live GPS Pin: Acquiring satellite fix... (dispatched immediately for emergency)\n`;
-    } else if (locError) {
-      text += `Live GPS Pin: Unavailable (${locError})\n`;
     } else {
-      text += `Live GPS Pin: Unavailable on device\n`;
+      text += `Live GPS Pin: Unavailable (location permission denied on phone)\n`;
     }
 
     text += `\nPlease check on me immediately or contact authorities if I do not answer!`;

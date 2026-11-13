@@ -207,38 +207,25 @@ export function useLoopDirectory({
     [session.user.id, setSelectedLoop, setUserLoops, setUserJoinedLoops]
   );
 
-  // Resume action after profile completion modal; discard zombie action if dismissed without completion
+  // Resume joining after profile completion modal
   useEffect(() => {
-    if (!pendingAction) return;
-
-    const isComplete = Boolean(profile.gender && profile.display_name && profile.reg_no);
-    if (!isComplete) {
-      // If modal was dismissed without completion, immediately purge pending action
-      if (!showGenderSelect) {
-        setPendingAction(null);
+    if (pendingAction?.type === "join" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
+      if (pendingAction.data) {
+        joinLoop(pendingAction.data);
       }
-      return;
-    }
-
-    if (!showGenderSelect) {
-      if (pendingAction.type === "join") {
-        if (pendingAction.data) {
-          joinLoop(pendingAction.data);
-        }
-        setPendingAction(null);
-      } else if (pendingAction.type === "create") {
-        // Co-traveller board: adopt the saved prefill before entering CreateView,
-        // otherwise the pre-filled destination/date/time is lost after profile setup.
-        if (pendingAction.prefill) {
-          setCreatePrefill?.({
-            destination: pendingAction.prefill.destination,
-            travelDate: pendingAction.prefill.depart_date,
-            ...(pendingAction.prefill.depart_time ? { departTime: pendingAction.prefill.depart_time } : {}),
-          });
-        }
-        setView("create");
-        setPendingAction(null);
+      setPendingAction(null);
+    } else if (pendingAction?.type === "create" && profile.gender && profile.display_name && profile.reg_no && !showGenderSelect) {
+      // Co-traveller board: adopt the saved prefill before entering CreateView,
+      // otherwise the pre-filled destination/date/time is lost after profile setup.
+      if (pendingAction.prefill) {
+        setCreatePrefill?.({
+          destination: pendingAction.prefill.destination,
+          travelDate: pendingAction.prefill.depart_date,
+          ...(pendingAction.prefill.depart_time ? { departTime: pendingAction.prefill.depart_time } : {}),
+        });
       }
+      setView("create");
+      setPendingAction(null);
     }
   }, [profile.gender, profile.display_name, profile.reg_no, showGenderSelect, pendingAction, joinLoop, setView, setCreatePrefill]);
 

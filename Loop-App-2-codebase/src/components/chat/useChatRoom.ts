@@ -28,18 +28,6 @@ interface UseChatRoomOptions {
   setView: (view: View) => void;
 }
 
-function mergeFetchedPreservingOptimistic(fetched: Message[], current: Message[]): Message[] {
-  const pendingOptimistic = current.filter((m) => m.id.startsWith("temp-"));
-  if (pendingOptimistic.length === 0) return fetched;
-
-  // Preserve any optimistic messages that haven't been committed/reflected in fetched DB rows yet
-  const uncommittedOptimistic = pendingOptimistic.filter(
-    (opt) => !fetched.some((f) => f.user_id === opt.user_id && f.content === opt.content)
-  );
-
-  return [...fetched, ...uncommittedOptimistic];
-}
-
 export function useChatRoom({
   session,
   selectedLoop,
@@ -170,27 +158,21 @@ export function useChatRoom({
               profiles: sender?.profiles || { display_name: "Member" },
             } as Message;
           });
-          setMessages((prev) => {
-            const merged = mergeFetchedPreservingOptimistic(enriched, prev);
-            messageCache.set(loopId, merged);
-            try {
-              localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(merged));
-            } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
-            return merged;
-          });
+          messageCache.set(loopId, enriched);
+          setMessages(enriched);
+          try {
+            localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(enriched));
+          } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
           setHasMoreMessages(fallbackData.length === PAGE_SIZE);
           requestAnimationFrame(() => scrollToBottom(false));
         }
       } else if (data) {
         const msgs = (data as unknown as Message[]).reverse();
-        setMessages((prev) => {
-          const merged = mergeFetchedPreservingOptimistic(msgs, prev);
-          messageCache.set(loopId, merged);
-          try {
-            localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(merged));
-          } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
-          return merged;
-        });
+        messageCache.set(loopId, msgs);
+        setMessages(msgs);
+        try {
+          localStorage.setItem(messagesCacheKey(loopId), JSON.stringify(msgs));
+        } catch (err) { logger.error("src/components/chat/useChatRoom.ts: swallowed non-fatal error", err); }
         setHasMoreMessages(data.length === PAGE_SIZE);
         requestAnimationFrame(() => scrollToBottom(false));
       }
@@ -338,16 +320,10 @@ export function useChatRoom({
 
   // Swap an optimistic row for its DB row and persist exactly once — both send
   // variants (text, location share) previously duplicated this block.
-  // If tempId was superseded by a concurrent fetch, ensures realMsg is safely in the list.
   const settleOptimisticMessage = useCallback(
     (tempId: string, realMsg: Message, loopId: string) => {
       setMessages((prev) => {
-        const hasTemp = prev.some((m) => m.id === tempId);
-        const next = hasTemp
-          ? prev.map((m) => (m.id === tempId ? realMsg : m))
-          : prev.some((m) => m.id === realMsg.id)
-            ? prev
-            : [...prev, realMsg];
+        const next = prev.map((m) => (m.id === tempId ? realMsg : m));
         messageCache.set(loopId, next);
         try {
           // Same per-user scoped key the read path uses — never the raw

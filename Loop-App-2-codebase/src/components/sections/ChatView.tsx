@@ -28,8 +28,6 @@ export default function ChatView() {
     emergencyContacts = [],
     isMessageSearchOpen,
     setIsMessageSearchOpen,
-    unreadLoopIds,
-    markLoopAsRead,
   } = useLoop();
   const { isDark, border, cardBg, mutedText, text } = theme;
 
@@ -76,13 +74,6 @@ export default function ChatView() {
       isCancelled = true;
     };
   }, [selectedLoop?.id, selectedLoop?.creator_id, session.user.id, userJoinedLoops, userLoops, isJoining, setView]);
-
-  // Automatically mark loop as read upon entering ChatView from any path (home, ride-details, deep link, push)
-  useEffect(() => {
-    if (selectedLoop?.id && unreadLoopIds?.includes(selectedLoop.id)) {
-      markLoopAsRead(selectedLoop.id);
-    }
-  }, [selectedLoop?.id, unreadLoopIds, markLoopAsRead]);
 
   const room = useChatRoom({
     session,

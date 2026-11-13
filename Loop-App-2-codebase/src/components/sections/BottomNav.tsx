@@ -4,6 +4,7 @@ import React from "react";
 import { useLoop } from "@/lib/LoopContext";
 import { MapPin, Plus, MessageSquare, User } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
+import { HandDrawnMapPin, HandDrawnPlus } from "@/components/ui/HandDrawnIcons";
 import type { View } from "@/lib/types";
 
 export default function BottomNav() {
@@ -11,9 +12,6 @@ export default function BottomNav() {
   const { isDark, isPaper } = theme;
 
   if (view === "chat" || view === "ride-details") return null;
-
-  const activeColorClass = isDark ? "text-[#FFC554]" : isPaper ? "text-[#2C4F9E]" : "text-[#881337]";
-  const inactiveColorClass = isDark ? "text-zinc-500" : isPaper ? "text-[#6B6660]" : "text-zinc-400";
 
   const handleNavClick = (v: View) => {
     triggerHaptic(14);
@@ -40,28 +38,44 @@ export default function BottomNav() {
     {
       v: "home",
       label: "Home",
-      icon: (isActive) => (
-        <MapPin
-          size={22}
-          strokeWidth={isActive ? 2.6 : 1.9}
-          className={`transition-colors duration-200 ${
-            isActive ? activeColorClass : inactiveColorClass
-          }`}
-        />
-      ),
+      icon: (isActive) =>
+        isPaper ? (
+          <HandDrawnMapPin
+            size={22}
+            color={isActive ? "#2A2420" : "#8E887F"}
+          />
+        ) : (
+          <MapPin
+            size={22}
+            strokeWidth={isActive ? 2.6 : 1.9}
+            className={`transition-colors duration-200 ${
+              isActive
+                ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+                : isDark ? "text-zinc-500" : "text-zinc-400"
+            }`}
+          />
+        ),
     },
     {
       v: "create",
       label: "Create",
-      icon: (isActive) => (
-        <Plus
-          size={23}
-          strokeWidth={isActive ? 3 : 2.1}
-          className={`transition-colors duration-200 ${
-            isActive ? activeColorClass : inactiveColorClass
-          }`}
-        />
-      ),
+      icon: (isActive) =>
+        isPaper ? (
+          <HandDrawnPlus
+            size={23}
+            color={isActive ? "#2A2420" : "#8E887F"}
+          />
+        ) : (
+          <Plus
+            size={23}
+            strokeWidth={isActive ? 3 : 2.1}
+            className={`transition-colors duration-200 ${
+              isActive
+                ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+                : isDark ? "text-zinc-500" : "text-zinc-400"
+            }`}
+          />
+        ),
     },
     {
       v: "chat-list",
@@ -71,7 +85,9 @@ export default function BottomNav() {
           size={21}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
-            isActive ? activeColorClass : inactiveColorClass
+            isActive
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
       ),
@@ -84,7 +100,9 @@ export default function BottomNav() {
           size={22}
           strokeWidth={isActive ? 2.6 : 1.9}
           className={`transition-colors duration-200 ${
-            isActive ? activeColorClass : inactiveColorClass
+            isActive
+              ? isDark ? "text-[#FFC554]" : "text-[#881337]"
+              : isDark ? "text-zinc-500" : "text-zinc-400"
           }`}
         />
       ),
@@ -95,7 +113,9 @@ export default function BottomNav() {
     <nav
       aria-label="Main Navigation"
       className={`absolute bottom-0 left-0 right-0 z-30 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4 backdrop-blur-2xl transition-colors duration-300 ${
-        isDark
+        isPaper
+          ? "bg-[#FAF8F5]/95 border-t-2 border-[#2A2420] shadow-[0_-4px_16px_rgba(42,36,32,0.08)]"
+          : isDark
           ? "bg-black/90 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]"
           : "bg-white/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)]"
       }`}
@@ -121,11 +141,13 @@ export default function BottomNav() {
                 key={`${v}-${isActive}`}
                 className={`relative px-3.5 py-1 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                   isActive
-                    ? isDark
+                    ? isPaper
+                      ? "bg-[#F8DC4C]/40 border border-[#2A2420] shadow-[1px_1px_0px_#2A2420] animate-tab-settle"
+                      : isDark
                       ? "bg-[#FFC554]/15 shadow-[0_0_12px_rgba(255,197,84,0.15)] animate-tab-settle"
-                      : isPaper
-                      ? "bg-[#F8DC4C] border-[1.5px] border-[#2A2420] shadow-[1.5px_2px_0px_#2A2420] animate-tab-settle"
                       : "bg-[#881337]/10 shadow-[0_0_12px_rgba(136,19,55,0.1)] animate-tab-settle"
+                    : isPaper
+                    ? "hover:bg-black/5"
                     : "group-hover:bg-white/5"
                 }`}
               >
@@ -136,12 +158,14 @@ export default function BottomNav() {
                   <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
                     <span
                       className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                        isDark ? "bg-[#FFC554]" : "bg-[#881337]"
+                        isPaper ? "bg-[#FFC554]" : isDark ? "bg-[#FFC554]" : "bg-[#881337]"
                       }`}
                     />
                     <span
                       className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                        isDark
+                        isPaper
+                          ? "bg-[#FFC554] border border-[#2A2420]"
+                          : isDark
                           ? "bg-[#FFC554] border border-black shadow-[0_0_6px_#FFC554]"
                           : "bg-[#881337] border border-white"
                       }`}
@@ -154,15 +178,15 @@ export default function BottomNav() {
               <span
                 className={`text-[11px] sm:text-xs tracking-tight mt-0.5 transition-colors duration-200 ${
                   isActive
-                    ? isDark
-                      ? "text-white font-black"
-                      : isPaper
+                    ? isPaper
                       ? "text-[#2A2420] font-black"
+                      : isDark
+                      ? "text-white font-black"
                       : "text-zinc-950 font-black"
-                    : isDark
-                    ? "text-zinc-500 font-medium"
                     : isPaper
                     ? "text-[#6B6660] font-medium"
+                    : isDark
+                    ? "text-zinc-500 font-medium"
                     : "text-zinc-400 font-medium"
                 }`}
               >
@@ -173,7 +197,9 @@ export default function BottomNav() {
               <span
                 className={`h-0.5 rounded-full mt-0.5 transition-all duration-300 ${
                   isActive
-                    ? isDark
+                    ? isPaper
+                      ? "w-3.5 bg-[#FFC554] opacity-100 shadow-[0_0_4px_#FFC554]"
+                      : isDark
                       ? "w-3.5 bg-[#FFC554] opacity-100 shadow-[0_0_6px_#FFC554]"
                       : "w-3.5 bg-[#881337] opacity-100 shadow-[0_0_6px_rgba(136,19,55,0.5)]"
                     : "w-0 opacity-0"
