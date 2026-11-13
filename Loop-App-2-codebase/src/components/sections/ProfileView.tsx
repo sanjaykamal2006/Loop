@@ -121,6 +121,11 @@ export default function ProfileView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!session?.user?.id) {
+      toast.error("Please sign in again to upload a photo.");
+      return;
+    }
+
     if (file.size > 15 * 1024 * 1024) {
       return toast.error("Image must be smaller than 15MB");
     }
@@ -150,16 +155,29 @@ export default function ProfileView() {
         .from("avatars")
         .getPublicUrl(fileName);
 
-      await updateProfile({ avatar_url: publicUrl });
-      toast.success("Profile photo updated!");
+      const success = await updateProfile({ avatar_url: publicUrl });
+      if (success !== false) {
+        toast.success("Profile photo updated!");
+      }
     } catch (err: unknown) {
       logger.error("Avatar upload error:", err);
       setOptimisticAvatarUrl(null); // Revert optimistic preview on error
-      const message = err instanceof Error ? err.message : "Failed to upload image. Please try again.";
+      let message = "Failed to upload image. Please try again.";
+      if (err instanceof Error) {
+        if (err.message.includes("row-level security")) {
+          message = "Upload permission denied. Please sign in again and retry.";
+        } else if (err.message.includes("not supported") || err.message.includes("mime")) {
+          message = "Unsupported image format. Please select a JPEG, PNG, or WebP photo.";
+        } else if (err.message.includes("exceeded") || err.message.includes("Payload too large")) {
+          message = "Image file is too large. Please select a smaller photo.";
+        } else {
+          message = err.message;
+        }
+      }
       toast.error(message);
     } finally {
       setIsUploading(false);
-      e.target.value = "";
+      if (e.target) e.target.value = "";
     }
   };
 

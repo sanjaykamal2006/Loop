@@ -66,11 +66,16 @@ export async function compressAvatarImage(
         const ctx = canvas.getContext("2d", { alpha: true });
         if (!ctx) {
           const fallbackUrl = URL.createObjectURL(file);
+          const rawExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+          const fileExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(rawExt) ? rawExt : "jpg";
+          const contentType = file.type && ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)
+            ? file.type
+            : "image/jpeg";
           return resolve({
             file,
             previewUrl: fallbackUrl,
-            fileExt: file.name.split(".").pop()?.toLowerCase() || "jpg",
-            contentType: file.type || "image/jpeg",
+            fileExt,
+            contentType,
             originalSize: file.size,
             compressedSize: file.size,
           });
@@ -91,11 +96,16 @@ export async function compressAvatarImage(
           (blob) => {
             if (!blob) {
               const fallbackUrl = URL.createObjectURL(file);
+              const rawExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+              const fileExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(rawExt) ? rawExt : "jpg";
+              const contentType = file.type && ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)
+                ? file.type
+                : "image/jpeg";
               return resolve({
                 file,
                 previewUrl: fallbackUrl,
-                fileExt: file.name.split(".").pop()?.toLowerCase() || "jpg",
-                contentType: file.type || "image/jpeg",
+                fileExt,
+                contentType,
                 originalSize: file.size,
                 compressedSize: file.size,
               });
