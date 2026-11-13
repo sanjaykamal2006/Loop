@@ -13,6 +13,7 @@ import {
   setNotificationEnabled,
   requestNotificationPermission,
   subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
   sendLocalNotification,
 } from "@/lib/notifications";
 import ProfileHero from "@/components/profile/ProfileHero";
@@ -53,6 +54,9 @@ export default function ProfileView() {
     if (notifEnabled) {
       setNotificationEnabled(false);
       setNotifEnabled(false);
+      if (session?.user?.id) {
+        void unsubscribeFromPushNotifications(session.user.id);
+      }
       return;
     }
 
@@ -71,6 +75,9 @@ export default function ProfileView() {
       setNotifPermission("granted");
       setNotificationEnabled(true);
       setNotifEnabled(true);
+      if (session?.user?.id) {
+        void subscribeToPushNotifications(session.user.id);
+      }
     } else if (res.reason === "ios_not_pwa") {
       toast.info("On iPhone, notifications require adding LOOP to your Home Screen: Tap Share -> 'Add to Home Screen'.");
     } else if (res.reason === "blocked") {

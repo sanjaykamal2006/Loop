@@ -101,9 +101,6 @@ export function useRideWants(options?: UseRideWantsOptions) {
     setSubmitting(true);
     triggerHaptic(10);
 
-    // Save snapshot for rollback if network fails
-    const snapshot = wants;
-
     // 1. Optimistic Update: card appears on screen in 0 ms
     if (destKey && departDate) {
       setWants((prev) => {
@@ -133,10 +130,24 @@ export function useRideWants(options?: UseRideWantsOptions) {
       });
     }
 
+    const rollbackPost = () => {
+      setWants((prev) =>
+        prev
+          .map((item) => {
+            if (item.destination_key === destKey && item.depart_date === departDate) {
+              if (item.is_creator && item.intent_count <= 1) return null;
+              return { ...item, has_mine: false, intent_count: Math.max(0, item.intent_count - 1) };
+            }
+            return item;
+          })
+          .filter((item): item is RideWantRow => item !== null)
+      );
+    };
+
     try {
       const res = await postRideWant(params);
       if (res.error) {
-        setWants(snapshot);
+        rollbackPost();
         notifyError(res.error, "Failed to post");
         return false;
       }
@@ -149,7 +160,7 @@ export function useRideWants(options?: UseRideWantsOptions) {
       await loadBoard({ silent: true });
       return true;
     } catch {
-      setWants(snapshot);
+      rollbackPost();
       notifyError({ message: "Network error occurred" }, "Failed to post");
       return false;
     } finally {
@@ -162,7 +173,6 @@ export function useRideWants(options?: UseRideWantsOptions) {
     triggerHaptic(10);
 
     // 1. Optimistic Update: count increments and button flips to "Undo" immediately
-    const snapshot = wants;
     setWants((prev) =>
       prev.map((item) =>
         item.destination_key === row.destination_key && item.depart_date === row.depart_date
@@ -180,7 +190,18 @@ export function useRideWants(options?: UseRideWantsOptions) {
       departDate: row.depart_date,
     });
     if (res.error) {
-      setWants(snapshot);
+      // Localized delta rollback (does not blow away concurrent real-time updates)
+      setWants((prev) =>
+        prev.map((item) =>
+          item.destination_key === row.destination_key && item.depart_date === row.depart_date
+            ? {
+                ...item,
+                has_mine: false,
+                intent_count: Math.max(0, item.intent_count - 1),
+              }
+            : item
+        )
+      );
       notifyError(res.error, "Failed to join");
       return;
     }
@@ -195,7 +216,6 @@ export function useRideWants(options?: UseRideWantsOptions) {
     triggerHaptic(10);
 
     // 1. Optimistic Update: removed immediately, count decrements
-    const snapshot = wants;
     setWants((prev) =>
       prev
         .map((item) =>
@@ -216,7 +236,18 @@ export function useRideWants(options?: UseRideWantsOptions) {
       departDate: row.depart_date,
     });
     if (res.error) {
-      setWants(snapshot);
+      // Localized delta rollback
+      setWants((prev) =>
+        prev.map((item) =>
+          item.destination_key === row.destination_key && item.depart_date === row.depart_date
+            ? {
+                ...item,
+                has_mine: true,
+                intent_count: item.intent_count + 1,
+              }
+            : item
+        )
+      );
       notifyError(res.error, "Failed to remove");
       return;
     }

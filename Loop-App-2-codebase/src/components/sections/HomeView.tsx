@@ -8,7 +8,7 @@ import { fetchRideWants } from "@/lib/rideWants";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
 import { triggerHaptic } from "@/lib/haptics";
 import { supabase } from "@/lib/supabase";
-import type { Loop } from "@/lib/types";
+import { type Loop, isLoopActive } from "@/lib/types";
 
 interface LoopCardProps {
   loop: Loop;
@@ -250,7 +250,7 @@ export default function HomeView() {
     setView("create");
   };
 
-  const openLoops = activeLoops.filter(l => l.status === 'open');
+  const openLoops = activeLoops.filter((l) => isLoopActive(l.status));
 
   const feedLoops = openLoops.filter(l => {
     if (!searchQuery.trim()) return true;

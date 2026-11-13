@@ -23,6 +23,14 @@ export interface Loop {
   } | null;
 }
 
+export const ACTIVE_LOOP_STATUSES = ["open", "active", "started", "in_progress"] as const;
+export type ActiveLoopStatus = (typeof ACTIVE_LOOP_STATUSES)[number];
+
+export function isLoopActive(status?: string | null): boolean {
+  if (!status) return true;
+  return (ACTIVE_LOOP_STATUSES as readonly string[]).includes(status);
+}
+
 export interface EmergencyContact {
   id?: string;
   user_id?: string;

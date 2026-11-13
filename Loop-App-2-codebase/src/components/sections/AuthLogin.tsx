@@ -22,26 +22,37 @@ interface AuthLoginProps {
   onPasswordResetComplete?: () => void;
 }
 
+export type AuthStage =
+  | "login"
+  | "signup"
+  | "verify_signup_otp"
+  | "verify_reset_otp"
+  | "set_new_password"
+  | "privacy";
+
 export default function AuthLogin({ 
   initialPasswordReset = false, 
   onStartPasswordReset,
   onPasswordResetComplete 
 }: AuthLoginProps) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [stage, setStage] = useState<AuthStage>(() =>
+    initialPasswordReset ? "set_new_password" : "login"
+  );
+  const previousStageRef = React.useRef<AuthStage>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isResetOtp, setIsResetOtp] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(initialPasswordReset);
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  const isLogin = stage === "login";
 
   useEffect(() => {
-    setIsResettingPassword(initialPasswordReset);
+    if (initialPasswordReset) {
+      setStage("set_new_password");
+    }
   }, [initialPasswordReset]);
 
   useEffect(() => {
@@ -61,11 +72,6 @@ export default function AuthLogin({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (isVerifying) {
-      handleVerifyOtp();
-      return;
-    }
 
     if (hasPlusAddressing(email)) {
       toast.error(PLUS_ADDRESSING_ERROR_MESSAGE);
@@ -125,7 +131,8 @@ export default function AuthLogin({
         if (data.session) {
           toast.success("Welcome to Loop!");
         } else {
-          setIsVerifying(true);
+          setStage("verify_signup_otp");
+          setOtp("");
           setCountdown(60);
         }
       }
@@ -152,7 +159,7 @@ export default function AuthLogin({
       if (onPasswordResetComplete) {
         onPasswordResetComplete();
       } else {
-        setIsResettingPassword(false);
+        setStage("login");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to update password";
@@ -187,8 +194,8 @@ export default function AuthLogin({
         toast.success("Account activated! Welcome to Loop.");
       } else {
         toast.success("Email verified! You can now login.");
-        setIsLogin(true);
-        setIsVerifying(false);
+        setStage("login");
+        setOtp("");
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Invalid or expired code";
@@ -242,9 +249,9 @@ export default function AuthLogin({
 
       toast.success("Code verified! Set your new password.");
       if (onStartPasswordReset) onStartPasswordReset();
-      setIsResetOtp(false);
-      setIsResettingPassword(true);
+      setStage("set_new_password");
       setPassword("");
+      setOtp("");
     } catch (error: unknown) {
       logger.error("Recovery OTP verify error:", error);
       const message = error instanceof Error ? error.message : "Invalid or expired code";
@@ -274,11 +281,11 @@ export default function AuthLogin({
     }
   };
 
-  if (showPrivacy) {
-    return <PrivacyPolicyView onBack={() => setShowPrivacy(false)} />;
+  if (stage === "privacy") {
+    return <PrivacyPolicyView onBack={() => setStage(previousStageRef.current || "signup")} />;
   }
 
-  if (isResettingPassword) {
+  if (stage === "set_new_password") {
     return (
       <AuthResetPasswordView
         password={password}
@@ -288,7 +295,7 @@ export default function AuthLogin({
         isLoading={isLoading}
         onSubmit={handleSetNewPassword}
         onBack={async () => {
-          setIsResettingPassword(false);
+          setStage("login");
           await supabase.auth.signOut({ scope: "global" }).catch(() => {});
           if (onPasswordResetComplete) onPasswordResetComplete();
         }}
@@ -296,7 +303,7 @@ export default function AuthLogin({
     );
   }
 
-  if (isVerifying) {
+  if (stage === "verify_signup_otp") {
     return (
       <AuthOtpView
         title="VERIFY"
@@ -305,7 +312,10 @@ export default function AuthLogin({
         setOtp={setOtp}
         onVerify={handleVerifyOtp}
         onResend={resendOtp}
-        onBack={() => setIsVerifying(false)}
+        onBack={() => {
+          setStage("signup");
+          setOtp("");
+        }}
         isLoading={isLoading}
         countdown={countdown}
         verifyButtonText="Verify & Continue"
@@ -314,7 +324,7 @@ export default function AuthLogin({
     );
   }
 
-  if (isResetOtp) {
+  if (stage === "verify_reset_otp") {
     return (
       <AuthOtpView
         title="RESET CODE"
@@ -324,7 +334,7 @@ export default function AuthLogin({
         onVerify={handleVerifyResetOtp}
         onResend={resendResetOtp}
         onBack={() => {
-          setIsResetOtp(false);
+          setStage("login");
           setOtp("");
         }}
         isLoading={isLoading}
@@ -335,7 +345,7 @@ export default function AuthLogin({
         secondaryAction={{
           label: "Back to Login",
           onClick: () => {
-            setIsResetOtp(false);
+            setStage("login");
             setOtp("");
           },
         }}
@@ -419,7 +429,7 @@ export default function AuthLogin({
                         if (error) throw error;
                         setOtp("");
                         setCountdown(60);
-                        setIsResetOtp(true);
+                        setStage("verify_reset_otp");
                         toast.success("Reset code sent! Please check your Inbox and Spam folder.");
                       } catch (err: unknown) {
                         logger.error("Password reset request failed:", err);
@@ -451,7 +461,10 @@ export default function AuthLogin({
                     I have read and agree to LOOP&apos;s{" "}
                     <button 
                       type="button"
-                      onClick={() => setShowPrivacy(true)}
+                      onClick={() => {
+                        previousStageRef.current = stage;
+                        setStage("privacy");
+                      }}
                       className="text-[#FFC554] hover:underline font-bold cursor-pointer"
                     >
                       Privacy Notice
@@ -472,7 +485,7 @@ export default function AuthLogin({
                   type="button"
                   className="text-xs font-extrabold text-white/80 hover:text-white transition-colors tracking-wide cursor-pointer"
                   onClick={() => {
-                    setIsLogin(!isLogin);
+                    setStage(stage === "login" ? "signup" : "login");
                     setShowPassword(false);
                   }}
                 >

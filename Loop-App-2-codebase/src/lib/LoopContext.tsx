@@ -233,10 +233,17 @@ function LoopProviderInner({ session, children }: { session: Session; children: 
     handleSignOut,
   } = useAuthSession({ session });
 
-  // Browser navigation & Deep link handler
+  // Browser navigation & Deep link handler: detail views push to stack; root tabs replace
   const setView = useCallback((v: View) => {
     setViewState(v);
-    window.history.pushState({ view: v }, "", "");
+    if (typeof window !== "undefined") {
+      const isDetail = ["ride-details", "chat", "trusted-vehicles", "past-loops", "wants"].includes(v);
+      if (isDetail) {
+        window.history.pushState({ view: v }, "", "");
+      } else {
+        window.history.replaceState({ view: v }, "", "");
+      }
+    }
   }, []);
 
   const selectedLoopRef = useRef(selectedLoop);
