@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
  * which would block the nonce-based one.
  */
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   turbopack: {
     root: process.cwd(),
   },
