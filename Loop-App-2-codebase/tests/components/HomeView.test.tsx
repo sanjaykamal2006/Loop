@@ -84,6 +84,8 @@ const defaultContext = {
   setShowGenderSelect: vi.fn(),
   setPendingAction: vi.fn(),
   setCreatePrefill: vi.fn(),
+  fetchLoops: vi.fn().mockResolvedValue([]),
+  fetchUserMemberships: vi.fn().mockResolvedValue([]),
   theme: {
     isDark: true,
     bg: 'bg-black',

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ScooterIcon, MotorcycleIcon, CarIcon } from "@/components/ui/VehicleIcons";
+import { haptic } from "@/lib/haptics";
 
 interface LoopCapacityPickerProps {
   isDriverOffering?: boolean | null;
@@ -56,6 +57,7 @@ export function LoopCapacityPicker({
                   key={v.type}
                   type="button"
                   onClick={() => {
+                    haptic.selection();
                     setVehicleType(v.type);
                     if (v.type === "scooter" || v.type === "bike") {
                       setLimit(1);
@@ -121,7 +123,10 @@ export function LoopCapacityPicker({
                     key={n}
                     type="button"
                     disabled={isDisabled}
-                    onClick={() => setLimit(n)}
+                    onClick={() => {
+                      haptic.medium();
+                      setLimit(n);
+                    }}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
                         ? isPaper
@@ -187,7 +192,10 @@ export function LoopCapacityPicker({
                     key={n}
                     type="button"
                     disabled={isDisabled}
-                    onClick={() => setLimit(n)}
+                    onClick={() => {
+                      haptic.medium();
+                      setLimit(n);
+                    }}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
                         ? isPaper
@@ -218,7 +226,10 @@ export function LoopCapacityPicker({
                     key={n}
                     type="button"
                     disabled={isDisabled}
-                    onClick={() => setLimit(n)}
+                    onClick={() => {
+                      haptic.medium();
+                      setLimit(n);
+                    }}
                     className={`flex-1 h-9 rounded-xl border font-black text-xs active:scale-95 transition-all cursor-pointer ${
                       limit === n
                         ? isPaper

@@ -8,7 +8,7 @@ import type { Message, Loop, LoopMember, Profile, View } from "@/lib/types";
 import type { Session } from "@supabase/supabase-js";
 import { LRUCache } from "@/lib/cache";
 import { formatDepartureFull } from "@/lib/dateFormatter";
-import { triggerHaptic } from "@/lib/haptics";
+import { triggerHaptic, haptic } from "@/lib/haptics";
 import { useChatSearch } from "./useChatSearch";
 import { useMessageHoldActions } from "./useMessageHoldActions";
 import { useChatRoster } from "./useChatRoster";
@@ -338,7 +338,7 @@ export function useChatRoom({
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedLoop?.id) return;
-    triggerHaptic(10);
+    haptic.snap();
     const textToSend = newMessage.trim();
     setNewMessage("");
 

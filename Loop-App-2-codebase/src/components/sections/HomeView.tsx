@@ -5,8 +5,9 @@ import { useLoop } from "@/lib/LoopContext";
 import { formatLocation } from "@/lib/locationFormatter";
 import { MapPin, Search, X, Repeat } from "lucide-react";
 import { VehicleTypeIcon } from "@/components/ui/VehicleIcons";
-import { triggerHaptic } from "@/lib/haptics";
+import { triggerHaptic, haptic } from "@/lib/haptics";
 import { HandDrawnArrow, WashiTape, HandDrawnSearch } from "@/components/ui/HandDrawnIcons";
+import PullToRefresh from "@/components/ui/PullToRefresh";
 import type { Loop } from "@/lib/types";
 
 const POPULAR_CAMPUS_ROUTES = [
@@ -191,13 +192,34 @@ const LoopCard = React.memo(function LoopCard({
 });
 
 export default function HomeView() {
-  const { activeLoops, userJoinedLoops, userLoops, setSelectedLoop, setView, formatTime, theme, profile, setShowGenderSelect, setPendingAction, setCreatePrefill } = useLoop();
+  const {
+    activeLoops,
+    userJoinedLoops,
+    userLoops,
+    setSelectedLoop,
+    setView,
+    formatTime,
+    theme,
+    profile,
+    setShowGenderSelect,
+    setPendingAction,
+    setCreatePrefill,
+    fetchLoops,
+    fetchUserMemberships,
+  } = useLoop();
   const { border, cardBg, mutedText, isDark, isPaper } = theme;
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchLoops?.(true),
+      fetchUserMemberships?.(true),
+    ]);
+  };
+
   const handleCreateClick = () => {
-    triggerHaptic(12);
+    haptic.snap();
     const isProfileComplete = Boolean(
       profile.gender && 
       profile.display_name?.trim() && 
@@ -241,96 +263,100 @@ export default function HomeView() {
 
   if (openLoops.length === 0) {
     return (
-      <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center justify-center min-h-[55vh] text-center space-y-4 px-2 py-4">
-        <div className={`w-14 h-14 rounded-full ${isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420]" : isDark ? "bg-white/5 border border-white/10 text-[#FFC554]/60" : "bg-black/5 border border-black/10 text-[#881337]/70"} flex items-center justify-center`}>
-          <MapPin size={32} strokeWidth={1.5} />
-        </div>
-        <div>
-          <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
-          <p className={`text-xs ${mutedText} mt-1 max-w-[220px] mx-auto`}>Start a new loop or check back soon for active rides.</p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleCreateClick}
-            className={`h-10 px-5 rounded-full ${
-              isPaper
-                ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
-                : isDark
-                ? "bg-[#FFC554] text-black"
-                : "bg-[#881337] text-white"
-            } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform cursor-pointer`}
-          >
-            + Create Loop
-          </button>
-          <button
-            data-testid="wants-board-empty-btn"
-            onClick={() => setView("wants")}
-            className={`h-10 px-4 rounded-full ${
-              isPaper
-                ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
-                : `border ${border} ${cardBg}`
-            } font-black text-xs uppercase tracking-wider active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5`}
-          >
-            I Need a Ride
-          </button>
-        </div>
-
-        {/* Popular Campus Routes Quick-Start (No timings, full destination names) */}
-        <div className="w-full pt-4 text-left">
-          <div className="flex items-center justify-between mb-2">
-            <p className={`text-[11px] font-black uppercase tracking-wider ${isPaper ? "text-[#2A2420]" : mutedText}`}>
-              Popular Campus Routes
-            </p>
-            <span className={`text-[10px] ${mutedText}`}>One-tap prefill</span>
+      <PullToRefresh onRefresh={handleRefresh} isDark={isDark} isPaper={isPaper}>
+        <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center justify-center min-h-[55vh] text-center space-y-4 px-2 py-4">
+          <div className={`w-14 h-14 rounded-full ${isPaper ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420]" : isDark ? "bg-white/5 border border-white/10 text-[#FFC554]/60" : "bg-black/5 border border-black/10 text-[#881337]/70"} flex items-center justify-center`}>
+            <MapPin size={32} strokeWidth={1.5} />
           </div>
-          <div className="grid grid-cols-1 gap-2.5">
-            {POPULAR_CAMPUS_ROUTES.map((hub) => (
-              <div
-                key={hub.id}
-                className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 ${
-                  isPaper
-                    ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
-                    : `${cardBg} border ${border} shadow-sm`
-                }`}
-              >
-                <div className="flex-1 min-w-0 pr-1">
-                  <p className={`font-bold text-xs sm:text-[13px] leading-tight break-words ${
-                    isPaper ? "text-[#2A2420]" : isDark ? "text-white" : "text-zinc-900"
-                  }`}>
-                    {hub.name}
-                  </p>
-                  <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${
-                    isPaper ? "text-[#6B6660]" : "text-zinc-500"
-                  }`}>
-                    {hub.subtitle}
-                  </p>
-                </div>
-                <button
-                  data-testid={`transit-hub-${hub.id}-btn`}
-                  onClick={() => {
-                    setCreatePrefill({ destination: hub.destination, startPoint: "VIT-AP Campus" });
-                    handleCreateClick();
-                  }}
-                  className={`px-3 py-1.5 rounded-xl font-black text-[11px] uppercase tracking-wider shrink-0 active:scale-95 transition-all cursor-pointer ${
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em]">No Active Loops</p>
+            <p className={`text-xs ${mutedText} mt-1 max-w-[220px] mx-auto`}>Start a new loop or check back soon for active rides.</p>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleCreateClick}
+              className={`h-10 px-5 rounded-full ${
+                isPaper
+                  ? "bg-[#FFC554] text-[#2A2420] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                  : isDark
+                  ? "bg-[#FFC554] text-black"
+                  : "bg-[#881337] text-white"
+              } font-black text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform cursor-pointer`}
+            >
+              + Create Loop
+            </button>
+            <button
+              data-testid="wants-board-empty-btn"
+              onClick={() => setView("wants")}
+              className={`h-10 px-4 rounded-full ${
+                isPaper
+                  ? "bg-[#FAF8F5] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                  : `border ${border} ${cardBg}`
+              } font-black text-xs uppercase tracking-wider active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5`}
+            >
+              I Need a Ride
+            </button>
+          </div>
+
+          {/* Popular Campus Routes Quick-Start (No timings, full destination names) */}
+          <div className="w-full pt-4 text-left">
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-[11px] font-black uppercase tracking-wider ${isPaper ? "text-[#2A2420]" : mutedText}`}>
+                Popular Campus Routes
+              </p>
+              <span className={`text-[10px] ${mutedText}`}>One-tap prefill</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2.5">
+              {POPULAR_CAMPUS_ROUTES.map((hub) => (
+                <div
+                  key={hub.id}
+                  className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 ${
                     isPaper
-                      ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
-                      : isDark
-                      ? "bg-[#FFC554] text-black shadow-xs"
-                      : "bg-[#881337] text-white shadow-xs"
+                      ? "bg-[#FAF8F5] border-2 border-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+                      : `${cardBg} border ${border} shadow-sm`
                   }`}
                 >
-                  START RIDE
-                </button>
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0 pr-1">
+                    <p className={`font-bold text-xs sm:text-[13px] leading-tight break-words ${
+                      isPaper ? "text-[#2A2420]" : isDark ? "text-white" : "text-zinc-900"
+                    }`}>
+                      {hub.name}
+                    </p>
+                    <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${
+                      isPaper ? "text-[#6B6660]" : "text-zinc-500"
+                    }`}>
+                      {hub.subtitle}
+                    </p>
+                  </div>
+                  <button
+                    data-testid={`transit-hub-${hub.id}-btn`}
+                    onClick={() => {
+                      haptic.tap();
+                      setCreatePrefill({ destination: hub.destination, startPoint: "VIT-AP Campus" });
+                      handleCreateClick();
+                    }}
+                    className={`px-3 py-1.5 rounded-xl font-black text-[11px] uppercase tracking-wider shrink-0 active:scale-95 transition-all cursor-pointer ${
+                      isPaper
+                        ? "bg-[#FFC554] text-[#2A2420] border border-[#2A2420] shadow-[1px_1px_0px_#2A2420]"
+                        : isDark
+                        ? "bg-[#FFC554] text-black shadow-xs"
+                        : "bg-[#881337] text-white shadow-xs"
+                    }`}
+                  >
+                    START RIDE
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     );
   }
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden space-y-3 pt-1 pb-8">
+    <PullToRefresh onRefresh={handleRefresh} isDark={isDark} isPaper={isPaper}>
+      <div className="w-full max-w-full overflow-x-hidden space-y-3 pt-1 pb-8">
       {/* Pill Search Bar */}
       <div className={`relative w-full h-[42px] ${cardBg} rounded-full flex items-center px-3.5 gap-2.5 transition-all ${
         isPaper
@@ -428,12 +454,13 @@ export default function HomeView() {
           border={border}
           timeFormatted={formatTime(loop.departure_time)}
           onSelect={() => {
-            triggerHaptic(10);
+            haptic.tap();
             setSelectedLoop(loop);
             setView("ride-details");
           }}
         />
       ))}
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

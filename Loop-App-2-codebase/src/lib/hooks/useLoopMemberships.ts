@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { toast } from "@/components/ui/NativeToast";
+import { haptic } from "@/lib/haptics";
 import type { Session } from "@supabase/supabase-js";
 import type { Loop, Profile, View } from "@/lib/types";
 
@@ -178,6 +179,7 @@ export function useLoopMemberships({
         setActiveLoops((prev) => prev.map((l) => (l.id === loop.id ? updatedLoop : l)));
         setChatSource("ride-details");
         setView("chat");
+        haptic.success();
         toast.success("Joined loop!");
 
         fetchLoops(true);
@@ -271,6 +273,7 @@ export function useLoopMemberships({
         setActiveLoops((prev) => prev.map((l) => (l.id === loopId ? updatedLoop : l)));
       }
       setView("home");
+      haptic.warning();
       toast.success("Left loop");
 
       const { error } = await supabase.from("loop_members").delete().eq("loop_id", loopId).eq("user_id", session.user.id);

@@ -7,7 +7,7 @@ import { useLoop } from "@/lib/LoopContext";
 import { toast } from "@/components/ui/NativeToast";
 import { Repeat } from "lucide-react";
 import { getLocalTodayStr, buildDepartureDate } from "@/lib/dateFormatter";
-import { triggerHaptic } from "@/lib/haptics";
+import { triggerHaptic, haptic } from "@/lib/haptics";
 import { formatLocation } from "@/lib/locationFormatter";
 import ReturnTripModal, { PrimaryLoopDetails } from "./ReturnTripModal";
 import RouteSelectorCard from "@/components/create/RouteSelectorCard";
@@ -226,7 +226,9 @@ export default function CreateView() {
           setView("home");
           fetchLoops(true);
           fetchUserMemberships(true);
+          haptic.success();
         } else {
+          haptic.success();
           toast.success(isDriver ? "Ride offer created!" : "Loop created!");
           const primaryInfo: PrimaryLoopDetails = {
             id: data.id,
