@@ -26,7 +26,7 @@ describe("OfflineIndicator Component", () => {
     });
 
     render(<OfflineIndicator isDark={true} />);
-    expect(screen.queryByText(/offline mode/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/offline/i)).not.toBeInTheDocument();
   });
 
   it("surfaces offline badge when offline event fires", () => {
@@ -36,7 +36,7 @@ describe("OfflineIndicator Component", () => {
       window.dispatchEvent(new Event("offline"));
     });
 
-    expect(screen.getByText(/offline mode • showing cached rides/i)).toBeInTheDocument();
+    expect(screen.getByText(/offline/i)).toBeInTheDocument();
   });
 
   it("shows synced badge and re-fetches rides when online event fires", () => {
@@ -45,13 +45,13 @@ describe("OfflineIndicator Component", () => {
     act(() => {
       window.dispatchEvent(new Event("offline"));
     });
-    expect(screen.getByText(/offline mode/i)).toBeInTheDocument();
+    expect(screen.getByText(/offline/i)).toBeInTheDocument();
 
     act(() => {
       window.dispatchEvent(new Event("online"));
     });
 
-    expect(screen.getByText(/back online • synced/i)).toBeInTheDocument();
+    expect(screen.getByText(/synced/i)).toBeInTheDocument();
     expect(mockFetchLoops).toHaveBeenCalledWith(true);
     expect(mockFetchUserMemberships).toHaveBeenCalledWith(true);
   });

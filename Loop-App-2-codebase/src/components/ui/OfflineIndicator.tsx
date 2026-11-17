@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { WifiOff, CheckCircle2 } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { useLoop } from "@/lib/LoopContext";
 
@@ -17,7 +16,6 @@ export default function OfflineIndicator({ isDark, isPaper = false }: OfflineInd
   const reconnectedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Initial check
     if (typeof window !== "undefined" && typeof navigator !== "undefined") {
       setIsOffline(!navigator.onLine);
     }
@@ -42,7 +40,7 @@ export default function OfflineIndicator({ isDark, isPaper = false }: OfflineInd
       }
       reconnectedTimeoutRef.current = setTimeout(() => {
         setShowReconnected(false);
-      }, 2600);
+      }, 1800);
     };
 
     window.addEventListener("offline", handleOffline);
@@ -63,38 +61,35 @@ export default function OfflineIndicator({ isDark, isPaper = false }: OfflineInd
     <div
       role="status"
       aria-live="polite"
-      className="w-full px-4 pt-1 pb-1 z-30 animate-fade-in flex justify-center shrink-0"
+      className="fixed top-2.5 left-1/2 -translate-x-1/2 z-[100] pointer-events-none transition-all duration-300 animate-ios-fade"
     >
       <div
-        className={`px-3.5 py-1 rounded-full text-xs font-black flex items-center gap-2 select-none shadow-sm transition-all duration-300 ${
+        className={`h-6 px-3 rounded-full flex items-center gap-1.5 select-none text-[10px] font-black uppercase tracking-widest ${
           isOffline
             ? isPaper
-              ? "bg-[#FFE8A3] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+              ? "bg-[#FAF7EE] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
               : isDark
-              ? "bg-amber-500/15 border border-amber-500/30 text-amber-300"
-              : "bg-amber-100 border border-amber-300 text-amber-900"
+              ? "bg-black/90 border border-[#FFC554]/40 text-[#FFC554] shadow-lg shadow-black/80 backdrop-blur-md"
+              : "bg-white/95 border border-zinc-300 text-zinc-900 shadow-sm backdrop-blur-md"
             : isPaper
-            ? "bg-[#D1F2D9] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
+            ? "bg-[#FAF7EE] border-2 border-[#2A2420] text-[#2A2420] shadow-[2px_2px_0px_#2A2420]"
             : isDark
-            ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
-            : "bg-emerald-100 border border-emerald-300 text-emerald-900"
+            ? "bg-black/90 border border-emerald-500/40 text-emerald-400 shadow-lg shadow-black/80 backdrop-blur-md"
+            : "bg-white/95 border border-emerald-500/30 text-emerald-700 shadow-sm backdrop-blur-md"
         }`}
       >
-        {isOffline ? (
-          <>
-            <WifiOff size={13} strokeWidth={2.6} className="animate-pulse shrink-0" />
-            <span className="tracking-tight text-[11px]">
-              Offline Mode • Showing cached rides
-            </span>
-          </>
-        ) : (
-          <>
-            <CheckCircle2 size={13} strokeWidth={2.6} className="shrink-0 text-emerald-500" />
-            <span className="tracking-tight text-[11px]">
-              Back Online • Synced
-            </span>
-          </>
-        )}
+        <span
+          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+            isOffline
+              ? isPaper
+                ? "bg-[#2A2420] animate-pulse"
+                : isDark
+                ? "bg-[#FFC554] animate-pulse"
+                : "bg-zinc-800 animate-pulse"
+              : "bg-emerald-500"
+          }`}
+        />
+        <span>{isOffline ? "Offline" : "Synced"}</span>
       </div>
     </div>
   );
