@@ -14,7 +14,6 @@ import BottomNav from "./BottomNav";
 import GenderModal from "./GenderModal";
 import EmergencyContactModal from "./EmergencyContactModal";
 import SosModal from "./SosModal";
-import OfflineIndicator from "@/components/ui/OfflineIndicator";
 
 // Heavy, conditional screens and modals are split out so the first paint only
 // pays for Home + navigation. BuyCoffeeModal also pulls in the QR encoder.
@@ -141,8 +140,6 @@ function AppContent() {
       {/* When in past-loops or wants, the view manages its own top bar / back button */}
       {view !== "past-loops" && view !== "wants" && <AppHeader />}
 
-      {/* Real-time Highway Offline Indicator */}
-      <OfflineIndicator isDark={isDark} isPaper={isPaper} />
 
       {/* Chat gets its own full-height container with native Apple push/pop physics */}
       {view === "chat" ? (
