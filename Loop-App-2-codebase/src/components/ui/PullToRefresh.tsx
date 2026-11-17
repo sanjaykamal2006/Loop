@@ -26,6 +26,7 @@ export default function PullToRefresh({
 }: PullToRefreshProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pullY, setPullY] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -42,6 +43,7 @@ export default function PullToRefresh({
     if (container.scrollTop <= 2) {
       startYRef.current = e.touches[0].clientY;
       isPullingRef.current = true;
+      setIsPulling(true);
       thresholdReachedRef.current = false;
     }
   };
@@ -51,6 +53,7 @@ export default function PullToRefresh({
     const container = containerRef.current;
     if (!container || container.scrollTop > 2) {
       isPullingRef.current = false;
+      setIsPulling(false);
       setPullY(0);
       return;
     }
@@ -78,6 +81,7 @@ export default function PullToRefresh({
   const handleTouchEnd = useCallback(async () => {
     if (!isPullingRef.current || isRefreshing || disabled) return;
     isPullingRef.current = false;
+    setIsPulling(false);
     startYRef.current = null;
 
     if (pullY >= PULL_THRESHOLD) {
@@ -171,7 +175,7 @@ export default function PullToRefresh({
       <div
         style={{
           transform: `translateY(${pullY * 0.48}px)`,
-          transition: isPullingRef.current ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: isPulling ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {children}

@@ -8,7 +8,7 @@ import type { Message, Loop, LoopMember, Profile, View } from "@/lib/types";
 import type { Session } from "@supabase/supabase-js";
 import { LRUCache } from "@/lib/cache";
 import { formatDepartureFull } from "@/lib/dateFormatter";
-import { triggerHaptic, haptic } from "@/lib/haptics";
+import { haptic } from "@/lib/haptics";
 import { useChatSearch } from "./useChatSearch";
 import { useMessageHoldActions } from "./useMessageHoldActions";
 import { useChatRoster } from "./useChatRoster";
